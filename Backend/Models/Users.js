@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const passportLocalMongoose = require("passport-local-mongoose");
 
 const UserSchema = new Schema({
   googleId: {
@@ -17,6 +18,15 @@ const UserSchema = new Schema({
   phone: {
     type: String,
     default: "",
+  },
+  gender: {
+    type: String,
+    default: "Other",
+    enum: ["Male", "Female", "Other"],
+  },
+  birthday: {
+    type: Date,
+    default: undefined,
   },
   address: {
     type: String,
@@ -42,4 +52,5 @@ const UserSchema = new Schema({
   },
 });
 
+UserSchema.plugin(passportLocalMongoose);
 module.exports = mongoose.model("Users", UserSchema);
