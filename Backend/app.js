@@ -6,7 +6,20 @@ var logger = require("morgan");
 
 const mongoose = require("./Loaders/Mongoose");
 
+const admin = require("firebase-admin");
+const config = require("./Configurations/Config");
+
+const serviceAccount =
+  require("./Configurations/FirebaseConfig").serviceAccount;
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  storageBucket: config.storage_bucket,
+});
+
 const UserRouter = require("./Routers/UsersRouter");
+const CourseRouter = require("./Routers/CourseRouter");
+const LessonRouter = require("./Routers/LessonRouter");
 
 var app = express();
 
@@ -23,6 +36,8 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/api/users", UserRouter);
+app.use("/api/courses", CourseRouter);
+app.use("/api/lessons", LessonRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
