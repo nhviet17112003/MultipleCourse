@@ -6,6 +6,7 @@ const router = express.Router();
 
 router.post(
   "/create-lesson/:course_id",
+  cors.corsWithOptions,
   auth.verifyUser,
   auth.verifyTutor,
   lessonController.createLesson
@@ -13,10 +14,16 @@ router.post(
 
 router.get(
   "/all-lessons/:course_id",
+  cors.corsWithOptions,
   auth.verifyUser,
   lessonController.getAllLessons
 );
 
-router.get("/:lesson_id", auth.verifyUser, lessonController.getLessonById);
+router.get(
+  "/:lesson_id",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  lessonController.getLessonById
+);
 
 module.exports = router;

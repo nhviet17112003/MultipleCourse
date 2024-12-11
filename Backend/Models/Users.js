@@ -50,6 +50,10 @@ const UserSchema = new Schema({
     type: Date,
     default: undefined,
   },
+  status: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 UserSchema.plugin(passportLocalMongoose);
