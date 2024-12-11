@@ -218,3 +218,19 @@ exports.updateUser = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+exports.uploadCertificate = async (req, res) => {
+  try {
+    const user = await Users.findOne({ _id: req.params.id });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    user.tutor_certificates = req.body.certificate;
+    user.save();
+    res.status(200).json({ message: "Certificate uploaded" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
