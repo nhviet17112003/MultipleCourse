@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const CertificateSchema = new Schema({
+const StudentCertificateSchema = new Schema({
   title: {
     type: String,
     required: true,
@@ -34,4 +34,4 @@ const CertificateSchema = new Schema({
   },
 });
 
-module.exports = mongoose.model("Certificates", CertificateSchema);
+module.exports = mongoose.model("StudentCertificates", CertificateSchema);

@@ -37,5 +37,10 @@ router.get(
   auth.verifyAdmin,
   userController.getAllUsers
 );
+router.post(
+  "/upload-certificate/:id",
+  cors.corsWithOptions,
+  userController.uploadCertificate
+);
 
 module.exports = router;

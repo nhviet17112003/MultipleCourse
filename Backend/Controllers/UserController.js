@@ -18,6 +18,7 @@ exports.signUp = async (req, res) => {
         username: req.body.username,
         fullname: req.body.fullname,
         role: req.body.role || "Student",
+        status: req.body.status || true,
       }),
       req.body.password,
       (err, user) => {
