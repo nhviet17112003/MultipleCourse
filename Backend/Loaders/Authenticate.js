@@ -42,12 +42,22 @@ exports.verifyAdmin = (req, res, next) => {
   } else {
     res.statusCode = 403;
     res.setHeader("Content-Type", "application/json");
-    res.end("You are not authorized to perform this operation!");
+    res.end("You are not authorized to perform this operation!1");
   }
 };
 
 exports.verifyTutor = (req, res, next) => {
   if (req.user.role === "Tutor") {
+    return next();
+  } else {
+    res.statusCode = 403;
+    res.setHeader("Content-Type", "application/json");
+    res.end("You are not authorized to perform this operation!");
+  }
+};
+
+exports.verifyAdminOrTutor = (req, res, next) => {
+  if (req.user.role === "Tutor" || req.user.role === "Admin") {
     return next();
   } else {
     res.statusCode = 403;

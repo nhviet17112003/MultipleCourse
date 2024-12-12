@@ -31,4 +31,11 @@ router.post(
   auth.verifyTutor,
   courseController.createCourse
 );
+router.put(
+  "/change-course-status/:course_id",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  auth.verifyAdminOrTutor,
+  courseController.changeCourseStatus
+);
 module.exports = router;

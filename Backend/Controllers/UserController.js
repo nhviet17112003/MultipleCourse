@@ -165,6 +165,17 @@ exports.confirmOTP = async (req, res) => {
   }
 };
 
+//get all users EXCEPT ADMIN
+exports.getAllUsersExceptAdmin = async (req, res) => {
+  try {
+    const users = await Users.find({ role: { $ne: "Admin" } });
+    res.status(200).json(users);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 //get all users
 exports.getAllUsers = async (req, res) => {
   try {
@@ -229,6 +240,29 @@ exports.uploadCertificate = async (req, res) => {
     user.tutor_certificates = req.body.certificate;
     user.save();
     res.status(200).json({ message: "Certificate uploaded" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.banAndUnbanUser = async (req, res) => {
+  try {
+    const user = await Users.findOne({ _id: req.params.id });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    if (user.role === "Admin") {
+      return res.status(400).json({ message: "Cannot ban or unban admin" });
+    }
+    user.status = !user.status;
+    user.save();
+    if (user.status) {
+      res.status(200).json({ message: "User unbanned" });
+    } else {
+      res.status(200).json({ message: "User banned" });
+    }
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Internal Server Error" });
