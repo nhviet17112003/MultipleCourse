@@ -110,3 +110,23 @@ exports.createCourse = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+exports.changeCourseStatus = async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.course_id);
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    course.status = !course.status;
+    await course.save();
+    if (course.status == false) {
+      res.status(200).json({ message: "Course now is not available" });
+    } else {
+      res.status(200).json({ message: "Course now is available" });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
