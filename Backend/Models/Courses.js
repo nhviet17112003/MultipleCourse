@@ -55,6 +55,10 @@ const CourseSchema = new Schema({
     type: Date,
     default: Date.now,
   },
+  status: {
+    type: Boolean,
+    default: false,
+  },
   comments: [CommentsSchemma],
 });
 

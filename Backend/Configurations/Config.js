@@ -5,4 +5,7 @@ module.exports = {
   secretKey: process.env.SECRET_KEY,
   email: process.env.EMAIL,
   password: process.env.PASSWORD,
+
+  //Firebase
+  storage_bucket: "multicourse-e86d1.firebasestorage.app",
 };

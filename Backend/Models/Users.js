@@ -42,6 +42,12 @@ const UserSchema = new Schema({
     default: "Student",
     enum: ["Student", "Admin", "Tutor"],
   },
+  tutor_certificates: [
+    {
+      type: String,
+      default: undefined,
+    },
+  ],
   resetPasswordOTP: {
     type: String,
     default: undefined,
@@ -49,6 +55,10 @@ const UserSchema = new Schema({
   resetPasswordExpires: {
     type: Date,
     default: undefined,
+  },
+  status: {
+    type: Boolean,
+    default: true,
   },
 });
 
