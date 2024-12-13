@@ -63,7 +63,7 @@ exports.signUp = async (req, res) => {
     );
   } catch (err) {
     console.log(err);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -312,7 +312,7 @@ exports.uploadCertificate = async (req, res) => {
       return res.status(400).json({ message: "User not found" });
     }
 
-    const newCertificates = req.body.certificate;
+    const newCertificates = req.body.certificates;
 
     // Kiểm tra nếu `tutor_certificates` đã tồn tại, thêm các chứng chỉ chưa có
     if (user.tutor_certificates && user.tutor_certificates.length > 0) {

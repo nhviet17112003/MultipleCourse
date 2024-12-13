@@ -22,6 +22,8 @@ const CourseRouter = require("./Routers/CourseRouter");
 const LessonRouter = require("./Routers/LessonRouter");
 
 var app = express();
+const cors = require('cors');
+app.use(cors());
 
 app.connect = mongoose;
 
