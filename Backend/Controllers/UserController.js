@@ -237,12 +237,20 @@ exports.uploadCertificate = async (req, res) => {
     if (!user) {
       return res.status(400).json({ message: "User not found" });
     }
+
     const newCertificates = req.body.certificate;
-    // Nếu `tutor_certificates` đã tồn tại, thêm những cái chưa có
+
+    // Kiểm tra nếu `tutor_certificates` đã tồn tại, thêm các chứng chỉ chưa có
     if (user.tutor_certificates && user.tutor_certificates.length > 0) {
-      for (let certificate of newCertificates) {
-        if (!user.tutor_certificates.includes(certificate)) {
-          user.tutor_certificates.push(certificate);
+      for (let newCert of newCertificates) {
+        // Kiểm tra xem chứng chỉ đã tồn tại chưa trước khi thêm vào
+        const exists = user.tutor_certificates.some(
+          (cert) =>
+            cert.title === newCert.title &&
+            cert.certificate_url === newCert.certificate_url
+        );
+        if (!exists) {
+          user.tutor_certificates.push(newCert);
         }
       }
     } else {

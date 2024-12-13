@@ -44,8 +44,8 @@ const UserSchema = new Schema({
   },
   tutor_certificates: [
     {
-      type: String,
-      default: undefined,
+      title: { type: String, required: true },
+      certificate_url: { type: String, required: true },
     },
   ],
   resetPasswordOTP: {
