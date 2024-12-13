@@ -18,6 +18,7 @@
     const [successMessage, setSuccessMessage] = useState("");
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [termsError, setTermsError] = useState("");
+    const [role, setRole] = useState("Student"); // Thêm state role
     const [agreeTerms, setAgreeTerms] = useState(false);
     const [showSuccessPopup, setShowSuccessPopup] = useState(false); // Hiển thị popup
     const [usernameError, setUsernameError] = useState("");  // State for username error
@@ -61,13 +62,25 @@
             birthday,
             address,
             password,
+            role
           }
         );
+    
+        // Lưu ID người dùng
+        const userId = response.data.user_id;  // Lấy ID từ response
+        console.log(userId);
         setSuccessMessage("Đăng ký thành công!");
         setShowSuccessPopup(true); // Hiển thị popup
         setTimeout(() => {
           setShowSuccessPopup(false);
-          navigate("/login"); // Chuyển về trang đăng nhập
+    
+          // Kiểm tra lại role trước khi điều hướng
+          if (role === "Tutor") {
+            // Chuyển đến trang UploadTutorCertificate với id người dùng
+            navigate(`/uploadtutorcertificate/${userId}`);
+          } else {
+            navigate("/login"); // Chuyển về trang đăng nhập nếu role là student
+          }
         }, 3000); // 3 giây
       } catch (err) {
         setError("Đã có lỗi xảy ra. Vui lòng thử lại.");
@@ -263,6 +276,24 @@
               {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
             </span>
           </div>
+          <div className="mb-4">
+          <label
+            htmlFor="role"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Chọn Role
+          </label>
+          <select
+            id="role"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            className="mt-2 p-3 pr-10 w-full border border-teal-400 rounded-full focus:outline-none focus:ring-2 focus:ring-teal-400 shadow-sm"
+            required
+          >
+            <option value="Student">Student</option>
+            <option value="Tutor">Tutor</option>
+          </select>
+        </div>
 
           <div className="flex items-center mt-4">
             <input
