@@ -4,6 +4,7 @@ const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const Users = require("../Models/Users");
 const config = require("../Configurations/Config");
+const { cert } = require("firebase-admin/app");
 
 //Sign up
 exports.signUp = async (req, res) => {
@@ -236,10 +237,24 @@ exports.uploadCertificate = async (req, res) => {
     if (!user) {
       return res.status(400).json({ message: "User not found" });
     }
+    const newCertificates = req.body.certificate;
+    // Nếu `tutor_certificates` đã tồn tại, thêm những cái chưa có
+    if (user.tutor_certificates && user.tutor_certificates.length > 0) {
+      for (let certificate of newCertificates) {
+        if (!user.tutor_certificates.includes(certificate)) {
+          user.tutor_certificates.push(certificate);
+        }
+      }
+    } else {
+      // Nếu `tutor_certificates` chưa tồn tại, gán trực tiếp mảng mới
+      user.tutor_certificates = newCertificates;
+    }
 
-    user.tutor_certificates = req.body.certificate;
     user.save();
-    res.status(200).json({ message: "Certificate uploaded" });
+    res.status(200).json({
+      message: "Certificate uploaded",
+      certificates: user.tutor_certificates,
+    });
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Internal Server Error" });
