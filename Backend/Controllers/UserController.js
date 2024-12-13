@@ -4,7 +4,38 @@ const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const Users = require("../Models/Users");
 const config = require("../Configurations/Config");
-const { cert } = require("firebase-admin/app");
+const multer = require("multer");
+const admin = require("firebase-admin");
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+async function uploadFileToStorage(file, folderPath) {
+  const bucket = admin.storage().bucket();
+  const blob = bucket.file(folderPath + file.originalname);
+  const blobStream = blob.createWriteStream({
+    metadata: {
+      contentType: file.mimetype,
+    },
+  });
+  blobStream.on("error", (err) => {
+    console.log(err);
+  });
+  blobStream.on("finish", async () => {
+    await blob.makePublic();
+  });
+  blobStream.end(file.buffer);
+
+  // Wait for the blob upload to complete
+  await new Promise((resolve, reject) => {
+    blobStream.on("finish", resolve);
+    blobStream.on("error", reject);
+  });
+
+  // Return the public URL
+  const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
+  return publicUrl;
+}
 
 //Sign up
 exports.signUp = async (req, res) => {
@@ -224,13 +255,56 @@ exports.updateUser = async (req, res) => {
 
     user.save();
 
-    res.status(200).json({ message: "User updated" });
+    res.status(200).json({ message: "User updated", user: user });
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
+//upload avatar
+exports.uploadAvatar = async (req, res) => {
+  try {
+    const user = await Users.findOne({ _id: req.user._id });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+    upload.single("avatar")(req, res, async (err) => {
+      if (err) {
+        console.log(err);
+        res.status(500).json({ message: "Internal Server Error" });
+      }
+
+      if (user.avatar) {
+        // Xoá hình ảnh cũ trên Firebase Storage
+        const bucket = admin.storage().bucket();
+        const filename = user.avatar
+          .split("Avatar/" + user.fullname + "/")
+          .pop();
+        const file = bucket.file("Avatar/" + user.fullname + "/" + filename);
+        await file.delete().catch((err) => {
+          console.log(err);
+        });
+      }
+
+      let avatarUrl = null;
+      if (req.file) {
+        // Upload hình ảnh lên Firebase Storage
+        const folderPath = "Avatar/" + user.fullname + "/"; // Thay đổi theo cấu trúc thư mục bạn muốn
+        avatarUrl = await uploadFileToStorage(req.file, folderPath);
+      }
+
+      user.avatar = avatarUrl;
+      user.save();
+      res.status(200).json({ message: "Avatar uploaded", avatar: avatarUrl });
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+//update tutor cetificate
 exports.uploadCertificate = async (req, res) => {
   try {
     const user = await Users.findOne({ _id: req.params.id });

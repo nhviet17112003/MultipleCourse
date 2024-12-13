@@ -34,8 +34,7 @@ const UserSchema = new Schema({
   },
   avatar: {
     type: String,
-    default:
-      "https://www.google.com.vn/url?sa=i&url=https%3A%2F%2Fwww.freepik.com%2Fpremium-vector%2Fdefault-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-vector-illustration_136210460.htm&psig=AOvVaw0iy-Yx1A33fESvMObkeIXC&ust=1731565501739000&source=images&cd=vfe&opi=89978449&ved=0CBQQjRxqFwoTCKjnharW2IkDFQAAAAAdAAAAABAo",
+    default: null,
   },
   role: {
     type: String,
