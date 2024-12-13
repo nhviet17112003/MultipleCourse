@@ -30,6 +30,13 @@ router.post(
   userController.updateUser
 );
 
+router.post(
+  "/upload-avatar",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  userController.uploadAvatar
+);
+
 router.get(
   "/profile",
   cors.corsWithOptions,
