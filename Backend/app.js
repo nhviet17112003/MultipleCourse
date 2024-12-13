@@ -9,6 +9,8 @@ const mongoose = require("./Loaders/Mongoose");
 const UserRouter = require("./Routers/UsersRouter");
 
 var app = express();
+const cors = require('cors');
+app.use(cors());
 
 app.connect = mongoose;
 
