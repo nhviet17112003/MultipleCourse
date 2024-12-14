@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const ExamSchema = new Schema({
-  course: {
+  course_id: {
     type: Schema.Types.ObjectId,
     ref: "Courses",
     required: true,
@@ -15,6 +15,15 @@ const ExamSchema = new Schema({
     {
       question: {
         type: String,
+        required: true,
+      },
+      questionType: {
+        type: String,
+        required: true,
+        enum: ["Multiple Choice", "One Choice"],
+      },
+      marks: {
+        type: Number,
         required: true,
       },
       answers: [

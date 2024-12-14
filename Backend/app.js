@@ -20,9 +20,10 @@ admin.initializeApp({
 const UserRouter = require("./Routers/UsersRouter");
 const CourseRouter = require("./Routers/CourseRouter");
 const LessonRouter = require("./Routers/LessonRouter");
+const ExamRouter = require("./Routers/ExamRouter");
 
 var app = express();
-const cors = require('cors');
+const cors = require("cors");
 app.use(cors());
 
 app.connect = mongoose;
@@ -40,6 +41,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/api/users", UserRouter);
 app.use("/api/courses", CourseRouter);
 app.use("/api/lessons", LessonRouter);
+app.use("/api/exams", ExamRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
