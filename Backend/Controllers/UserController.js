@@ -53,10 +53,15 @@ exports.signUp = async (req, res) => {
         status: req.body.status || true,
       }),
       req.body.password,
-      (err, user) => {
+      async (err, user) => {
         if (err) {
           return res.status(400).json({ message: err.message });
         } else {
+          user.phone = req.body.phone;
+          user.gender = req.body.gender;
+          user.birthday = req.body.birthday;
+          user.address = req.body.address;
+          await user.save();
           res.status(200).json({ message: "User created", user_id: user._id });
         }
       }
