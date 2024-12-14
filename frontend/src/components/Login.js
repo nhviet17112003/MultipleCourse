@@ -9,7 +9,6 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(""); // Cho thông báo tài khoản/mật khẩu
-  const [termsError, setTermsError] = useState(""); // Cho thông báo điều khoản
   const [successMessage, setSuccessMessage] = useState("");
 
   const navigate = useNavigate();
@@ -24,39 +23,33 @@ const Login = () => {
   }, [error]);
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    const response = await axios.post(
-      "http://localhost:3000/api/users/login",
-      {
-        username,
-        password,
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/api/users/login",
+        {
+          username,
+          password,
+        }
+      );
+
+      if (response.status === 200) {
+        setSuccessMessage("Đăng nhập thành công!");
+        setError(""); // Reset error message if successful
+          // Lưu token vào localStorage
+      localStorage.setItem("authToken", response.data.token);
+
+        console.log(response.data); // Kiểm tra dữ liệu trả về từ API
+        navigate("/userprofile"); // Điều hướng đến trang Home sau khi đăng nhập thành công
       }
-    );
-
-    if (response.status === 200) {
-      setSuccessMessage("Đăng nhập thành công!");
-      setError(""); // Reset error message if successful
-      
-      console.log(response.data); // Kiểm tra dữ liệu trả về từ API
-
-      const userRole = response.data.role; // Giả sử API trả về vai trò trong trường 'role'
-      if (userRole === "student") {
-        navigate("/student"); // Chuyển hướng đến trang Student
-      } else if (userRole === "tutor") {
-        navigate("/UploadTutorCertificate"); // Chuyển hướng đến trang Upload Tutor Certificate
-      } else {
-        setError("Vai trò không xác định.");
+    } catch (err) {
+      if (err.response) {
+        setError("Tài khoản hoặc mật khẩu không đúng.");
+        setSuccessMessage("");
       }
     }
-  } catch (err) {
-    if (err.response) {
-      setError("Tài khoản hoặc mật khẩu không đúng.");
-      setSuccessMessage("");
-    }
-  }
-};
+  };
 
   const handleSignUp = () => {
     navigate("/signup");
@@ -164,6 +157,7 @@ const Login = () => {
             <div className="flex justify-between mb-6">
               <button
                 type="button"
+                onClick={() => navigate("/forgetpassword")}
                 className="text-teal-400 hover:underline focus:outline-none"
               >
                 Quên mật khẩu
