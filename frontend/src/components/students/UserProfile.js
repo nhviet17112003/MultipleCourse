@@ -7,58 +7,63 @@ const UserProfile = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false); // State để hiển thị pop-up
-  const [oldPassword, setOldPassword] = useState(""); // Mật khẩu cũ
-  const [newPassword, setNewPassword] = useState(""); // Mật khẩu mới
-  const [confirmPassword, setConfirmPassword] = useState(""); // Xác nhận mật khẩu mới
-  // Hàm fetch lại dữ liệu người dùng
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  // Fetch user data
   const fetchUserProfile = async () => {
     const token = localStorage.getItem("authToken");
 
     if (!token) {
-      setError("Vui lòng đăng nhập để xem thông tin người dùng.");
+      setError("You are not logged in. Please log in again.");
+      navigate("/login"); // Redirect to login page
       return;
     }
 
     try {
       setLoading(true);
-      const response = await axios.get("http://localhost:3000/api/users/profile", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setUserData(response.data);
+      const response = await axios.get(
+        "http://localhost:3000/api/users/profile",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setUserData(response.data); // Save user data
     } catch (err) {
-      setError("Không thể lấy thông tin người dùng.");
+      setError("Your session has expired. Please log in again.");
+      localStorage.removeItem("authToken"); // Remove token
+      navigate("/login"); // Redirect to login page
     } finally {
       setLoading(false);
     }
   };
 
+  // Fetch user data when component mounts
   useEffect(() => {
     fetchUserProfile();
   }, []);
 
+  // Handle case when user tries to go back to login page after logging in
   useEffect(() => {
-    const handleUpdate = () => {
-      fetchUserProfile();
-    };
-    window.addEventListener("focus", handleUpdate);
-
-    return () => {
-      window.removeEventListener("focus", handleUpdate);
-    };
-  }, []);
+    const token = localStorage.getItem("authToken");
+    if (token && window.location.pathname === "/login") {
+      navigate("/userprofile"); // Redirect to UserProfile if already logged in
+    }
+  }, [navigate]);
 
   const handleAvatarChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-  
+
     const formData = new FormData();
     formData.append("avatar", file);
-  
+
     const token = localStorage.getItem("authToken");
-  
+
     try {
       setLoading(true);
       const response = await axios.post(
@@ -71,29 +76,27 @@ const UserProfile = () => {
           },
         }
       );
-  
-      // Kiểm tra phản hồi từ API, đảm bảo response.data.avatar có đường dẫn đúng
+
       if (response.data && response.data.avatar) {
         setUserData({ ...userData, avatar: response.data.avatar });
       } else {
-        setError("Không thể tải ảnh lên.");
+        setError("Failed to upload the avatar.");
       }
     } catch (err) {
-      setError("Không thể cập nhật ảnh đại diện.");
+      setError("Unable to update avatar.");
     } finally {
       setLoading(false);
     }
   };
 
-   // Hàm xử lý thay đổi mật khẩu
-   const handleChangePassword = async () => {
+  const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
-      setError("Mật khẩu mới và xác nhận mật khẩu không khớp.");
+      setError("New password and confirmation do not match.");
       return;
     }
-  
+
     const token = localStorage.getItem("authToken");
-  
+
     try {
       setLoading(true);
       const response = await axios.post(
@@ -108,34 +111,40 @@ const UserProfile = () => {
           },
         }
       );
-  
-      console.log(response);  // In ra response để kiểm tra
-  
-      // Kiểm tra kỹ thông tin trong response
+
       if (response.data && response.data.success) {
-        alert("Mật khẩu đã được thay đổi thành công.");
-        setShowChangePasswordModal(false); // Đóng modal sau khi thay đổi mật khẩu thành công
+        alert("Password has been changed successfully.");
+        setShowChangePasswordModal(false);
       } else {
-        setError(response.data.message || "Không thể thay đổi mật khẩu. Vui lòng thử lại.");
+        setError(
+          response.data.message || "Unable to change password. Please try again."
+        );
       }
     } catch (err) {
-      console.error("Error changing password:", err);  // In lỗi nếu có
-      setError("Có lỗi xảy ra khi thay đổi mật khẩu.");
+      setError("An error occurred while changing the password.");
     } finally {
       setLoading(false);
     }
   };
+
+  const handleLogout = () => {
+    localStorage.removeItem("authToken"); // Remove token from localStorage
+    navigate("/login"); // Redirect to login page
+  };
+
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
-      <h2 className="text-3xl font-bold text-gray-700 mb-6">Thông tin người dùng</h2>
-  
+    <div className="max-w-4xl mx-auto p-6 bg-white shadow-xl rounded-lg transition-all hover:shadow-2xl">
+      <h2 className="text-3xl font-bold text-gray-800 mb-6">
+        User Information
+      </h2>
+
       {userData ? (
-        <div className="flex items-center mb-6">
+        <div className="flex items-center mb-6 space-x-6">
           <label htmlFor="avatar-upload" className="cursor-pointer">
             <img
               src={userData.avatar || "/default-avatar.png"}
               alt="Avatar"
-              className="w-24 h-24 rounded-full object-cover shadow-lg mr-6"
+              className="w-24 h-24 rounded-full object-cover shadow-lg transition-transform transform hover:scale-105"
             />
           </label>
           <input
@@ -143,84 +152,114 @@ const UserProfile = () => {
             type="file"
             accept="image/*"
             onChange={handleAvatarChange}
-            style={{ display: "none" }} // Ẩn input file đi
+            style={{ display: "none" }} // Hide file input
           />
           <div>
-            <p className="text-xl font-semibold text-gray-800">{userData.fullname}</p>
-            <p className="text-sm text-gray-500">{userData.username}</p>
+            <p className="text-xl font-semibold text-gray-700">
+              {userData.name || "User's Name"}
+            </p>
+            <p className="text-gray-500">
+              {userData.email || "email@example.com"}
+            </p>
           </div>
         </div>
       ) : (
-        <p>Đang tải thông tin người dùng...</p>
+        <p className="text-gray-500">No user information available.</p>
       )}
-  
+
       {userData && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <p><strong>Email:</strong> {userData.email}</p>
-            <p><strong>Số điện thoại:</strong> {userData.phone || "Chưa cập nhật"}</p>
-            <p><strong>Giới tính:</strong> {userData.gender}</p>
+            <p>
+              <strong>Email:</strong> {userData.email}
+            </p>
+            <p>
+              <strong>Phone number:</strong>{" "}
+              {userData.phone || "Not updated"}
+            </p>
+            <p>
+              <strong>Gender:</strong> {userData.gender}
+            </p>
           </div>
-  
+
           <div>
-            <p><strong>Địa chỉ:</strong> {userData.address || "Chưa cập nhật"}</p>
-            <p><strong>Chức vụ:</strong> {userData.role}</p>
-            <p><strong>Tình trạng:</strong> {userData.status ? "Kích hoạt" : "Không kích hoạt"}</p>
+            <p>
+              <strong>Address:</strong> {userData.address || "Not updated"}
+            </p>
+            <p>
+              <strong>Role:</strong> {userData.role}
+            </p>
+            <p>
+              <strong>Status:</strong>{" "}
+              {userData.status ? "Active" : "Inactive"}
+            </p>
           </div>
         </div>
       )}
-  
-  <div className="mt-6 text-center">
+
+      <div className="mt-6 text-center">
         <button
           className="px-6 py-2 bg-teal-500 text-white rounded-full hover:bg-teal-600 focus:outline-none"
           onClick={() => navigate("/updateprofile")}
         >
-          Chỉnh sửa thông tin
+          Edit Profile
         </button>
         <button
           className="ml-4 px-6 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:outline-none"
-          onClick={() => setShowChangePasswordModal(true)} // Hiển thị pop-up khi bấm nút
+          onClick={() => setShowChangePasswordModal(true)} // Show pop-up when clicked
         >
-          Thay đổi mật khẩu
+          Change Password
+        </button>
+        <button
+          className="ml-4 px-6 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 focus:outline-none"
+          onClick={handleLogout} // Add logout functionality
+        >
+          Logout
         </button>
       </div>
 
-      {/* Pop-up thay đổi mật khẩu */}
+      {/* Change password pop-up */}
       {showChangePasswordModal && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h3 className="text-xl font-bold mb-4">Thay đổi mật khẩu</h3>
+            <h3 className="text-xl font-bold mb-4">Change Password</h3>
 
             <div className="mb-4">
-              <label className="block text-sm font-semibold text-gray-700">Mật khẩu cũ</label>
+              <label className="block text-sm font-semibold text-gray-700">
+                Old Password
+              </label>
               <input
                 type="password"
                 value={oldPassword}
                 onChange={(e) => setOldPassword(e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded"
-                placeholder="Nhập mật khẩu cũ"
+                placeholder="Enter old password"
               />
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-semibold text-gray-700">Mật khẩu mới</label>
+              <label className="block text-sm font-semibold text-gray-700">
+                New Password
+              </label>
               <input
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded"
-                placeholder="Nhập mật khẩu mới"
+                placeholder="Enter new password"
               />
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-semibold text-gray-700">Xác nhận mật khẩu mới</label>
+              <label className="block text-sm font-semibold text-gray-700">
+                Confirm New Password
+              </label>
               <input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded"
-                placeholder="Xác nhận mật khẩu mới"
+                placeholder="Confirm new password"
               />
             </div>
 
@@ -231,13 +270,13 @@ const UserProfile = () => {
                 className="px-4 py-2 bg-teal-500 text-white rounded"
                 onClick={handleChangePassword}
               >
-                Lưu
+                Save
               </button>
               <button
                 className="px-4 py-2 bg-gray-500 text-white rounded"
                 onClick={() => setShowChangePasswordModal(false)}
               >
-                Hủy
+                Cancel
               </button>
             </div>
           </div>

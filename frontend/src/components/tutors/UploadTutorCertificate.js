@@ -1,32 +1,32 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom"; // Thêm hook useParams
+import { useParams } from "react-router-dom"; // Add the useParams hook
 
 const UploadTutorCertificate = () => {
-  const { userId } = useParams(); // Lấy userId từ URL
-  const [certificateUrl, setCertificateUrl] = useState(""); // Lưu URL chứng chỉ
-  const [title, setTitle] = useState(""); // Lưu tên chứng chỉ
-  const [loading, setLoading] = useState(false); // Trạng thái đang tải lên
-  const [message, setMessage] = useState(""); // Thông báo lỗi hoặc thành công
-  const [certificates, setCertificates] = useState([]); // Mảng lưu chứng chỉ
+  const { userId } = useParams(); // Get userId from URL
+  const [certificateUrl, setCertificateUrl] = useState(""); // Store certificate URL
+  const [title, setTitle] = useState(""); // Store certificate title
+  const [loading, setLoading] = useState(false); // Uploading status
+  const [message, setMessage] = useState(""); // Error or success message
+  const [certificates, setCertificates] = useState([]); // Array to store certificates
 
   useEffect(() => {
     if (userId) {
-      console.log("User ID từ URL: ", userId); // Xác nhận userId đã lấy đúng
+      console.log("User ID from URL: ", userId); // Confirm the userId is correctly fetched
     }
   }, [userId]);
 
-  // Hàm xử lý khi người dùng nhập URL chứng chỉ
+  // Handle certificate URL input change
   const handleUrlChange = (e) => {
     setCertificateUrl(e.target.value);
   };
 
-  // Hàm xử lý khi người dùng nhập tiêu đề chứng chỉ
+  // Handle certificate title input change
   const handleTitleChange = (e) => {
     setTitle(e.target.value);
   };
 
-  // Hàm gửi yêu cầu upload chứng chỉ
+  // Handle certificate upload submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!certificateUrl || !title) {
@@ -36,14 +36,14 @@ const UploadTutorCertificate = () => {
 
     const newCertificate = { title, certificate_url: certificateUrl };
 
-    // Kiểm tra chứng chỉ có trong mảng chưa
+    // Check if the certificate already exists in the array
     const isExist = certificates.some(
       (cert) =>
         cert.title === newCertificate.title && cert.certificate_url === newCertificate.certificate_url
     );
 
     if (!isExist) {
-      setCertificates([...certificates, newCertificate]); // Thêm chứng chỉ mới vào mảng
+      setCertificates([...certificates, newCertificate]); // Add the new certificate to the array
       setCertificateUrl(""); // Clear URL input
       setTitle(""); // Clear Title input
     } else {
@@ -53,13 +53,13 @@ const UploadTutorCertificate = () => {
 
     setLoading(true);
     try {
-      // Gửi dữ liệu tới API, truyền userId vào endpoint
+      // Send data to the API, passing userId in the endpoint
       const response = await axios.post(
-        `http://localhost:3000/api/users/upload-certificate/${userId}`, // Sử dụng userId trong URL
-        { certificates: [...certificates, newCertificate] }, // Gửi mảng chứng chỉ
+        `http://localhost:3000/api/users/upload-certificate/${userId}`, // Use userId in the URL
+        { certificates: [...certificates, newCertificate] }, // Send the certificates array
         {
           headers: {
-            "Content-Type": "application/json", // Đảm bảo gửi dưới dạng JSON
+            "Content-Type": "application/json", // Ensure sending data in JSON format
           },
         }
       );
@@ -67,8 +67,8 @@ const UploadTutorCertificate = () => {
       setLoading(false);
       setMessage(response.data.message);
 
-      // Cập nhật lại danh sách chứng chỉ từ dữ liệu trả về từ API
-      setCertificates(response.data.certificates); // Cập nhật danh sách chứng chỉ sau khi upload thành công
+      // Update the certificates list with the data returned from the API
+      setCertificates(response.data.certificates); // Update certificates after successful upload
     } catch (error) {
       setLoading(false);
       setMessage("Failed to upload certificates. Please try again.");
@@ -112,7 +112,7 @@ const UploadTutorCertificate = () => {
 
       {message && <p className="mt-4 text-center text-red-500">{message}</p>}
 
-      {/* Hiển thị các chứng chỉ đã thêm */}
+      {/* Display uploaded certificates */}
       {certificates.length > 0 && (
         <div className="mt-6">
           <h3 className="text-xl font-semibold mb-4">Uploaded Certificates:</h3>

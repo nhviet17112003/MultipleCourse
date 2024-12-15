@@ -19,7 +19,7 @@ const UpdateProfile = () => {
 
   useEffect(() => {
     if (!token) {
-      setErrorMessage("Vui lòng đăng nhập để cập nhật thông tin.");
+      setErrorMessage("Please log in to update your profile.");
       return;
     }
 
@@ -40,7 +40,7 @@ const UpdateProfile = () => {
           birthday: birthday || "",
         });
       } catch (error) {
-        setErrorMessage("Không thể lấy thông tin người dùng.");
+        setErrorMessage("Unable to retrieve user information.");
       }
     };
 
@@ -59,7 +59,7 @@ const UpdateProfile = () => {
     e.preventDefault();
 
     if (!token) {
-      setErrorMessage("Vui lòng đăng nhập để cập nhật thông tin.");
+      setErrorMessage("Please log in to update your profile.");
       return;
     }
 
@@ -74,14 +74,14 @@ const UpdateProfile = () => {
         }
       );
 
-      setSuccessMessage("Thông tin người dùng đã được cập nhật thành công!");
+      setSuccessMessage("User profile updated successfully!");
       setErrorMessage("");
-      navigate("/userprofile"); // Quay lại trang UserProfile sau khi cập nhật thành công
+      navigate("/userprofile"); // Redirect to UserProfile page after successful update
     } catch (error) {
       if (error.response) {
-        setErrorMessage(error.response.data.message || "Cập nhật thông tin thất bại. Vui lòng thử lại.");
+        setErrorMessage(error.response.data.message || "Failed to update profile. Please try again.");
       } else {
-        setErrorMessage("Đã xảy ra lỗi mạng. Vui lòng kiểm tra kết nối.");
+        setErrorMessage("Network error occurred. Please check your connection.");
       }
 
       setSuccessMessage("");
@@ -90,7 +90,7 @@ const UpdateProfile = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
-      <h2 className="text-3xl font-bold text-gray-700 mb-6">Cập nhật thông tin</h2>
+      <h2 className="text-3xl font-bold text-gray-700 mb-6">Update Profile</h2>
 
       {successMessage && (
         <div className="bg-green-100 text-green-700 p-4 rounded mb-6">
@@ -107,7 +107,7 @@ const UpdateProfile = () => {
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Họ và tên</label>
+            <label className="block text-sm font-medium text-gray-700">Full Name</label>
             <input
               type="text"
               name="fullname"
@@ -119,7 +119,7 @@ const UpdateProfile = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Số điện thoại</label>
+            <label className="block text-sm font-medium text-gray-700">Phone Number</label>
             <input
               type="text"
               name="phone"
@@ -131,7 +131,7 @@ const UpdateProfile = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Giới tính</label>
+            <label className="block text-sm font-medium text-gray-700">Gender</label>
             <select
               name="gender"
               value={formData.gender}
@@ -139,15 +139,15 @@ const UpdateProfile = () => {
               className="mt-2 p-3 w-full border border-teal-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400"
               required
             >
-              <option value="">Chọn giới tính</option>
-              <option value="Male">Nam</option>
-              <option value="Female">Nữ</option>
-              <option value="Other">Khác</option>
+              <option value="">Select Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Địa chỉ</label>
+            <label className="block text-sm font-medium text-gray-700">Address</label>
             <input
               type="text"
               name="address"
@@ -159,7 +159,7 @@ const UpdateProfile = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Ngày sinh</label>
+            <label className="block text-sm font-medium text-gray-700">Birthday</label>
             <input
               type="date"
               name="birthday"
@@ -176,7 +176,7 @@ const UpdateProfile = () => {
             type="submit"
             className="px-6 py-2 bg-teal-500 text-white rounded-full hover:bg-teal-600 focus:outline-none"
           >
-            Cập nhật thông tin
+            Update Profile
           </button>
         </div>
       </form>
