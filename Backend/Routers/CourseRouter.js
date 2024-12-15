@@ -13,6 +13,13 @@ router.get(
   courseController.getAllCourses
 );
 router.get(
+  "/course-of-tutor",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  auth.verifyTutor,
+  courseController.getCourseOfTutor
+);
+router.get(
   "/detail/:id",
   cors.corsWithOptions,
   auth.verifyUser,
@@ -43,7 +50,7 @@ router.put(
   "/change-course-status/:course_id",
   cors.corsWithOptions,
   auth.verifyUser,
-  auth.verifyAdminOrTutor,
+  auth.verifyAdmin,
   courseController.changeCourseStatus
 );
 module.exports = router;
