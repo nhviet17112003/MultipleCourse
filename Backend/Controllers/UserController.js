@@ -89,14 +89,23 @@ exports.login = async (req, res) => {
       if (err || !user) {
         return res.status(400).json({ message: "Incorrect password" });
       }
+      
+      // Tạo token
       const token = auth.getToken({ _id: user._id });
-      res.status(200).json({ message: "Login successful", token });
+      
+      // Trả về token và fullname trong phản hồi
+      res.status(200).json({
+        message: "Login successful",
+        token: token,
+        fullname: user.fullname // Thêm fullname vào đây
+      });
     });
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 
 //Change password
 exports.changePassword = async (req, res) => {
