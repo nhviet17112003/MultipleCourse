@@ -1,8 +1,21 @@
 const Exam = require("../Models/Exams");
+const Course = require("../Models/Courses");
 
 exports.createExam = async (req, res) => {
   try {
-    const { questions, totalMark } = req.body;
+    const course_id = req.body.course_id;
+    const duration = req.body.duration;
+    const questions = req.body.questions;
+    const totalMark = req.body.totalMark;
+
+    // Kiểm tra xem course_id có tồn tại không
+    const course = await Course.findById({
+      _id: course_id,
+      tutor: req.user._id,
+    });
+    if (!course) {
+      return res.status(404).json({ error: "Course not found" });
+    }
 
     // Tính tổng điểm của tất cả các câu hỏi
     const calculatedTotalMark = questions.reduce(

@@ -55,6 +55,17 @@ exports.getAllCourses = async (req, res) => {
   }
 };
 
+//Get Course of Tutor
+exports.getCourseOfTutor = async (req, res) => {
+  try {
+    const courses = await Course.find({ tutor: req.user._id });
+    res.status(200).json(courses);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 //Get Course By ID
 exports.getCourseById = async (req, res) => {
   try {
@@ -119,7 +130,10 @@ exports.updateCourse = async (req, res) => {
     const price = Number(req.body.price);
     const category = req.body.category;
 
-    const course = await Course.findById(req.params.course_id);
+    const course = await Course.findOne({
+      _id: req.params.course_id,
+      tutor: req.user._id,
+    });
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
     }
@@ -186,7 +200,10 @@ exports.updateCourse = async (req, res) => {
 //Update Course Image
 exports.updateCourseImage = async (req, res) => {
   try {
-    const course = await Course.findById(req.params.course_id);
+    const course = await Course.findOne({
+      _id: req.params.course_id,
+      tutor: req.user._id,
+    });
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
     }

@@ -49,7 +49,10 @@ exports.createLesson = async (req, res) => {
       }
 
       const course_id = req.params.course_id;
-      const course = await Course.findById(course_id);
+      const course = await Course.findById({
+        _id: course_id,
+        teacher_id: req.user._id,
+      });
       if (!course) {
         return res.status(404).json({ message: "Course not found" });
       }
