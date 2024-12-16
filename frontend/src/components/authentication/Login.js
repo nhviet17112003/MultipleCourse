@@ -1,68 +1,74 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import "../../src/index.css";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+  import React, { useState, useEffect } from "react";
+  import { useNavigate } from "react-router-dom";
+  import axios from "axios";
+  import { FaEye, FaEyeSlash } from "react-icons/fa";
 
-const Login = () => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState(""); // Cho thông báo tài khoản/mật khẩu
-  const [successMessage, setSuccessMessage] = useState("");
+  const Login = () => {
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [error, setError] = useState(""); // Cho thông báo tài khoản/mật khẩu
+    const [successMessage, setSuccessMessage] = useState("");
 
-  const navigate = useNavigate();
+    const navigate = useNavigate();
 
-  useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => {
-        setError("");
-      }, 3000); // 3 giây
-      return () => clearTimeout(timer);
-    }
-  }, [error]);
+    useEffect(() => {
+      if (error) {
+        const timer = setTimeout(() => {
+          setError("");
+        }, 3000); // 3 giây
+        return () => clearTimeout(timer);
+      }
+    }, [error]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      const response = await axios.post(
-        "http://localhost:3000/api/users/login",
-        {
-          username,
-          password,
-        }
-      );
-
-      if (response.status === 200) {
-        setSuccessMessage("Đăng nhập thành công!");
-        setError(""); // Reset error message if successful
-          // Lưu token vào localStorage
-      localStorage.setItem("authToken", response.data.token);
-
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+    
+      try {
+        const response = await axios.post(
+          "http://localhost:3000/api/users/login",
+          {
+            username,
+            password,
+          }
+        );
+    
         console.log(response.data); // Kiểm tra dữ liệu trả về từ API
-        navigate("/userprofile"); // Điều hướng đến trang Home sau khi đăng nhập thành công
+        if (response.status === 200) {
+          setSuccessMessage("Đăng nhập thành công!");
+          setError(""); // Reset error message if successful
+    
+          // Kiểm tra xem fullname có trong response.data không
+          if (response.data.fullname) {
+            // Lưu token và fullname vào localStorage
+            localStorage.setItem("authToken", response.data.token);
+            localStorage.setItem("fullname", response.data.fullname);
+          } else {
+            console.error("Fullname không có trong phản hồi API");
+          }
+    
+          navigate("/homescreen");
+        }
+      } catch (err) {
+        if (err.response) {
+          setError("Tài khoản hoặc mật khẩu không đúng.");
+          setSuccessMessage("");
+        }
       }
-    } catch (err) {
-      if (err.response) {
-        setError("Tài khoản hoặc mật khẩu không đúng.");
-        setSuccessMessage("");
-      }
-    }
-  };
+    };
+    
+    const handleSignUp = () => {
+      navigate("/signup");
+    };
 
-  const handleSignUp = () => {
-    navigate("/signup");
-  };
+    const handleViewTerms = () => {
+      alert(
+        "Điều khoản và nội quy: \n1. Không được chia sẻ thông tin đăng nhập.\n2. Tôn trọng người dùng khác.\n3. Tuân thủ quy định của hệ thống."
+      );
+    };
 
-  const handleViewTerms = () => {
-    alert(
-      "Điều khoản và nội quy: \n1. Không được chia sẻ thông tin đăng nhập.\n2. Tôn trọng người dùng khác.\n3. Tuân thủ quy định của hệ thống."
-    );
-  };
-
-  return (
-    <div className="flex justify-center items-center h-screen bg-gray-100 relative">
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-100 relative">
       {/* Error Notification */}
       {error && (
         <div className="absolute right-4 top-4 bg-red-500 text-white py-2 px-4 rounded shadow-lg flex items-center animate-slide-in-right">
@@ -160,7 +166,7 @@ const Login = () => {
                 onClick={() => navigate("/forgetpassword")}
                 className="text-teal-400 hover:underline focus:outline-none"
               >
-                Quên mật khẩu
+                Forgot Password
               </button>
               <button
                 type="button"
@@ -184,4 +190,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+  export default Login;
