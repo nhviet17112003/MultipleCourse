@@ -55,6 +55,17 @@ exports.getAllCourses = async (req, res) => {
   }
 };
 
+//Get Course of Tutor
+exports.getCourseOfTutor = async (req, res) => {
+  try {
+    const courses = await Course.find({ tutor: req.user._id });
+    res.status(200).json(courses);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 //Get Course By ID
 exports.getCourseById = async (req, res) => {
   try {
@@ -119,7 +130,10 @@ exports.updateCourse = async (req, res) => {
     const price = Number(req.body.price);
     const category = req.body.category;
 
-    const course = await Course.findById(req.params.course_id);
+    const course = await Course.findOne({
+      _id: req.params.course_id,
+      tutor: req.user._id,
+    });
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
     }
@@ -186,22 +200,15 @@ exports.updateCourse = async (req, res) => {
 //Update Course Image
 exports.updateCourseImage = async (req, res) => {
   try {
-    const course = await Course.findById(req.params.course_id);
+    const course = await Course.findOne({
+      _id: req.params.course_id,
+      tutor: req.user._id,
+    });
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
     }
 
     const bucket = admin.storage().bucket();
-
-    if (course.image) {
-      const oldFilePath = course.image.split("firebasestorage.app/")[1]; // Lấy đường dẫn file từ URL
-      if (oldFilePath) {
-        const file = bucket.file(oldFilePath);
-        await file.delete().catch((err) => {
-          console.log("Error deleting old image:", err);
-        });
-      }
-    }
 
     upload.single("image")(req, res, async (err) => {
       if (err) {
@@ -213,6 +220,18 @@ exports.updateCourseImage = async (req, res) => {
       if (req.file) {
         const folderPath = "Courses/" + course.title + "/";
         imageUrl = await uploadFileToStorage(req.file, folderPath);
+
+        // Xóa hình ảnh cũ
+
+        if (course.image) {
+          const oldFilePath = course.image.split("firebasestorage.app/")[1]; // Lấy đường dẫn file từ URL
+          if (oldFilePath) {
+            const file = bucket.file(oldFilePath);
+            await file.delete().catch((err) => {
+              console.log("Error deleting old image:", err);
+            });
+          }
+        }
       }
 
       course.image = imageUrl;

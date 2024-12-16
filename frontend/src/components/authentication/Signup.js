@@ -1,7 +1,7 @@
   import React, { useState, useEffect } from "react";
   import { useNavigate } from "react-router-dom";
   import axios from "axios";
-  import "../../src/index.css";
+  
   import { FaEye, FaEyeSlash } from "react-icons/fa";
   const Signup = () => {
     const [fullname, setFullname] = useState("");
@@ -104,7 +104,7 @@
           className="bg-white p-6 rounded-lg shadow-md w-full max-w-lg"
         >
           <h2 className="text-2xl font-semibold text-center mb-6">
-            Đăng ký tài khoản
+            Sign Up
           </h2>
 
           {error && <div className="text-red-500 mb-4">{error}</div>}
@@ -117,7 +117,7 @@
               htmlFor="fullname"
               className="block text-sm font-medium text-gray-700"
             >
-              Họ và tên
+              Full name
             </label>
             <input
               type="text"
@@ -134,7 +134,7 @@
               htmlFor="username"
               className="block text-sm font-medium text-gray-700"
             >
-              Tên đăng nhập
+              Username
             </label>
             <input
               type="text"
@@ -168,7 +168,7 @@
               htmlFor="phone"
               className="block text-sm font-medium text-gray-700"
             >
-              Số điện thoại
+              Number Phone
             </label>
             <input
               type="text"
@@ -185,7 +185,7 @@
               htmlFor="gender"
               className="block text-sm font-medium text-gray-700"
             >
-              Giới tính
+              Gender
             </label>
             <select
               id="gender"
@@ -194,10 +194,10 @@
               className="mt-2 p-3 pr-10 w-full border border-teal-400 rounded-full focus:outline-none focus:ring-2 focus:ring-teal-400 shadow-sm"
               required
             >
-              <option value="">Chọn giới tính</option>
-              <option value="Male">Nam</option>
-              <option value="Female">Nữ</option>
-              <option value="Other">Khác</option>
+              <option value="">Select gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Order</option>
             </select>
           </div>
 
@@ -206,7 +206,7 @@
               htmlFor="birthday"
               className="block text-sm font-medium text-gray-700"
             >
-              Ngày sinh
+              Birthday
             </label>
             <input
               type="date"
@@ -223,7 +223,7 @@
               htmlFor="address"
               className="block text-sm font-medium text-gray-700"
             >
-              Địa chỉ
+              Address
             </label>
             <input
               type="text"
@@ -236,7 +236,7 @@
           </div>
 
           <div className="mb-4">
-            <label className="block text-gray-700">Mật khẩu</label>
+            <label className="block text-gray-700">Password</label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -259,7 +259,7 @@
               htmlFor="confirmPassword"
               className="block text-sm font-medium text-gray-700"
             >
-              Xác nhận mật khẩu
+              Confirm Password
             </label>
             <input
               type={showConfirmPassword ? "text" : "password"}
@@ -281,7 +281,7 @@
             htmlFor="role"
             className="block text-sm font-medium text-gray-700"
           >
-            Chọn Role
+            Choose Role
           </label>
           <select
             id="role"
@@ -304,13 +304,13 @@
               onChange={(e) => setAgreeTerms(e.target.checked)}
             />
             <label htmlFor="agreeTerms" className="text-sm text-gray-600">
-              Tôi đồng ý với
+            I agree to the
               <button
                 type="button"
                 className="text-teal-400 hover:underline focus:outline-none ml-1"
                 onClick={handleViewTerms}
               >
-                điều khoản
+                terms
               </button>
             </label>
           </div>
@@ -323,7 +323,7 @@
             type="submit"
             className="w-full bg-teal-400 text-white py-3 rounded-full hover:bg-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-300 mt-6"
           >
-            Đăng ký
+            SIGN UP
           </button>
         </form>
       </div>
