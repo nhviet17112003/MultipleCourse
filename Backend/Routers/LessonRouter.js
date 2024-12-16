@@ -26,4 +26,12 @@ router.get(
   lessonController.getLessonById
 );
 
+router.put(
+  "/:lesson_id",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  auth.verifyTutor,
+  lessonController.updateLesson
+);
+
 module.exports = router;
