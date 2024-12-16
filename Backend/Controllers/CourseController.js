@@ -210,16 +210,6 @@ exports.updateCourseImage = async (req, res) => {
 
     const bucket = admin.storage().bucket();
 
-    if (course.image) {
-      const oldFilePath = course.image.split("firebasestorage.app/")[1]; // Lấy đường dẫn file từ URL
-      if (oldFilePath) {
-        const file = bucket.file(oldFilePath);
-        await file.delete().catch((err) => {
-          console.log("Error deleting old image:", err);
-        });
-      }
-    }
-
     upload.single("image")(req, res, async (err) => {
       if (err) {
         console.log(err);
@@ -230,6 +220,18 @@ exports.updateCourseImage = async (req, res) => {
       if (req.file) {
         const folderPath = "Courses/" + course.title + "/";
         imageUrl = await uploadFileToStorage(req.file, folderPath);
+
+        // Xóa hình ảnh cũ
+
+        if (course.image) {
+          const oldFilePath = course.image.split("firebasestorage.app/")[1]; // Lấy đường dẫn file từ URL
+          if (oldFilePath) {
+            const file = bucket.file(oldFilePath);
+            await file.delete().catch((err) => {
+              console.log("Error deleting old image:", err);
+            });
+          }
+        }
       }
 
       course.image = imageUrl;
