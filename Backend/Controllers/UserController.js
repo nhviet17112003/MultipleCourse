@@ -3,6 +3,7 @@ const passport = require("passport");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const Users = require("../Models/Users");
+const Wallet = require("../Models/Wallet");
 const config = require("../Configurations/Config");
 const multer = require("multer");
 const admin = require("firebase-admin");
@@ -62,6 +63,13 @@ exports.signUp = async (req, res) => {
           user.birthday = req.body.birthday;
           user.address = req.body.address;
           await user.save();
+
+          if (user.role === "Tutor") {
+            const wallet = new Wallet({
+              tutor: user._id,
+            });
+            await wallet.save();
+          }
           res.status(200).json({ message: "User created", user_id: user._id });
         }
       }
@@ -89,15 +97,15 @@ exports.login = async (req, res) => {
       if (err || !user) {
         return res.status(400).json({ message: "Incorrect password" });
       }
-      
+
       // Tạo token
       const token = auth.getToken({ _id: user._id });
-      
+
       // Trả về token và fullname trong phản hồi
       res.status(200).json({
         message: "Login successful",
         token: token,
-        fullname: user.fullname // Thêm fullname vào đây
+        fullname: user.fullname, // Thêm fullname vào đây
       });
     });
   } catch (err) {
@@ -105,7 +113,6 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
 
 //Change password
 exports.changePassword = async (req, res) => {
