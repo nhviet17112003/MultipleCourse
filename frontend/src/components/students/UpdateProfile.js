@@ -114,7 +114,7 @@ const UpdateProfile = () => {
               name="fullname"
               value={formData.fullname}
               onChange={handleInputChange}
-              className="mt-2 p-3 w-full border border-teal-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400"
+               className="mt-2 p-3 pr-10 w-full border border-green-500 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm"
               required
             />
           </div>
@@ -126,7 +126,7 @@ const UpdateProfile = () => {
               name="phone"
               value={formData.phone}
               onChange={handleInputChange}
-              className="mt-2 p-3 w-full border border-teal-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400"
+              className="mt-2 p-3 pr-10 w-full border border-green-500 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm"
               required
             />
           </div>
@@ -137,7 +137,7 @@ const UpdateProfile = () => {
               name="gender"
               value={formData.gender}
               onChange={handleInputChange}
-              className="mt-2 p-3 w-full border border-teal-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400"
+            className="mt-2 p-3 pr-10 w-full border border-green-500 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm"
               required
             >
               <option value="">Select Gender</option>
@@ -154,7 +154,7 @@ const UpdateProfile = () => {
               name="address"
               value={formData.address}
               onChange={handleInputChange}
-              className="mt-2 p-3 w-full border border-teal-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400"
+              className="mt-2 p-3 pr-10 w-full border border-green-500 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm"
               required
             />
           </div>
@@ -166,7 +166,7 @@ const UpdateProfile = () => {
               name="birthday"
               value={formData.birthday}
               onChange={handleInputChange}
-              className="mt-2 p-3 w-full border border-teal-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400"
+             className="mt-2 p-3 pr-10 w-full border border-green-500 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm"
               required
             />
           </div>
@@ -175,7 +175,7 @@ const UpdateProfile = () => {
         <div className="mt-6 text-center">
           <button
             type="submit"
-            className="px-6 py-2 bg-teal-500 text-white rounded-full hover:bg-teal-600 focus:outline-none"
+           className="border-2 border-green-500 text-green-500 rounded-full px-12 py-2 inline-block font-semibold hover:bg-green-500 hover:text-white"
           >
             Update Profile
           </button>

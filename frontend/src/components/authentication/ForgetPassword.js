@@ -62,7 +62,7 @@ const ForgetPassword = () => {
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center mb-6 text-teal-500">
+        <h2 className="text-2xl font-bold text-center mb-6 text-green-500">
           {step === 1 && "Quên Mật Khẩu"}
           {step === 2 && "Xác Nhận OTP"}
           {step === 3 && "Thành Công!"}
@@ -91,7 +91,8 @@ const ForgetPassword = () => {
             <input
               type="email"
               id="email"
-              className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-teal-400"
+              className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Nhập email của bạn"
@@ -99,7 +100,7 @@ const ForgetPassword = () => {
             />
             <button
               onClick={handleSendEmail}
-              className="mt-4 w-full bg-teal-500 text-white py-3 rounded hover:bg-teal-600"
+              className="mt-4 w-full bg-green-300 text-white py-3 rounded hover:bg-green-500"
             >
               Gửi OTP
             </button>
@@ -117,7 +118,7 @@ const ForgetPassword = () => {
             <input
               type="text"
               id="otp"
-              className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-teal-400 mb-4"
+              className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
               placeholder="Nhập mã OTP"
@@ -133,7 +134,7 @@ const ForgetPassword = () => {
             <input
               type="password"
               id="newPassword"
-              className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-teal-400 mb-4"
+            className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="Nhập mật khẩu mới"
@@ -149,7 +150,7 @@ const ForgetPassword = () => {
             <input
               type="password"
               id="confirmPassword"
-              className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-teal-400 mb-4"
+              className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Xác nhận mật khẩu mới"
@@ -158,7 +159,7 @@ const ForgetPassword = () => {
 
             <button
               onClick={handleResetPassword}
-              className="w-full bg-teal-500 text-white py-3 rounded hover:bg-teal-600"
+             className="mt-4 w-full bg-green-300 text-white py-3 rounded hover:bg-green-500"
             >
               Đổi Mật Khẩu
             </button>
@@ -171,7 +172,7 @@ const ForgetPassword = () => {
             <p className="text-lg text-gray-600">Mật khẩu của bạn đã được thay đổi thành công!</p>
             <button
               onClick={handleGoToLogin} // Bấm vào nút để quay lại trang đăng nhập
-              className="mt-4 w-full bg-teal-500 text-white py-3 rounded hover:bg-teal-600"
+              className="mt-4 w-full bg-green-300 text-white py-3 rounded hover:bg-green-500"
             >
               Quay lại trang Đăng nhập
             </button>

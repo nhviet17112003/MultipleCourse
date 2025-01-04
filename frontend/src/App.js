@@ -9,6 +9,7 @@
   import CourseDetail from "./components/students/CourseDetail";
 import Cart from "./components/students/Cart";
 import UpdateProfile from "./components/students/UpdateProfile";
+import CourseManageTutor from "./components/tutors/CourseManageTutor";
   function App() {
     return (
       <Router>
@@ -24,6 +25,7 @@ import UpdateProfile from "./components/students/UpdateProfile";
           <Route path="/homescreen" element={<HomeScreen />} />
           <Route path="/coursedetail/:id" element={<CourseDetail />} />
           <Route path="/cart" element={<Cart/>} />
+          <Route path="/coursemanagertutor/:courseId" element={<CourseManageTutor />} />
         </Routes>
       </Router>
     );

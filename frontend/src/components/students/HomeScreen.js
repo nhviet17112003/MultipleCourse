@@ -9,7 +9,9 @@ const HomeScreen = () => {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [cartCount, setCartCount] = useState(0); // Số lượng sản phẩm trong giỏ hàng
+  const [tutors, setTutors] = useState({}); // Lưu thông tin giảng viên theo ID
 
+  // Lấy thông tin người dùng khi đăng nhập
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     if (token) {
@@ -21,6 +23,7 @@ const HomeScreen = () => {
     }
   }, []);
 
+  // Fetch danh sách khóa học và thông tin giảng viên
   useEffect(() => {
     const fetchCourses = async () => {
       try {
@@ -34,8 +37,30 @@ const HomeScreen = () => {
           }
         );
         const data = await response.json();
+  
         if (response.ok) {
           setCourses(data);
+  
+          // Lấy danh sách tutorId duy nhất từ danh sách khóa học
+          const uniqueTutorIds = [...new Set(data.map((course) => course.tutorId))];
+  
+          // Fetch thông tin của tất cả tutor
+          const tutorsData = {};
+          await Promise.all(
+            uniqueTutorIds.map(async (tutorId) => {
+              if (tutorId) {
+                const tutorResponse = await fetch(
+                  `http://localhost:3000/api/tutors/${tutorId}`
+                );
+                const tutorData = await tutorResponse.json();
+                if (tutorResponse.ok) {
+                  tutorsData[tutorId] = tutorData.fullname;
+                }
+              }
+            })
+          );
+  
+          setTutors(tutorsData); // Lưu tutors vào state
         } else {
           console.log("Error fetching courses:", data.message);
         }
@@ -45,9 +70,10 @@ const HomeScreen = () => {
         setLoading(false);
       }
     };
-
+  
     fetchCourses();
   }, []);
+  
 
   const handleCourseClick = (id) => {
     navigate(`/coursedetail/${id}`);
@@ -56,11 +82,8 @@ const HomeScreen = () => {
   const handleAddToCart = async (courseId) => {
     const newCartCount = cartCount + 1;
     setCartCount(newCartCount); // Cập nhật giỏ hàng trên UI
-
-    // Lưu vào localStorage
     localStorage.setItem("cartCount", newCartCount);
 
-    // Gửi yêu cầu thêm sản phẩm vào giỏ hàng
     try {
       const response = await fetch(
         `http://localhost:3000/api/cart/add-to-cart/${courseId}`,
@@ -68,15 +91,13 @@ const HomeScreen = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`, // Nếu cần token xác thực
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
           },
         }
       );
 
       const data = await response.json();
-      if (response.ok) {
-        console.log("Sản phẩm đã được thêm vào giỏ hàng", data);
-      } else {
+      if (!response.ok) {
         console.log("Lỗi khi thêm sản phẩm vào giỏ hàng", data.message);
       }
     } catch (error) {
@@ -96,6 +117,13 @@ const HomeScreen = () => {
     navigate("/cart");
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("fullname");
+    setIsAuthenticated(false);
+    navigate("/login");
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       <nav className="bg-teal-500 text-white shadow-md">
@@ -103,16 +131,24 @@ const HomeScreen = () => {
           <h1 className="text-xl font-bold">Welcome to Lorem</h1>
           <div className="flex items-center space-x-4">
             {isAuthenticated ? (
-              <span className="text-lg">
-                Xin chào,{" "}
-                <span
-                  className="font-semibold text-yellow-300 cursor-pointer hover:text-teal-400 hover:scale-105 transition-transform duration-200"
-                  onClick={() => navigate("/userprofile")}
-                >
-                  {fullname}
+              <div className="flex items-center space-x-4">
+                <span className="text-lg">
+                  Xin chào,{" "}
+                  <span
+                    className="font-semibold text-yellow-300 cursor-pointer hover:text-teal-400 hover:scale-105 transition-transform duration-200"
+                    onClick={() => navigate("/userprofile")}
+                  >
+                    {fullname}
+                  </span>
+                  !
                 </span>
-                !
-              </span>
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                >
+                  Đăng xuất
+                </button>
+              </div>
             ) : (
               <div className="flex space-x-2">
                 <button
@@ -144,7 +180,9 @@ const HomeScreen = () => {
         </div>
       </nav>
       <main className="container mx-auto px-4 py-8">
-        <h2 className="text-2xl font-bold text-gray-700 mb-4">Marketing Articles</h2>
+        <h2 className="text-2xl font-bold text-gray-700 mb-4">
+          Marketing Articles
+        </h2>
         <div className="bg-white p-6 rounded-lg shadow-md">
           {loading ? (
             <p>Đang tải danh sách khóa học...</p>
@@ -169,6 +207,12 @@ const HomeScreen = () => {
                       <p className="text-sm text-gray-500 mt-1 italic">
                         {course.category}
                       </p>
+
+                      {/* Hiển thị tên giảng viên */}
+                      <p className="text-sm text-gray-600 mt-2">
+                        Tutor:{" "}
+                        {course.tutor?.fullname}
+                      </p>
                       <p className="text-gray-600 mt-2">{course.description}</p>
                       <div className="mt-4 flex items-center justify-between">
                         <span className="text-teal-700 font-bold">
@@ -176,8 +220,8 @@ const HomeScreen = () => {
                         </span>
                         <button
                           onClick={(e) => {
-                            e.stopPropagation(); // Ngừng sự kiện "click" bọt bể lên các phần tử cha (như handleCourseClick)
-                            handleAddToCart(course._id); // Chỉ thực hiện thêm vào giỏ
+                            e.stopPropagation();
+                            handleAddToCart(course._id);
                           }}
                           className="bg-teal-500 text-white px-4 py-2 rounded hover:bg-teal-600"
                         >

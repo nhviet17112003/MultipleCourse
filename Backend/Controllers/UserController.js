@@ -97,7 +97,8 @@ exports.login = async (req, res) => {
       res.status(200).json({
         message: "Login successful",
         token: token,
-        fullname: user.fullname // Thêm fullname vào đây
+        fullname: user.fullname, // Thêm fullname vào đây
+        role: user.role
       });
     });
   } catch (err) {
@@ -106,7 +107,20 @@ exports.login = async (req, res) => {
   }
 };
 
-
+//get user by id
+exports.getUserById = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await Users.findOne({ _id: userId });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+    res.status(200).json(user);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 //Change password
 exports.changePassword = async (req, res) => {
   try {

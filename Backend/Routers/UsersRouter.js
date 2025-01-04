@@ -73,5 +73,6 @@ router.put(
   cors.corsWithOptions,
   userController.banAndUnbanUser
 );
-
+// Get user profile by id
+router.get("/profile/:id", cors.corsWithOptions, userController.getUserById);
 module.exports = router;
