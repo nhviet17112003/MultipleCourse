@@ -7,16 +7,11 @@ const OrderSchema = new Schema({
     ref: "Users",
     required: true,
   },
-  course: {
-    type: Schema.Types.ObjectId,
-    ref: "Courses",
-    required: true,
-  },
   order_date: {
     type: Date,
     default: Date.now,
   },
-  price: {
+  total_price: {
     type: Number,
     required: true,
   },
@@ -25,6 +20,14 @@ const OrderSchema = new Schema({
     enum: ["Pending", "Success", "Failed"],
     default: "Pending",
   },
+  order_items: [
+    {
+      course: {
+        type: Schema.Types.ObjectId,
+        ref: "Courses",
+      },
+    },
+  ],
 });
 
 module.exports = mongoose.model("Orders", OrderSchema);
