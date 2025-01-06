@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+
 const HomeScreen = () => {
   const navigate = useNavigate();
   const [fullname, setFullname] = useState("");
@@ -49,12 +50,20 @@ const HomeScreen = () => {
   const goToUserProfile = () => {
     navigate("/userprofile"); // Điều hướng đến trang UserProfile
   };
+  const goToCreateCourse = () => {
+    navigate("/createcourse"); // Điều hướng đến trang Create Course
+  };
+
+  const getCourseOfTutor = () => {
+    navigate("/tutor/courselist"); // Điều hướng đến trang Create Course
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
       <nav className="bg-teal-500 text-white shadow-md">
-        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+        {/* <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <h1 className="text-xl font-bold">Welcome to Lorem</h1>
+
           <div className="flex items-center space-x-4">
             <span className="text-lg">
               Xin chào,{" "}
@@ -66,8 +75,22 @@ const HomeScreen = () => {
               </span>
               !
             </span>
+
+            <button
+              className="bg-yellow-300 text-teal-900 px-4 py-2 rounded-lg font-semibold hover:bg-yellow-400 transition-colors"
+              onClick={goToCreateCourse}
+            >
+              Create Course
+            </button>
+
+            <button
+              className="bg-yellow-300 text-teal-900 px-4 py-2 rounded-lg font-semibold hover:bg-yellow-400 transition-colors"
+              onClick={getCourseOfTutor}
+            >
+              Course List
+            </button>
           </div>
-        </div>
+        </div> */}
       </nav>
       <main className="container mx-auto px-4 py-8">
         <h2 className="text-2xl font-bold text-gray-700 mb-4">
