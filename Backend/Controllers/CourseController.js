@@ -36,8 +36,10 @@ async function uploadFileToStorage(file, folderPath) {
 //Course with status true
 exports.getActiveCourses = async (req, res) => {
   try {
-    const courses = await Course.find({ status: true });
-    res.status(200).json(courses);
+    const activeCourses = await Course.find({ status: true })
+      .populate("tutor", "fullname")
+      .exec();
+    res.json(activeCourses);
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Internal Server Error" });

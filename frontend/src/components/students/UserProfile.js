@@ -117,7 +117,8 @@ const UserProfile = () => {
         setShowChangePasswordModal(false);
       } else {
         setError(
-          response.data.message || "Unable to change password. Please try again."
+          response.data.message ||
+            "Unable to change password. Please try again."
         );
       }
     } catch (err) {
@@ -156,7 +157,7 @@ const UserProfile = () => {
           />
           <div>
             <p className="text-xl font-semibold text-gray-700">
-              {userData.name || "User's Name"}
+              {userData.fullname || "User's Name"}
             </p>
             <p className="text-gray-500">
               {userData.email || "email@example.com"}
@@ -174,8 +175,7 @@ const UserProfile = () => {
               <strong>Email:</strong> {userData.email}
             </p>
             <p>
-              <strong>Phone number:</strong>{" "}
-              {userData.phone || "Not updated"}
+              <strong>Phone number:</strong> {userData.phone || "Not updated"}
             </p>
             <p>
               <strong>Gender:</strong> {userData.gender}
@@ -190,8 +190,7 @@ const UserProfile = () => {
               <strong>Role:</strong> {userData.role}
             </p>
             <p>
-              <strong>Status:</strong>{" "}
-              {userData.status ? "Active" : "Inactive"}
+              <strong>Status:</strong> {userData.status ? "Active" : "Inactive"}
             </p>
           </div>
         </div>
@@ -200,10 +199,11 @@ const UserProfile = () => {
       <div className="mt-6 text-center">
         <button
           className="px-6 py-2 bg-teal-500 text-white rounded-full hover:bg-teal-600 focus:outline-none"
-          onClick={() => navigate("/updateprofile")}
+          onClick={() => navigate(`/updateprofile/${userData._id}`)} // Truyền ID vào URL
         >
           Edit Profile
         </button>
+
         <button
           className="ml-4 px-6 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:outline-none"
           onClick={() => setShowChangePasswordModal(true)} // Show pop-up when clicked
