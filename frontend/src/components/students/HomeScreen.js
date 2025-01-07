@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from "react-router-dom";
 import { FaShoppingCart } from "react-icons/fa"; // Biểu tượng giỏ hàng
 import Slider from "rc-slider";
@@ -15,6 +15,8 @@ const HomeScreen = () => {
   const [sortOption, setSortOption] = useState("default");
   const [priceRange, setPriceRange] = useState([0, 1000]);
   const [ratingFilter, setRatingFilter] = useState(0);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const dropdownRef = useRef(null);
 
   // Lấy thông tin người dùng khi đăng nhập
   useEffect(() => {
@@ -118,18 +120,26 @@ const HomeScreen = () => {
   const goToSignup = () => {
     navigate("/signup");
   };
+  const toggleDropdown = () => {
+    setIsDropdownOpen((prev) => !prev);
+  };
 
   const goToCart = () => {
+    setIsDropdownOpen(false);
     navigate("/cart");
   };
 
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("fullname");
+    setIsDropdownOpen(false);
     setIsAuthenticated(false);
     navigate("/login");
   };
-
+  const goToProfile = () => {
+    setIsDropdownOpen(false);
+    navigate("/userprofile");
+  };
   const filteredCourses = courses
     .filter((course) => {
       const titleMatch = course.title
@@ -153,26 +163,51 @@ const HomeScreen = () => {
     <div className="min-h-screen bg-gray-100">
       <nav className="bg-teal-500 text-white shadow-md">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <h1 className="text-xl font-bold">Welcome to Lorem</h1>
+        <h1 className="text-xl font-bold">Welcome to MultiCourse
+          </h1>
           <div className="flex items-center space-x-4">
             {isAuthenticated ? (
-              <div className="flex items-center space-x-4">
-                <span className="text-lg">
-                  Xin chào,{" "}
+              <div className="flex items-center space-x-4 relative">
+                <span className="text-lg font-bold">
+                  Hello,{" "}
                   <span
                     className="font-semibold text-yellow-300 cursor-pointer hover:text-teal-400 hover:scale-105 transition-transform duration-200"
-                    onClick={() => navigate("/userprofile")}
+                    onClick={toggleDropdown}
                   >
                     {fullname}
                   </span>
                   !
                 </span>
-                <button
-                  onClick={handleLogout}
-                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                >
-                  Đăng xuất
-                </button>
+                {isDropdownOpen && (
+                  <div
+                    ref={dropdownRef} // Tham chiếu tới dropdown
+                    className="absolute top-full mt-2 w-48 bg-white rounded-lg shadow-lg z-50"
+                  >
+                    <ul className="py-2">
+                      <li
+                        onClick={goToProfile}
+                        className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                      >
+                        Profile
+                      </li>
+                      <li
+                        onClick={goToCart}
+                        className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                      >
+                        Your Cart
+                      </li>
+
+                      {/* Đường gạch ngang */}
+                      <div className="border-t border-gray-300 my-0"></div>
+                      <li
+                        onClick={handleLogout}
+                        className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                      >
+                        Logout
+                      </li>
+                    </ul>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="flex space-x-2">
