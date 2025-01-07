@@ -30,48 +30,84 @@ const Login = () => {
       }
     }
   }, [navigate]);
+  // Hàm kiểm tra Username
+  const validateUsername = (username) => {
+    if (username.trim().length === 0) {
+      return "Username không được để trống.";
+    }
+    if (username.length < 4) {
+      return "Username phải có ít nhất 4 ký tự.";
+    }
+    return "";
+  };
 
+  // Hàm kiểm tra Password
+  const validatePassword = (password) => {
+    if (password.length < 6) {
+      return "Mật khẩu phải có ít nhất 6 ký tự.";
+    }
+    
+    return "";
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Kiểm tra Username
+    const usernameError = validateUsername(username);
+    if (usernameError) {
+      setError(usernameError);
+      return;
+    }
+
+    // Kiểm tra Password
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(passwordError);
+      return;
+    }
+    // Reset các thông báo lỗi trước đó
+    setError("");
+    setSuccessMessage("");
+
+    // Kiểm tra validation phía client
+    if (username.trim().length === 0) {
+      setError("Vui lòng nhập Username.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Mật khẩu phải có ít nhất 6 ký tự.");
+      return;
+    }
 
     try {
       const response = await axios.post(
         "http://localhost:3000/api/users/login",
-        {
-          username,
-          password,
-        }
+        { username, password }
       );
-
-      console.log("API Response:", response.data); // In toàn bộ phản hồi từ API
 
       if (response.status === 200) {
         setSuccessMessage("Đăng nhập thành công!");
-        setError(""); // Reset error message if successful
+        setError("");
 
-        // Kiểm tra và lưu role vào localStorage
         if (response.data.role) {
           localStorage.setItem("authToken", response.data.token);
           localStorage.setItem("role", response.data.role);
           localStorage.setItem("fullname", response.data.fullname);
 
-          // Chuyển hướng người dùng dựa trên role
           if (response.data.role === "Tutor") {
             const userId = response.data.userId;
             localStorage.setItem("userId", userId);
-            navigate(`/coursemanagertutor/${userId}`); // Điều hướng đến trang dành cho tutor
+            navigate(`/coursemanagertutor/${userId}`);
           } else if (response.data.role === "Student") {
-            navigate("/homescreen"); // Điều hướng đến trang dành cho student
+            navigate("/homescreen");
           }
         } else {
-          console.error("Role không có trong phản hồi API");
           setError("Dữ liệu đăng nhập không đầy đủ.");
         }
       }
     } catch (err) {
       if (err.response) {
         setError("Tài khoản hoặc mật khẩu không đúng.");
-        setSuccessMessage("");
       }
     }
   };
@@ -79,11 +115,10 @@ const Login = () => {
   const handleSignUpForStudent = () => {
     navigate("/signup", { state: { role: "Student" } });
   };
-  
+
   const handleSignUpForTutor = () => {
     navigate("/signup", { state: { role: "Tutor" } });
   };
-  
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2 bg-gray-100">
@@ -91,7 +126,7 @@ const Login = () => {
         <div className="bg-white rounded-2xl shadow-2xl flex w-2/3 max-w-4xl">
           <div className="w-3/5 p-5">
             <div className="text-left font-bold">
-              <span className="text-green-500">Welcome to</span> Lorem
+              <span className="text-green-500">Welcome to</span> MultiCourse
             </div>
             <div className="py-10">
               <h2 className="text-3xl font-bold text-green-500 mb-2">LOGIN</h2>
@@ -150,6 +185,14 @@ const Login = () => {
                       Forgot Password
                     </button>
                   </div>
+                  {error && (
+                    <div className="text-red-500 text-sm mb-4">{error}</div>
+                  )}
+                  {successMessage && (
+                    <div className="text-green-500 text-sm mb-4">
+                      {successMessage}
+                    </div>
+                  )}
                   <button
                     type="submit"
                     className="border-2 border-green-500 text-green-500 rounded-full px-12 py-2 inline-block font-semibold hover:bg-green-500 hover:text-white"
