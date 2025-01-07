@@ -22,13 +22,12 @@ const CourseRouter = require("./Routers/CourseRouter");
 const LessonRouter = require("./Routers/LessonRouter");
 const ExamRouter = require("./Routers/ExamRouter");
 const CartRouter = require("./Routers/CartRouter");
-<<<<<<< HEAD
+
 const OrderRouter = require("./Routers/OrderRouter");
 const CommentRouter = require("./Routers/CommentRouter");
-=======
-const PaymentRouter = require("./Routers/PaymentRouter");
 
->>>>>>> 26104230501c23e407d2271fe7bb612e3d7af555
+const PaymentRouter = require("./Routers/PaymentRouter");
+const WalletRouter = require("./Routers/WalletRouter");
 var app = express();
 const cors = require("cors");
 app.use(cors());
@@ -50,13 +49,10 @@ app.use("/api/courses", CourseRouter);
 app.use("/api/lessons", LessonRouter);
 app.use("/api/exams", ExamRouter);
 app.use("/api/cart", CartRouter);
-<<<<<<< HEAD
 app.use("/api/orders", OrderRouter);
 app.use("/api/comments", CommentRouter);
-=======
 app.use("/api/payment", PaymentRouter);
-
->>>>>>> 26104230501c23e407d2271fe7bb612e3d7af555
+app.use("/api/wallet", WalletRouter);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));

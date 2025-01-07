@@ -5,149 +5,129 @@ const User = require("../Models/Users");
 // Create Order
 exports.createOrder = async (req, res) => {
   try {
-    const course = await Course.findById(req.body.courseId);
-    if (!course) {
-      return res.status(404).json({ message: "Course not found" });
-    }
+    const { courseIds } = req.body; // Array of course IDs
     const user = await User.findById(req.user._id);
-    const price = course.price;
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const courses = await Course.find({ _id: { $in: courseIds } });
+    if (courses.length === 0) {
+      return res.status(404).json({ message: "Courses not found" });
+    }
+
+    const orderItems = courses.map((course) => ({
+      course: course._id,
+    }));
+
+    const totalPrice = courses.reduce((sum, course) => sum + course.price, 0);
+
     const newOrder = new Order({
       user: user._id,
-      course: course._id,
-      price: price,
+      order_items: orderItems,
+      total_price: totalPrice,
     });
+
     await newOrder.save();
     res.status(201).json(newOrder);
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-};
-//----------------(for admin)----------------
-// Get All Orders
-exports.getAllOrders = async (req, res) => {
-  try {
-    const orders = await Order.find();
-    res.status(200).json(orders);
-  } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
-//Get all revenue for admin
+// Get All Orders (Admin)
+exports.getAllOrders = async (req, res) => {
+  try {
+    const orders = await Order.find()
+      .populate("order_items.course")
+      .populate("user", "name email");
+    res.status(200).json(orders);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Get Revenue for Admin
 exports.getRevenueForAdmin = async (req, res) => {
   try {
     const orders = await Order.find();
-    let totalRevenue = 0;
-    orders.forEach((order) => {
-      totalRevenue += order.price;
-    });
+    const totalRevenue = orders.reduce(
+      (sum, order) => sum + order.total_price,
+      0
+    );
     res.status(200).json({ totalRevenue });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
-//Đây là api để tính doanh thu từng tháng từ 1 - 12 trong năm cho admin
+// Get Revenue by Month
 exports.getRevenueEachMonthForAdmin = async (req, res) => {
   try {
     const orders = await Order.find();
-    console.log("Orders:", orders); // Log orders to verify the data
+    const revenue = Array.from({ length: 12 }, (_, i) => {
+      const month = i + 1;
+      const monthlyRevenue = orders.reduce((sum, order) => {
+        const orderMonth = order.order_date.getMonth() + 1;
+        return orderMonth === month ? sum + order.total_price : sum;
+      }, 0);
+      return { month, revenue: monthlyRevenue };
+    });
 
-    let revenue = [];
-    for (let i = 1; i <= 12; i++) {
-      let totalRevenue = 0;
-      orders.forEach((order) => {
-        if (order.order_date) {
-          const orderMonth = order.order_date.getMonth() + 1;
-          if (orderMonth === i) {
-            totalRevenue += order.price;
-          }
-        }
-      });
-      revenue.push({ month: i, revenue: totalRevenue });
-    }
-    console.log("Revenue:", revenue); // Log the final revenue
     res.status(200).json(revenue);
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
-// Api tính doanh thu trong ngày hôm nay cho admin
+// Get Revenue for Today
 exports.getRevenueForToday = async (req, res) => {
   try {
-    const orders = await Order.find();
-    console.log("Orders:", orders); // Log orders to verify the data
+    const startOfToday = new Date().setHours(0, 0, 0, 0);
+    const orders = await Order.find({ order_date: { $gte: startOfToday } });
+    const totalRevenueToday = orders.reduce(
+      (sum, order) => sum + order.total_price,
+      0
+    );
 
-    // Get today's date
-    const today = new Date();
-    const startOfToday = new Date(today.setHours(0, 0, 0, 0)); // Set the time to 00:00:00 for today's start
-
-    let totalRevenueToday = 0;
-
-    orders.forEach((order) => {
-      if (order.order_date) {
-        const orderDate = new Date(order.order_date);
-        // Check if the order was placed today
-        if (orderDate.toDateString() === startOfToday.toDateString()) {
-          totalRevenueToday += order.price;
-        }
-      }
-    });
-
-    console.log("Revenue for Today:", totalRevenueToday); // Log the final revenue for today
     res.status(200).json({ totalRevenueToday });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
-// Api tính doanh thu năm hiện tại  cho admin
+// Get Revenue for This Year
 exports.getRevenueForThisYear = async (req, res) => {
   try {
-    const orders = await Order.find();
-    console.log("Orders:", orders); // Log orders to verify the data
+    const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+    const orders = await Order.find({ order_date: { $gte: startOfYear } });
+    const totalRevenueThisYear = orders.reduce(
+      (sum, order) => sum + order.total_price,
+      0
+    );
 
-    // Get current year
-    const today = new Date();
-    const currentYear = today.getFullYear();
-    const startOfYear = new Date(currentYear, 0, 1); // Jan 1st of current year
-
-    let totalRevenueThisYear = 0;
-
-    orders.forEach((order) => {
-      if (order.order_date) {
-        const orderDate = new Date(order.order_date);
-        // Check if the order was placed this year
-        if (orderDate >= startOfYear && orderDate <= today) {
-          totalRevenueThisYear += order.price;
-        }
-      }
-    });
-
-    console.log("Revenue for This Year:", totalRevenueThisYear); // Log the final revenue for the year
     res.status(200).json({ totalRevenueThisYear });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
-//----------------(for admin)----------------
-
-//----------------(For user)----------------
-// Get My Orders
+// Get My Orders (User)
 exports.getMyOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ user: req.user._id });
+    const orders = await Order.find({ user: req.user._id }).populate(
+      "order_items.course"
+    );
     res.status(200).json(orders);
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

@@ -74,4 +74,10 @@ router.put(
   userController.banAndUnbanUser
 );
 
+router.put(
+  "/update-bank-account",
+  auth.verifyUser,
+  userController.updateBankAccount
+);
+
 module.exports = router;
