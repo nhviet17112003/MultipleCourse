@@ -22,8 +22,12 @@ const CourseRouter = require("./Routers/CourseRouter");
 const LessonRouter = require("./Routers/LessonRouter");
 const ExamRouter = require("./Routers/ExamRouter");
 const CartRouter = require("./Routers/CartRouter");
-const PaymentRouter = require("./Routers/PaymentRouter");
 
+const OrderRouter = require("./Routers/OrderRouter");
+const CommentRouter = require("./Routers/CommentRouter");
+
+const PaymentRouter = require("./Routers/PaymentRouter");
+const WalletRouter = require("./Routers/WalletRouter");
 var app = express();
 const cors = require("cors");
 app.use(cors());
@@ -45,8 +49,10 @@ app.use("/api/courses", CourseRouter);
 app.use("/api/lessons", LessonRouter);
 app.use("/api/exams", ExamRouter);
 app.use("/api/cart", CartRouter);
+app.use("/api/orders", OrderRouter);
+app.use("/api/comments", CommentRouter);
 app.use("/api/payment", PaymentRouter);
-
+app.use("/api/wallet", WalletRouter);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));
