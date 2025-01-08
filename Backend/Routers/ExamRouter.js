@@ -12,4 +12,17 @@ router.post(
   ExamController.createExam
 );
 
+router.get(
+  "/take-exam",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  ExamController.createStudentExam
+);
+
+router.post(
+  "/submit-exam",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  ExamController.submitExam
+);
 module.exports = router;

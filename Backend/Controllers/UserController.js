@@ -107,8 +107,7 @@ exports.login = async (req, res) => {
         token: token,
         fullname: user.fullname, // Thêm fullname vào đây
 
-        role: user.role
-
+        role: user.role,
       });
     });
   } catch (err) {
@@ -116,7 +115,6 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
 
 //get user by id
 exports.getUserById = async (req, res) => {

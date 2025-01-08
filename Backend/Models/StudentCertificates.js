@@ -34,4 +34,7 @@ const StudentCertificateSchema = new Schema({
   },
 });
 
-module.exports = mongoose.model("StudentCertificates", CertificateSchema);
+module.exports = mongoose.model(
+  "StudentCertificates",
+  StudentCertificateSchema
+);
