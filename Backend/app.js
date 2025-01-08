@@ -26,7 +26,6 @@ const PaymentRouter = require("./Routers/PaymentRouter");
 const ProgressRouter = require("./Routers/ProgressRouter");
 const OrderRouter = require("./Routers/OrderRouter");
 const CommentRouter = require("./Routers/CommentRouter");
-const PaymentRouter = require("./Routers/PaymentRouter");
 const WalletRouter = require("./Routers/WalletRouter");
 var app = express();
 const cors = require("cors");
