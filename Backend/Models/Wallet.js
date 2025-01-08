@@ -19,15 +19,17 @@ const WalletSchema = new Schema({
     type: Number,
     default: 0,
   },
-  withdrawal_request: {
-    type: Number,
-    default: undefined,
-  },
-  withdrawal_status: {
-    type: String,
-    default: undefined,
-    enum: ["Pending", "Approved", "Rejected"],
-  },
+  withdrawals: [
+    {
+      amount: { type: Number, required: true },
+      date: { type: Date, default: Date.now },
+      status: {
+        type: String,
+        enum: ["Pending", "Approved", "Rejected"],
+        default: "Pending",
+      },
+    },
+  ],
 });
 
 module.exports = mongoose.model("Wallet", WalletSchema);
