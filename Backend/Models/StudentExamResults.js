@@ -7,6 +7,11 @@ const StudentExamResultsSchema = new Schema({
     ref: "Users",
     required: true,
   },
+  courses: {
+    type: Schema.Types.ObjectId,
+    ref: "Courses",
+    required: true,
+  },
   exam: {
     type: Schema.Types.ObjectId,
     ref: "Exams",
@@ -20,16 +25,18 @@ const StudentExamResultsSchema = new Schema({
     type: Number,
     required: true,
   },
-  answers: [
+  questions: [
     {
       question: {
         type: String,
         required: true,
       },
-      answer: {
-        type: String,
-        required: true,
-      },
+      answer: [
+        {
+          type: String,
+          required: true,
+        },
+      ],
       isCorrect: {
         type: Boolean,
         required: true,
