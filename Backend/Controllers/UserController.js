@@ -106,8 +106,27 @@ exports.login = async (req, res) => {
         message: "Login successful",
         token: token,
         fullname: user.fullname, // Thêm fullname vào đây
+
+        role: user.role
+
       });
     });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+
+//get user by id
+exports.getUserById = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await Users.findOne({ _id: userId });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+    res.status(200).json(user);
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Internal Server Error" });
@@ -381,6 +400,18 @@ exports.banAndUnbanUser = async (req, res) => {
     } else {
       res.status(200).json({ message: "User banned" });
     }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+//log out
+exports.logout = async (req, res) => {
+  try {
+
+  
+    res.status(200).json({ message: "Logged out" });
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Internal Server Error" });
