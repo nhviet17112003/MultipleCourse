@@ -107,8 +107,7 @@ exports.login = async (req, res) => {
         token: token,
         fullname: user.fullname, // Thêm fullname vào đây
 
-        role: user.role
-
+        role: user.role,
       });
     });
   } catch (err) {
@@ -116,7 +115,6 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
 
 //get user by id
 exports.getUserById = async (req, res) => {
@@ -400,6 +398,37 @@ exports.banAndUnbanUser = async (req, res) => {
     } else {
       res.status(200).json({ message: "User banned" });
     }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+exports.updateBankAccount = async (req, res) => {
+  try {
+    const user = await Users.findOne({ _id: req.user._id });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    const { bank_name, account_number, account_name } = req.body;
+
+    if (!bank_name || !account_number || !account_name) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    if (!user.bankAccount || user.bankAccount.length < 1) {
+      // Thêm mới tài khoản ngân hàng
+      user.bankAccount.push({ bank_name, account_number, account_name });
+    } else {
+      // Cập nhật tài khoản ngân hàng hiện có
+      user.bankAccount[0].bank_name = bank_name;
+      user.bankAccount[0].account_number = account_number;
+      user.bankAccount[0].account_name = account_name;
+    }
+
+    await user.save();
+
+    res.status(200).json({ message: "Bank account updated", user: user });
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Internal Server Error" });
