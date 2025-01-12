@@ -25,7 +25,7 @@ import CourseManageTutor from "./components/tutors/CourseManageTutor";
           <Route path="/homescreen" element={<HomeScreen />} />
           <Route path="/coursedetail/:id" element={<CourseDetail />} />
           <Route path="/cart" element={<Cart/>} />
-          <Route path="/coursemanagertutor/:courseId" element={<CourseManageTutor />} />
+          <Route path="/coursemanagertutor" element={<CourseManageTutor />} />
         </Routes>
       </Router>
     );

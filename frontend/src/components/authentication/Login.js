@@ -8,6 +8,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(""); // Cho thông báo tài khoản/mật khẩu
+  const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
   const navigate = useNavigate();
@@ -16,19 +17,14 @@ const Login = () => {
     const token = localStorage.getItem("authToken");
     const role = localStorage.getItem("role");
 
-    console.log("Token:", token);
-    console.log("Role:", role); // In giá trị role từ localStorage
-
-    if (token) {
-      if (role === "tutor") {
-        const userId = localStorage.getItem("userId");
-        navigate(`/coursemanagertutor/${userId}`);
-      } else if (role === "student") {
+    if (token && role) {
+      const normalizedRole = role.toLowerCase(); // Normalize role
+      if (normalizedRole === "tutor") {
         navigate("/homescreen");
-      } else {
-        console.error("Role không hợp lệ");
+      } else if (normalizedRole === "student") {
+        navigate("/homescreen");
       }
-    }
+    } 
   }, [navigate]);
   // Hàm kiểm tra Username
   const validateUsername = (username) => {
@@ -57,7 +53,7 @@ const Login = () => {
       setError(usernameError);
       return;
     }
-
+  
     // Kiểm tra Password
     const passwordError = validatePassword(password);
     if (passwordError) {
@@ -67,51 +63,50 @@ const Login = () => {
     // Reset các thông báo lỗi trước đó
     setError("");
     setSuccessMessage("");
-
+  
     // Kiểm tra validation phía client
     if (username.trim().length === 0) {
       setError("Vui lòng nhập Username.");
       return;
     }
-
+  
     if (password.length < 6) {
       setError("Mật khẩu phải có ít nhất 6 ký tự.");
       return;
     }
-
+  
     try {
       const response = await axios.post(
         "http://localhost:3000/api/users/login",
         { username, password }
       );
-
+  
       if (response.status === 200) {
+        const { token, role, fullname } = response.data;
+  
+        // Lưu thông tin vào localStorage
+        localStorage.setItem("authToken", token);
+        localStorage.setItem("fullname", fullname);
+        if (role.toLowerCase() === "tutor") {
+          localStorage.setItem("role", role);
+        }
+  
         setSuccessMessage("Đăng nhập thành công!");
         setError("");
-
-        if (response.data.role) {
-          localStorage.setItem("authToken", response.data.token);
-          localStorage.setItem("role", response.data.role);
-          localStorage.setItem("fullname", response.data.fullname);
-
-          if (response.data.role === "Tutor") {
-            const userId = response.data.userId;
-            localStorage.setItem("userId", userId);
-            navigate(`/coursemanagertutor/${userId}`);
-          } else if (response.data.role === "Student") {
-            navigate("/homescreen");
-          }
-        } else {
-          setError("Dữ liệu đăng nhập không đầy đủ.");
-        }
+  
+        setIsLoading(false);
+  
+        // Reload lại trang để cập nhật thông tin
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
       }
     } catch (err) {
-      if (err.response) {
-        setError("Tài khoản hoặc mật khẩu không đúng.");
-      }
+      setError("Tài khoản hoặc mật khẩu không đúng.");
+      setSuccessMessage("");
     }
   };
-
+  
   const handleSignUpForStudent = () => {
     navigate("/signup", { state: { role: "Student" } });
   };
@@ -197,7 +192,8 @@ const Login = () => {
                     type="submit"
                     className="border-2 border-green-500 text-green-500 rounded-full px-12 py-2 inline-block font-semibold hover:bg-green-500 hover:text-white"
                   >
-                    Login
+                    {isLoading ? "Loading..." : "Login"}
+                    
                   </button>
                 </form>
               </div>
