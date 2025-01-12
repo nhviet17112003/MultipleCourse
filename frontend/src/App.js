@@ -21,6 +21,26 @@ import { ThemeProvider } from "./components/context/ThemeContext"; // Import The
 import CreateLesson from "./components/tutors/lesson/CreateLesson";
 import LessonDetail from "./components/tutors/lesson/LessonDetail";
 import UpdateLessonModal from "./components/tutors/lesson/UpdateLessonModal";
+  // function App() {
+  //   return (
+  //     <Router>
+  //       <Routes>
+  //         <Route path="/" element={<HomeScreen />} />
+  //         <Route path="/login" element={<Login />} /> {/* Route cho trang đăng ký */}
+  //         <Route path="/uploadtutorcertificate/:userId" element={<UploadTutorCertificate />} />
+  //         <Route path="/signup" element={<Signup />} />     
+  //         <Route path="/forgetpassword" element={<ForgetPassword />} />
+  //         <Route path="/userprofile" element={<UserProfile />} />
+  //       <Route path="/updateprofile/:id" element={<UpdateProfile />} />
+  //         <Route path="/courses-list" element={<ViewCourseList />} />
+  //         <Route path="/homescreen" element={<HomeScreen />} />
+  //         <Route path="/coursedetail/:id" element={<CourseDetail />} />
+  //         <Route path="/cart" element={<Cart/>} />
+  //         <Route path="/coursemanagertutor" element={<CourseManageTutor />} />
+  //       </Routes>
+  //     </Router>
+  //   );
+  //}
 
 function App() {
   return (

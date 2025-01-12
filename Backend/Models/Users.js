@@ -43,8 +43,8 @@ const UserSchema = new Schema({
   },
   tutor_certificates: [
     {
-      title: { type: String, required: true },
-      certificate_url: { type: String, required: true },
+      title: { type: String, default: undefined },
+      certificate_url: { type: String, default: undefined },
     },
   ],
   resetPasswordOTP: {
@@ -55,6 +55,13 @@ const UserSchema = new Schema({
     type: Date,
     default: undefined,
   },
+  bankAccount: [
+    {
+      bank_name: { type: String, default: undefined },
+      account_number: { type: String, default: undefined },
+      account_name: { type: String, default: undefined },
+    },
+  ],
   status: {
     type: Boolean,
     default: true,

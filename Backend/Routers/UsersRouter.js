@@ -73,6 +73,12 @@ router.put(
   cors.corsWithOptions,
   userController.banAndUnbanUser
 );
+router.put(
+  "/update-bank-account",
+  auth.verifyUser,
+  userController.updateBankAccount
+);
+
 // Get user profile by id
 router.get("/profile/:id", cors.corsWithOptions, userController.getUserById);
 module.exports = router;

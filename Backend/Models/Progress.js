@@ -12,24 +12,28 @@ const ProgressSchema = new Schema({
     ref: "Courses",
     required: true,
   },
-  lesson_id: {
-    type: Schema.Types.ObjectId,
-    ref: "Lessons",
-    required: true,
-  },
-  status: {
-    type: String,
-    default: "Not Started",
-    enum: ["In Progress", "Completed", "Not Started"],
-  },
-  note: {
-    type: String,
-    default: "",
-  },
-  progress_time: {
-    type: Number,
-    default: 0,
-  },
+  lesson: [
+    {
+      lesson_id: {
+        type: Schema.Types.ObjectId,
+        ref: "Lessons",
+        required: true,
+      },
+      status: {
+        type: String,
+        default: "Not Started",
+        enum: ["In Progress", "Completed", "Not Started"],
+      },
+      note: {
+        type: String,
+        default: "",
+      },
+      progress_time: {
+        type: Number,
+        default: 0,
+      },
+    },
+  ],
 });
 
 module.exports = mongoose.model("Progress", ProgressSchema);
