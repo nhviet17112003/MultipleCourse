@@ -56,6 +56,16 @@ exports.verifyTutor = (req, res, next) => {
   }
 };
 
+exports.verifyAdminOrStudent = (req, res, next) => {
+  if (req.user.role === "Student" || req.user.role === "Admin") {
+    return next();
+  } else {
+    res.statusCode = 403;
+    res.setHeader("Content-Type", "application/json");
+    res.end("You are not authorized to perform this operation!");
+  }
+};
+
 exports.verifyAdminOrTutor = (req, res, next) => {
   if (req.user.role === "Tutor" || req.user.role === "Admin") {
     return next();

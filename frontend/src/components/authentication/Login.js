@@ -19,12 +19,10 @@ const Login = () => {
 
     if (token && role) {
       const normalizedRole = role.toLowerCase(); // Normalize role
-      if (normalizedRole === "tutor") {
+      if (normalizedRole === "tutor" || normalizedRole === "student") {
         navigate("/homescreen");
-      } else if (normalizedRole === "student") {
-        navigate("/homescreen");
-      }
-    } 
+      } else navigate("/admin");
+    }
   }, [navigate]);
   // Hàm kiểm tra Username
   const validateUsername = (username) => {
@@ -39,10 +37,10 @@ const Login = () => {
 
   // Hàm kiểm tra Password
   const validatePassword = (password) => {
-    if (password.length < 3) {
+    if (password.length < 6) {
       return "Mật khẩu phải có ít nhất 6 ký tự.";
     }
-    
+
     return "";
   };
   const handleSubmit = async (e) => {
@@ -53,7 +51,7 @@ const Login = () => {
       setError(usernameError);
       return;
     }
-  
+
     // Kiểm tra Password
     const passwordError = validatePassword(password);
     if (passwordError) {
@@ -63,38 +61,43 @@ const Login = () => {
     // Reset các thông báo lỗi trước đó
     setError("");
     setSuccessMessage("");
-  
+
     // Kiểm tra validation phía client
     if (username.trim().length === 0) {
       setError("Vui lòng nhập Username.");
       return;
     }
-  
-    if (password.length < 3) {
+
+    if (password.length < 6) {
       setError("Mật khẩu phải có ít nhất 6 ký tự.");
       return;
     }
-  
+
     try {
       const response = await axios.post(
         "http://localhost:3000/api/users/login",
         { username, password }
       );
-  
+
       if (response.status === 200) {
         const { token, role, fullname } = response.data;
-  
+
         // Lưu thông tin vào localStorage
         localStorage.setItem("authToken", token);
         localStorage.setItem("fullname", fullname);
+
         if (role.toLowerCase() === "tutor") {
           localStorage.setItem("role", role);
-        }
+
+
+        } else localStorage.setItem("role", role);
+        console.log(role);
+
         setSuccessMessage("Đăng nhập thành công!");
         setError("");
-  
+
         setIsLoading(false);
-  
+
         // Reload lại trang để cập nhật thông tin
         setTimeout(() => {
           window.location.reload();
@@ -105,7 +108,7 @@ const Login = () => {
       setSuccessMessage("");
     }
   };
-  
+
   const handleSignUpForStudent = () => {
     navigate("/signup", { state: { role: "Student" } });
   };
@@ -192,7 +195,6 @@ const Login = () => {
                     className="border-2 border-green-500 text-green-500 rounded-full px-12 py-2 inline-block font-semibold hover:bg-green-500 hover:text-white"
                   >
                     {isLoading ? "Loading..." : "Login"}
-                    
                   </button>
                 </form>
               </div>
