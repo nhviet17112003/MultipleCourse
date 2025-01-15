@@ -1,7 +1,9 @@
 const Course = require("../Models/Courses");
 const Lesson = require("../Models/Lessons");
+const Request = require("../Models/Requests");
 const multer = require("multer");
 const admin = require("firebase-admin");
+const { request } = require("express");
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -83,8 +85,8 @@ exports.getCourseById = async (req, res) => {
   }
 };
 
-//Create Course
-exports.createCourse = async (req, res) => {
+//Request Create Course
+exports.requetsCreateCourse = async (req, res) => {
   try {
     upload.single("image")(req, res, async (err) => {
       if (err) {
@@ -115,6 +117,14 @@ exports.createCourse = async (req, res) => {
         category,
       });
 
+      const newRequest = new Request({
+        tutor,
+        course: newCourse._id,
+        request_type: "Created new course and waiting for approval",
+        status: "Pending",
+      });
+
+      await newRequest.save();
       await newCourse.save();
       res.status(201).json(newCourse);
     });
@@ -124,8 +134,44 @@ exports.createCourse = async (req, res) => {
   }
 };
 
-//Update Course
-exports.updateCourse = async (req, res) => {
+//Process Create Course Request
+exports.processCreateCourse = async (req, res) => {
+  try {
+    const status = req.body.status;
+    const request = await Request.findById(req.params.process_id);
+    if (!request) {
+      return res.status(404).json({ message: "Request not found" });
+    } else if (request.status === "Rejected") {
+      return res.status(400).json({ message: "Request has been rejected" });
+    }
+
+    if (status === "Rejected") {
+      request.status = "Rejected";
+      await request.save();
+      return res.status(200).json({ message: "Request has been rejected" });
+    }
+
+    if (status === "Approved") {
+      const course = await Course.findById(request.course);
+      if (!course) {
+        return res.status(404).json({ message: "Course not found" });
+      }
+
+      course.status = true;
+      await course.save();
+      await request.save();
+      res
+        .status(200)
+        .json({ message: "Course has been created", course: course });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+//Request Update Course
+exports.requestUpdateCourse = async (req, res) => {
   try {
     const newTitle = req.body.title;
     const description = req.body.description;
@@ -140,59 +186,124 @@ exports.updateCourse = async (req, res) => {
       return res.status(404).json({ message: "Course not found" });
     }
 
-    // Nếu tiêu đề mới khác với tiêu đề cũ
-    if (course.title !== newTitle) {
-      const oldFolderPath = `Courses/${course.title}/`;
-      const newFolderPath = `Courses/${newTitle}/`;
+    const newRequest = new Request({
+      tutor: req.user._id,
+      course: course._id,
+      request_type: "Updated course and waiting for approval",
+      content: [
+        { title: "NewTitle", value: newTitle },
+        { title: "NewDescription", value: description },
+        { title: "Price", value: price },
+        { title: "Category", value: category },
+      ],
+      status: "Pending",
+    });
 
-      // Move all files in the old folder to the new folder
-      const bucket = admin.storage().bucket();
-      const [files] = await bucket.getFiles({ prefix: oldFolderPath });
-      if (files.length > 0) {
-        for (const file of files) {
-          const oldFilePath = file.name;
+    await newRequest.save();
+    res.status(201).json({ message: "Request sent to admin" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 
-          // Tạo đường dẫn mới cho file
-          const newFilePath = oldFilePath.replace(oldFolderPath, newFolderPath);
+//Admin process update course request
+exports.processUpdateCourse = async (req, res) => {
+  try {
+    const status = req.body.status;
+    const request = await Request.findById(req.params.process_id);
 
-          // Sao chép file sang folder mới
-          await bucket.file(oldFilePath).copy(bucket.file(newFilePath));
-          // Công khai file mới
-          await bucket.file(newFilePath).makePublic();
-          // Xóa file cũ
-          await bucket.file(oldFilePath).delete();
-        }
-      }
-
-      if (course.image) {
-        course.image = course.image.replace(
-          `Courses/${course.title}/`,
-          `Courses/${newTitle}/`
-        );
-      }
-
-      const lessons = await Lesson.find({ course_id: req.params.course_id });
-      for (const lesson of lessons) {
-        lesson.video_url = lesson.video_url.replace(
-          `Courses/${course.title}/`,
-          `Courses/${newTitle}/`
-        );
-        lesson.document_url = lesson.document_url.replace(
-          `Courses/${course.title}/`,
-          `Courses/${newTitle}/`
-        );
-        await lesson.save();
-      }
-
-      course.title = newTitle;
+    if (!request) {
+      return res.status(404).json({ message: "Request not found" });
+    } else if (request.status === "Rejected") {
+      return res.status(400).json({ message: "Request has been rejected" });
     }
 
-    course.description = description;
-    course.price = price;
-    course.category = category;
+    if (status === "Rejected") {
+      request.status = "Rejected";
+      await request.save();
+      return res.status(200).json({ message: "Request has been rejected" });
+    }
 
-    await course.save();
-    res.status(200).json(course);
+    if (status === "Approved") {
+      const newTitle = request.content.find(
+        (item) => item.title === "NewTitle"
+      ).value;
+      const description = request.content.find(
+        (item) => item.title === "NewDescription"
+      ).value;
+      const price = request.content.find(
+        (item) => item.title === "Price"
+      ).value;
+      const category = request.content.find(
+        (item) => item.title === "Category"
+      ).value;
+
+      const course = await Course.findOne({
+        _id: req.params.course_id,
+        tutor: req.user._id,
+      });
+      if (!course) {
+        return res.status(404).json({ message: "Course not found" });
+      }
+
+      // Nếu tiêu đề mới khác với tiêu đề cũ
+      if (course.title !== newTitle) {
+        const oldFolderPath = `Courses/${course.title}/`;
+        const newFolderPath = `Courses/${newTitle}/`;
+
+        // Move all files in the old folder to the new folder
+        const bucket = admin.storage().bucket();
+        const [files] = await bucket.getFiles({ prefix: oldFolderPath });
+        if (files.length > 0) {
+          for (const file of files) {
+            const oldFilePath = file.name;
+
+            // Tạo đường dẫn mới cho file
+            const newFilePath = oldFilePath.replace(
+              oldFolderPath,
+              newFolderPath
+            );
+
+            // Sao chép file sang folder mới
+            await bucket.file(oldFilePath).copy(bucket.file(newFilePath));
+            // Công khai file mới
+            await bucket.file(newFilePath).makePublic();
+            // Xóa file cũ
+            await bucket.file(oldFilePath).delete();
+          }
+        }
+
+        if (course.image) {
+          course.image = course.image.replace(
+            `Courses/${course.title}/`,
+            `Courses/${newTitle}/`
+          );
+        }
+
+        const lessons = await Lesson.find({ course_id: req.params.course_id });
+        for (const lesson of lessons) {
+          lesson.video_url = lesson.video_url.replace(
+            `Courses/${course.title}/`,
+            `Courses/${newTitle}/`
+          );
+          lesson.document_url = lesson.document_url.replace(
+            `Courses/${course.title}/`,
+            `Courses/${newTitle}/`
+          );
+          await lesson.save();
+        }
+
+        course.title = newTitle;
+      }
+
+      course.description = description;
+      course.price = price;
+      course.category = category;
+      await course.save();
+      await request.save();
+      res.status(200).json(course);
+    }
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Internal Server Error" });
@@ -266,3 +377,5 @@ exports.changeCourseStatus = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+//Delete Course
