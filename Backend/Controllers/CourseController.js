@@ -138,7 +138,7 @@ exports.requetsCreateCourse = async (req, res) => {
 exports.processCreateCourse = async (req, res) => {
   try {
     const status = req.body.status;
-    const request = await Request.findById(req.params.process_id);
+    const request = await Request.findById(req.params.request_id);
     if (!request) {
       return res.status(404).json({ message: "Request not found" });
     } else if (request.status === "Rejected") {
@@ -211,7 +211,7 @@ exports.requestUpdateCourse = async (req, res) => {
 exports.processUpdateCourse = async (req, res) => {
   try {
     const status = req.body.status;
-    const request = await Request.findById(req.params.process_id);
+    const request = await Request.findById(req.params.request_id);
 
     if (!request) {
       return res.status(404).json({ message: "Request not found" });
@@ -303,6 +303,84 @@ exports.processUpdateCourse = async (req, res) => {
       await course.save();
       await request.save();
       res.status(200).json(course);
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+//Request Delete Course
+exports.requestDeleteCourse = async (req, res) => {
+  try {
+    const course = await Course.findOne({
+      _id: req.params.course_id,
+      tutor: req.user._id,
+    });
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    const newRequest = new Request({
+      tutor: req.user._id,
+      course: course._id,
+      request_type: "Deleted course and waiting for approval",
+      status: "Pending",
+    });
+
+    await newRequest.save();
+    res.status(201).json({ message: "Request sent to admin" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+//Admin process delete course request
+exports.processDeleteCourse = async (req, res) => {
+  try {
+    const status = req.body.status;
+    const request = await Request.findById(req.params.request_id);
+
+    if (!request) {
+      return res.status(404).json({ message: "Request not found" });
+    } else if (request.status === "Rejected") {
+      return res.status(400).json({ message: "Request has been rejected" });
+    }
+
+    if (status === "Rejected") {
+      request.status = "Rejected";
+      await request.save();
+      return res.status(200).json({ message: "Request has been rejected" });
+    }
+
+    if (status === "Approved") {
+      const course = await Course.findOne({
+        _id: req.params.course_id,
+        tutor: req.user._id,
+      });
+      if (!course) {
+        return res.status(404).json({ message: "Course not found" });
+      }
+
+      // Xóa tất cả các bài học của khóa học
+      await Lesson.deleteMany({ course_id: req.params.course_id });
+
+      // Xóa folder chứa tất cả các file của khóa học
+      const bucket = admin.storage().bucket();
+      const folderPath = `Courses/${course.title}/`;
+      const [files] = await bucket.getFiles({ prefix: folderPath });
+      if (files.length > 0) {
+        for (const file of files) {
+          const filePath = file.name;
+          await bucket.file(filePath).delete();
+        }
+      }
+
+      // Xóa khóa học
+      await course.delete();
+      await request.save();
+      res.status(200).json({ message: "Course has been deleted" });
     }
   } catch (err) {
     console.log(err);

@@ -35,7 +35,7 @@ router.post(
 );
 //Process request to create course
 router.post(
-  "/process-create-course/:process_id",
+  "/process-create-course/:request_id",
   cors.corsWithOptions,
   auth.verifyUser,
   auth.verifyAdmin,
@@ -51,11 +51,27 @@ router.put(
 );
 //Process request to update course
 router.put(
-  "/process-update-course/:process_id",
+  "/process-update-course/:request_id",
   cors.corsWithOptions,
   auth.verifyUser,
   auth.verifyAdmin,
   courseController.processUpdateCourse
+);
+//Request to delete course
+router.delete(
+  "/delete-course/:course_id",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  auth.verifyTutor,
+  courseController.requestDeleteCourse
+);
+//Process request to delete course
+router.delete(
+  "/process-delete-course/:request_id",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  auth.verifyAdmin,
+  courseController.processDeleteCourse
 );
 router.put(
   "/update-course-image/:course_id",
