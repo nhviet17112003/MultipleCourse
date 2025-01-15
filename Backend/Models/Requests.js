@@ -1,0 +1,30 @@
+const e = require("express");
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
+
+const RequestSchema = new Schema({
+  user: {
+    type: Schema.Types.ObjectId,
+    ref: "Users",
+  },
+  course: {
+    type: Schema.Types.ObjectId,
+    ref: "Courses",
+  },
+  request_type: {
+    type: String,
+    required: true,
+  },
+  content: [{ default: undefined }],
+  request_date: {
+    type: Date,
+    default: Date.now,
+  },
+  status: {
+    type: String,
+    required: true,
+    enum: ["Pending", "Approved", "Rejected"],
+  },
+});
+
+module.exports = mongoose.model("Requests", RequestSchema);
