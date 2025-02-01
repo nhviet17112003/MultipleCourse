@@ -15,7 +15,7 @@ const RequestSchema = new Schema({
     type: String,
     required: true,
   },
-  content: [{ default: undefined }],
+  content: [{}],
   request_date: {
     type: Date,
     default: Date.now,
