@@ -11,16 +11,23 @@ exports.createProgress = async (req, res) => {
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
     }
+    const progress = await Progress.findOne({
+      student_id: user_id,
+      course_id: course_id,
+    });
+    if (progress) {
+      return res.status(400).json({ message: "Progress already exists" });
+    }
     const lessons = await Lesson.find({ course_id: course_id });
-    const progress = new Progress({
+    const newProgress = new Progress({
       student_id: user_id,
       course_id: course_id,
       lesson: lessons.map((lesson) => {
         return { lesson_id: lesson._id };
       }),
     });
-    await progress.save();
-    res.status(201).json(progress);
+    await newProgress.save();
+    res.status(201).json(newProgress);
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal server error" });
