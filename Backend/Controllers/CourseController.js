@@ -158,6 +158,7 @@ exports.processCreateCourse = async (req, res) => {
       }
 
       course.status = true;
+      request.status = "Approved";
       await course.save();
       await request.save();
       res
@@ -239,10 +240,7 @@ exports.processUpdateCourse = async (req, res) => {
         (item) => item.title === "Category"
       ).value;
 
-      const course = await Course.findOne({
-        _id: req.params.course_id,
-        tutor: req.user._id,
-      });
+      const course = await Course.findById(request.course);
       if (!course) {
         return res.status(404).json({ message: "Course not found" });
       }
@@ -300,6 +298,7 @@ exports.processUpdateCourse = async (req, res) => {
       course.description = description;
       course.price = price;
       course.category = category;
+      request.status = "Approved";
       await course.save();
       await request.save();
       res.status(200).json(course);
@@ -355,10 +354,7 @@ exports.processDeleteCourse = async (req, res) => {
     }
 
     if (status === "Approved") {
-      const course = await Course.findOne({
-        _id: req.params.course_id,
-        tutor: req.user._id,
-      });
+      const course = await Course.findById(request.course);
       if (!course) {
         return res.status(404).json({ message: "Course not found" });
       }
@@ -378,7 +374,8 @@ exports.processDeleteCourse = async (req, res) => {
       }
 
       // Xóa khóa học
-      await course.delete();
+      await course.deleteOne();
+      request.status = "Approved";
       await request.save();
       res.status(200).json({ message: "Course has been deleted" });
     }
