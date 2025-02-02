@@ -31,7 +31,7 @@ router.post(
   cors.corsWithOptions,
   auth.verifyUser,
   auth.verifyTutor,
-  courseController.processCreateCourse
+  courseController.requetsCreateCourse
 );
 //Process request to create course
 router.post(
