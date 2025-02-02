@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
+  const navigate = useNavigate(); // Khởi tạo navigate
+
 
   useEffect(() => {
     // Lấy giỏ hàng từ API
@@ -77,6 +80,12 @@ const Cart = () => {
     <div className="min-h-screen bg-gray-100">
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold text-gray-700 mb-4">Giỏ Hàng</h1>
+        <button
+            onClick={() => navigate("/")} // Quay lại HomeScreen
+            className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
+          >
+            Quay lại
+          </button>
 
         {cartItems.length === 0 ? (
           <p>Giỏ hàng của bạn đang trống.</p>
