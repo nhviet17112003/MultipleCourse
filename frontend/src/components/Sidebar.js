@@ -106,6 +106,10 @@ function Sidebar() {
           { key: "13", label: "Manage Courses" },
           { key: "14", label: "Reports" },
           { key: "15", label: "System Settings" },
+          {
+            key: "16",
+            label: <Link to="/wallet-manage-for-admin">Withdrawal Manage</Link>,
+          },
         ],
       },
     ];

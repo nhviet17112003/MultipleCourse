@@ -23,6 +23,7 @@ import LessonDetail from "./components/tutors/lesson/LessonDetail";
 import UpdateLessonModal from "./components/tutors/lesson/UpdateLessonModal";
 import WalletManage from "./components/tutors/wallet/WalletManage";
 import WithdrawalHistory from "./components/tutors/wallet/WithdrawalHistory";
+import WalletManageForAdmin from "./components/admins/WalletManageForAdmin";
 
 function App() {
   return (
@@ -67,7 +68,10 @@ function App() {
                     path="/withdrawal-history"
                     element={<WithdrawalHistory />}
                   />
-
+                  <Route
+                    path="/wallet-manage-for-admin"
+                    element={<WalletManageForAdmin />}
+                  />
                   <Route
                     path="/coursemanagertutor/:courseId"
                     element={<CourseManageTutor />}
