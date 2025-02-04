@@ -42,7 +42,7 @@ function Sidebar() {
         label: "Student Navigation",
         icon: <MailOutlined />,
         children: [
-          { key: "1", label: "My Courses" },
+          { key: "1", label: <Link to="/my-courses">My Courses</Link> },
           { key: "2", label: "My Assignments" },
           { key: "3", label: "My Grades" },
         ],
