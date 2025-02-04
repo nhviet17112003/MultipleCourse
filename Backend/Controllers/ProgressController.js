@@ -43,15 +43,29 @@ exports.updateLessonProgress = async (req, res) => {
       student_id: user_id,
       "lesson.lesson_id": lesson_id,
     });
+
     if (!progress) {
       return res.status(404).json({ message: "Progress not found" });
     }
+
     const lesson = progress.lesson.find(
       (lesson) => lesson.lesson_id.toString() === lesson_id
     );
+
+    if (lesson.status === "Completed") {
+      return res.status(400).json({
+        message: "Lesson is already completed and cannot be updated.",
+      });
+    }
+
     lesson.status = req.body.status;
     lesson.note = req.body.note;
     lesson.progress_time = req.body.progress_time;
+
+    if (req.body.status === "Completed") {
+      lesson.status = "Completed";
+    }
+
     await progress.save();
     res.status(200).json(progress);
   } catch (error) {

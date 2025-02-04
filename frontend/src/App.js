@@ -24,6 +24,8 @@ import UpdateLessonModal from "./components/tutors/lesson/UpdateLessonModal";
 import WalletManage from "./components/tutors/wallet/WalletManage";
 import WithdrawalHistory from "./components/tutors/wallet/WithdrawalHistory";
 import WalletManageForAdmin from "./components/admins/WalletManageForAdmin";
+import MyCourses from "./components/students/MyCourse";
+import CourseLearningPage from "./components/students/CourseLearning";
 
 function App() {
   return (
@@ -93,6 +95,12 @@ function App() {
                   <Route
                     path="/update-lesson/:lessonId"
                     element={<UpdateLessonModal />}
+                  />
+
+                  <Route path="/my-courses" element={<MyCourses />} />
+                  <Route
+                    path="/courses/:courseId"
+                    element={<CourseLearningPage />}
                   />
                 </Routes>
               </div>
