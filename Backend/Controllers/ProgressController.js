@@ -52,24 +52,23 @@ exports.updateLessonProgress = async (req, res) => {
       (lesson) => lesson.lesson_id.toString() === lesson_id
     );
 
-    if (lesson.status === "Completed") {
-      return res.status(400).json({
-        message: "Lesson is already completed and cannot be updated.",
-      });
+    if (!lesson) {
+      return res.status(404).json({ message: "Lesson not found" });
     }
 
-    lesson.status = req.body.status;
-    lesson.note = req.body.note;
-    lesson.progress_time = req.body.progress_time;
-
-    if (req.body.status === "Completed") {
-      lesson.status = "Completed";
+    if (lesson.status === "Completed") {
+      lesson.note = req.body.note;
+    } else {
+      lesson.status =
+        req.body.status === "Completed" ? "Completed" : req.body.status;
+      lesson.note = req.body.note;
+      lesson.progress_time = req.body.progress_time;
     }
 
     await progress.save();
     res.status(200).json(progress);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
