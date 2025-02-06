@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import { CheckCircleIcon, LockClosedIcon } from "@heroicons/react/24/solid";
+import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 
 const CourseLearningPage = () => {
   const { courseId } = useParams();
@@ -59,6 +60,10 @@ const CourseLearningPage = () => {
       )
     );
   };
+
+  const currentNote = progressData?.lesson.find(
+    (lesson) => lesson.lesson_id === currentLesson?._id
+  )?.note;
 
   const isLessonInProgress = (lessonId) => {
     return (
@@ -145,13 +150,33 @@ const CourseLearningPage = () => {
 
   const handleVideoEnd = () => {
     if (currentLesson.status !== "Completed") {
-      updateLessonProgress("Completed", "Understood well");
+      updateLessonProgress("Completed", "");
     }
   };
 
-  const handleNoteSubmit = () => {
-    setNotes([...notes, { content: note }]);
-    setNote("");
+  const handleNoteSubmit = async () => {
+    if (!note) return;
+
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/progress/lesson/${currentLesson._id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+          body: JSON.stringify({ status: currentLesson.status, note }),
+        }
+      );
+
+      const updatedProgressData = await response.json();
+      setProgressData(updatedProgressData);
+      setNotes((prevNotes) => [...prevNotes, { content: note }]);
+      setNote("");
+    } catch (error) {
+      console.error("Failed to save note", error);
+    }
   };
 
   if (loading) {
@@ -168,7 +193,6 @@ const CourseLearningPage = () => {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-100 to-gray-300">
-      {/* Phần hiển thị bài học */}
       <div className="w-full md:w-2/3 p-6 bg-white shadow-xl rounded-lg">
         {currentLesson ? (
           <div>
@@ -185,33 +209,61 @@ const CourseLearningPage = () => {
               className="w-full rounded-xl shadow-lg mt-4"
               onEnded={handleVideoEnd}
             ></video>
+            {currentLesson.document_url && (
+              <div className="flex justify-center">
+                <a
+                  href={currentLesson.document_url}
+                  download
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className=" mt-3 py-3 px-6 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105"
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    <ArrowDownTrayIcon className="w-5 h-5" />
+                    Download document
+                  </span>
+                </a>
+              </div>
+            )}
+            <div className="mt-6 space-y-6">
+              {currentNote && (
+                <div className="bg-gray-50 p-4 border-l-4 border-blue-500 text-lg text-gray-700 shadow-sm rounded-md">
+                  <h3 className="font-semibold text-blue-600">Note:</h3>
+                  <p className="text-gray-600">{currentNote}</p>
+                </div>
+              )}
 
-            <div className="mt-6">
-              <textarea
-                className="w-full p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
-                placeholder="Ghi chú bài học..."
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-              ></textarea>
-              <button
-                onClick={handleNoteSubmit}
-                className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-              >
-                Lưu ghi chú
-              </button>
+              <div className="space-y-3">
+                <textarea
+                  className="w-full p-4 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out"
+                  placeholder="Ghi chú bài học..."
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                ></textarea>
+                <div className="flex justify-end">
+                  <button
+                    onClick={handleNoteSubmit}
+                    className="py-3 px-6 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105"
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      <CheckCircleIcon className="w-5 h-5" />
+                      Save notes
+                    </span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         ) : (
           <p className="text-lg text-gray-600">
-            Chưa có bài học nào được chọn.
+            No lessons have been selected yet.
           </p>
         )}
       </div>
 
-      {/* Danh sách bài học */}
       <div className="w-full md:w-1/3 bg-white p-6 border-l shadow-lg">
         <h2 className="text-2xl font-semibold mb-4 text-gray-800">
-          Danh sách bài học
+          List of lessons{" "}
         </h2>
         <ul className="space-y-3">
           {lessons.map((lesson, index) => (
@@ -225,7 +277,7 @@ const CourseLearningPage = () => {
               onClick={() => canAccessLesson(index) && setCurrentLesson(lesson)}
             >
               <span className="text-gray-700 font-medium">
-                <strong>Bài {lesson.number}:</strong> {lesson.title}
+                <strong>Lesson {lesson.number}:</strong> {lesson.title}
               </span>
               {isLessonCompleted(lesson._id) ? (
                 <CheckCircleIcon className="h-6 w-6 text-green-500" />
