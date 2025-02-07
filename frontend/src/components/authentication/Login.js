@@ -37,7 +37,7 @@ const Login = () => {
 
   // Hàm kiểm tra Password
   const validatePassword = (password) => {
-    if (password.length < 6) {
+    if (password.length < 3) {
       return "Mật khẩu phải có ít nhất 6 ký tự.";
     }
 
@@ -68,7 +68,7 @@ const Login = () => {
       return;
     }
 
-    if (password.length < 6) {
+    if (password.length < 3) {
       setError("Mật khẩu phải có ít nhất 6 ký tự.");
       return;
     }

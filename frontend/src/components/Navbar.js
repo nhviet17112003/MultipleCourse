@@ -4,10 +4,12 @@ import axios from "axios";
 import { useTheme } from "./context/ThemeContext"; 
 import { Space, Switch, Input, Button, Dropdown, Menu } from 'antd';
 import { UserOutlined, LogoutOutlined, SearchOutlined } from '@ant-design/icons';
+import { set } from "react-hook-form";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const [fullname, setFullname] = useState("Người dùng");
+  const [fullname, setFullname] = useState("");
+  const [role, setRole] = useState("");
   const [avatarUrl, setAvatarUrl] = useState(""); // Đường dẫn avatar
   const [error, setError] = useState("");
   const [userData, setUserData] = useState(null);
@@ -23,7 +25,9 @@ const Navbar = () => {
     } else {
       const savedFullname = localStorage.getItem("fullname");
       const savedAvatar = localStorage.getItem("avatar");
-      setFullname(savedFullname || "Người dùng");
+      const savedRole = localStorage.getItem("role");
+      setFullname(savedFullname || "");
+      setRole(savedRole || "");
       setAvatarUrl(savedAvatar || "https://via.placeholder.com/40");
     }
   }, [navigate]);
@@ -149,68 +153,81 @@ const Navbar = () => {
   }, []);
 
   return (
-    <nav className={` text-white shadow-md ${theme === "dark" ? "bg-gray-800" : "bg-teal-500"}`}>
-      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        <h1
-          className="text-xl font-bold cursor-pointer hover:text-yellow-300"
-          onClick={() => navigate("/")}
-        >
-          MultiCourse
-        </h1>
-
-        {/* Search*/}
-        <div className="flex items-center space-x-4">
-          <Input
-            value={searchQuery}
-            onChange={handleSearchChange}
-            placeholder="Search courses..."
-            className={`w-64 px-4 py-2 rounded-lg focus:outline-none ${theme === "dark" ? "bg-gray-700 text-gray-900" : "bg-white text-gray-900"}`}
-            style={{ border: "1px solid", borderColor: theme === "dark" ? "#444" : "#ccc" }}
-            prefix={<SearchOutlined />}
-          />
-          <Button type="primary" onClick={handleSearchSubmit}>
-            Search
-          </Button>
-        </div>
-
-        <div className="flex items-center space-x-4">
-          {/* Dropdown Avatar */}
-          <div className="relative group">
+    <nav className={`border-b ${theme === "dark" ? "bg-gray-800 text-white" : "bg-white"}`}>
+    <div className="container mx-auto px-8 py-6 flex items-center justify-between">
+      {/* Logo */}
+      <h1
+        className="text-xl font-bold cursor-pointer hover:text-yellow-300"
+        onClick={() => navigate("/")}
+      >
+        MultiCourse
+      </h1>
+  
+      {/* Search */}
+      <div className="flex items-center space-x-4">
+        <Input
+          value={searchQuery}
+          onChange={handleSearchChange}
+          placeholder="Search courses..."
+          className={`w-64 px-4 py-2 rounded-lg focus:outline-none ${
+            theme === "dark" ? "bg-gray-700 text-white" : "bg-gray-100 text-gray-900"
+          }`}
+          style={{ border: "1px solid", borderColor: theme === "dark" ? "#444" : "#ccc" }}
+          prefix={<SearchOutlined />}
+        />
+        <Button type="primary" onClick={handleSearchSubmit}>
+          Search
+        </Button>
+      </div>
+  
+      {/* User Info */}
+      <div className="flex items-center justify-end space-x-4">
+        {/* Avatar Section */}
+        <div className="relative group">
+          {/* Avatar & Name */}
+          <div className="flex items-center space-x-2 cursor-pointer">
             <img
               src={userData?.avatar || avatarUrl}
               alt="Avatar"
-              className="w-10 h-10 rounded-full cursor-pointer border-2 border-white"
+              className="w-14 h-14 rounded-full border-2 border-gray-200 shadow-md"
             />
-            <div className="absolute right-0 mt-2 w-48 bg-white text-teal-900 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              <div className="px-4 py-2 border-b border-gray-200 text-center">
-                <span className="font-semibold">{fullname}</span>
-              </div>
-              <button
-                className="block w-full px-4 py-2 text-left hover:bg-teal-100"
-                onClick={goToUserProfile}
-              >
-                Profile
-              </button>
-              <button
-                className="block w-full px-4 py-2 text-left hover:bg-teal-100"
-                onClick={logout}
-              >
-                Logout
-              </button>
-
-              <Space className="w-full justify-center py-3">
-                <Switch
-                  onClick={toggleTheme}
-                  checkedChildren="dark"
-                  unCheckedChildren="light" 
-                  defaultChecked={theme === "dark"}
-                />
-              </Space>
+            <div className="flex flex-col items-start">
+              <span className="font-semibold text-sm">{fullname}</span>
+              <span className="text-gray-500 text-xs">{role}</span>
             </div>
+          </div>
+  
+          {/* Dropdown */}
+          <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
+            <div className="px-4 py-2 border-b border-gray-200 text-center">
+              <span className="font-semibold text-sm">{fullname}</span>
+            </div>
+            <button
+              className="block w-full px-4 py-2 text-left hover:bg-gray-100"
+              onClick={goToUserProfile}
+            >
+              <UserOutlined className="mr-2" /> Profile
+            </button>
+            <button
+              className="block w-full px-4 py-2 text-left hover:bg-gray-100"
+              onClick={logout}
+            >
+              <LogoutOutlined className="mr-2" /> Logout
+            </button>
+            <Space className="w-full justify-center py-3">
+              <Switch
+                onClick={toggleTheme}
+                checkedChildren="dark"
+                unCheckedChildren="light"
+                defaultChecked={theme === "dark"}
+              />
+            </Space>
           </div>
         </div>
       </div>
-    </nav>
+    </div>
+  </nav>
+  
   );
 };
 

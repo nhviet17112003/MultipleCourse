@@ -104,13 +104,16 @@ function Sidebar() {
 
   return (
     <div className={theme === "dark" ? "bg-gray-800 text-white" : "bg-gray-200 text-black"}>
+      
     <Menu
       theme={theme}
       onClick={onClick}
       style={{
         height: '100vh',
-        width: 256,
+        width: 300,
       }}
+      
+
       defaultOpenKeys={['sub1']}
       selectedKeys={[current]}
       mode="inline"

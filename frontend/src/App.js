@@ -21,6 +21,7 @@ import { ThemeProvider } from "./components/context/ThemeContext"; // Import The
 import CreateLesson from "./components/tutors/lesson/CreateLesson";
 import LessonDetail from "./components/tutors/lesson/LessonDetail";
 import UpdateLessonModal from "./components/tutors/lesson/UpdateLessonModal";
+import { Breadcrumb } from "antd";
   // function App() {
   //   return (
   //     <Router>
@@ -44,11 +45,12 @@ import UpdateLessonModal from "./components/tutors/lesson/UpdateLessonModal";
 
 function App() {
   return (
-    <div className="bg-white dark:bg-black w-screen h-screen">
+    <div className="bg-gray-100 dark:bg-black w-screen h-screen"> {/* Bố cục chung */}
     <AuthProvider> {/* Bọc ứng dụng trong AuthProvider */}
       <ThemeProvider> {/* Bọc ứng dụng trong ThemeProvider */}
         <Router>
           <Navbar />
+       
           <div className="flex">
             <Sidebar className="w-1/4" /> {/* Sidebar chiếm 1/4 chiều rộng */}
             <div className="flex-1"> {/* Chiếm phần còn lại */}
