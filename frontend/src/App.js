@@ -26,6 +26,7 @@ import WithdrawalHistory from "./components/tutors/wallet/WithdrawalHistory";
 import WalletManageForAdmin from "./components/admins/WalletManageForAdmin";
 import MyCourses from "./components/students/MyCourse";
 import CourseLearningPage from "./components/students/CourseLearning";
+import ManageUser from "./components/admins/ManageUser";
 
 function App() {
   return (
@@ -98,6 +99,8 @@ function App() {
                   />
 
                   <Route path="/my-courses" element={<MyCourses />} />
+                  <Route path="/manage-users" element={<ManageUser />} />
+
                   <Route
                     path="/courses/:courseId"
                     element={<CourseLearningPage />}
