@@ -102,7 +102,10 @@ function Sidebar() {
         label: "Admin Navigation",
         icon: <SettingOutlined />,
         children: [
-          { key: "12", label: "Manage Users" },
+          {
+            key: "12",
+            label: <Link to="/manage-users">Manage Users</Link>,
+          },
           { key: "13", label: "Manage Courses" },
           { key: "14", label: "Reports" },
           { key: "15", label: "System Settings" },
