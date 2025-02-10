@@ -161,6 +161,15 @@ const CourseDetailForTutor = () => {
           onUpdate={handleUpdateLesson}
         />
       )}
+    <div>
+      <h2 className="text-2xl font-semibold mt-6">Course Exams</h2>
+      <button
+        onClick={() => navigate(`/create-exam/${courseId}`)}
+        className="bg-teal-500 text-white px-4 py-2 rounded-lg mt-4"
+      >
+        Create Exam
+      </button>
+    </div>
       <h2 className="text-2xl font-semibold mt-6">Course Lessons</h2>
   <button
         onClick={() => navigate(`/create-lesson/${courseId}`)}

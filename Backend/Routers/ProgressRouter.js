@@ -5,7 +5,7 @@ const cors = require("../Loaders/Cors");
 const router = express.Router();
 
 router.post(
-  "/",
+  "/:course_id",
   cors.corsWithOptions,
   auth.verifyUser,
   progressController.createProgress
@@ -27,6 +27,13 @@ router.put(
   cors.corsWithOptions,
   auth.verifyUser,
   progressController.updateProgress
+);
+
+router.put(
+  "/lesson/:lesson_id",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  progressController.updateLessonProgress
 );
 
 module.exports = router;

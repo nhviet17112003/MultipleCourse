@@ -112,10 +112,11 @@ const Login = () => {
   const handleSignUpForStudent = () => {
     navigate("/signup", { state: { role: "Student" } });
   };
-
+  
   const handleSignUpForTutor = () => {
     navigate("/signup", { state: { role: "Tutor" } });
   };
+  
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2 bg-gray-100">

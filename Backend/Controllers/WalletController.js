@@ -76,25 +76,24 @@ exports.withdrawHistory = async (req, res) => {
 exports.showAllWithdrawRequests = async (req, res) => {
   try {
     // Tìm tất cả Wallet có yêu cầu rút tiền
-    const wallets = await Wallet.find({ "withdrawals.status": "Pending" })
+    const wallets = await Wallet.find()
       .populate("tutor", "fullname email phone bankAccount") // Populate thông tin ngân hàng từ User
       .select("withdrawals");
 
     // Format kết quả
     const pendingRequests = wallets.flatMap((wallet) =>
-      wallet.withdrawals
-        .filter((withdrawal) => withdrawal.status === "Pending")
-        .map((withdrawal) => ({
-          tutor: {
-            fullname: wallet.tutor.fullname,
-            email: wallet.tutor.email,
-            phone: wallet.tutor.phone,
-          },
-          amount: withdrawal.amount,
-          date: withdrawal.date,
-          bank_account: wallet.tutor.bankAccount, // Thông tin ngân hàng lấy từ User
-          status: withdrawal.status,
-        }))
+      wallet.withdrawals.map((withdrawal) => ({
+        withdrawal_id: withdrawal._id,
+        tutor: {
+          fullname: wallet.tutor.fullname,
+          email: wallet.tutor.email,
+          phone: wallet.tutor.phone,
+        },
+        amount: withdrawal.amount,
+        date: withdrawal.date,
+        bank_account: wallet.tutor.bankAccount, // Thông tin ngân hàng lấy từ User
+        status: withdrawal.status,
+      }))
     );
 
     res.status(200).json({ pendingRequests });
