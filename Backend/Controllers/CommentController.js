@@ -12,7 +12,7 @@ exports.createCourseComment = async (req, res) => {
     }
 
     const newComment = {
-      author: req.user._id,
+      author: req.user.fullname,
       rating: req.body.rating,
       comment: req.body.comment,
       date: Date.now(),
@@ -99,7 +99,7 @@ exports.createLessonComment = async (req, res) => {
     }
 
     const newComment = {
-      author: req.user._id,
+      author: req.user.fullname,
       rating: req.body.rating,
       comment: req.body.comment,
       date: Date.now(),

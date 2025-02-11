@@ -19,6 +19,14 @@ exports.createExam = async (req, res) => {
       return res.status(404).json({ error: "Course not found" });
     }
 
+    const exam = await Exam.findOne({
+      course: course_id,
+    });
+
+    if (exam) {
+      return res.status(400).json({ error: "Exam already exists" });
+    }
+
     // Tính tổng điểm của tất cả các câu hỏi
     const calculatedTotalMark = questions.reduce(
       (sum, question) => sum + question.marks,
@@ -46,8 +54,8 @@ exports.createExam = async (req, res) => {
     });
 
     // Tạo bài thi mới
-    const exam = new Exam({ ...req.body, questions });
-    await exam.save();
+    const newExam = new Exam({ ...req.body, questions });
+    await newExam.save();
 
     res.status(201).json(exam);
   } catch (err) {
@@ -69,7 +77,6 @@ const shuffleArray = (array) => {
 exports.createStudentExam = async (req, res) => {
   try {
     const course_id = req.body.course_id;
-    const exam_id = req.body.exam_id;
     const student_id = req.user._id;
 
     const course = await Course.findById(course_id);
@@ -77,7 +84,7 @@ exports.createStudentExam = async (req, res) => {
       return res.status(404).json({ error: "Course not found" });
     }
 
-    const exam = await Exam.findById(exam_id);
+    const exam = await Exam.findOne({ course: course_id });
     if (!exam) {
       return res.status(404).json({ error: "Exam not found" });
     }
