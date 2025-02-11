@@ -33,6 +33,17 @@ exports.withdrawRequest = async (req, res) => {
       return res.status(404).json({ message: "Wallet not found." });
     }
 
+    // Kiểm tra nếu đã có yêu cầu rút tiền đang chờ xử lý
+    const hasPendingRequest = wallet.withdrawals.some(
+      (withdrawal) => withdrawal.status === "Pending"
+    );
+
+    if (hasPendingRequest) {
+      return res
+        .status(400)
+        .json({ message: "You already have a pending withdrawal request." });
+    }
+
     if (wallet.current_balance < amount) {
       return res.status(400).json({ message: "Insufficient balance." });
     }
@@ -133,8 +144,9 @@ exports.confirmWithdrawRequest = async (req, res) => {
     withdrawal.status = "Approved";
     wallet.current_balance -= withdrawal.amount; // Trừ tiền vào ví của tutor
 
-    // Cập nhật tổng số tiền đã rút
-    wallet.total_withdrawal += withdrawal.amount;
+    // Chỉ cộng vào `total_withdrawal` khi lệnh rút được duyệt
+    wallet.total_withdrawal =
+      (wallet.total_withdrawal || 0) + withdrawal.amount;
 
     await wallet.save();
 
@@ -146,6 +158,7 @@ exports.confirmWithdrawRequest = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 // Từ chối lệnh rút (Admin)
 exports.rejectWithdrawRequest = async (req, res) => {
   try {
