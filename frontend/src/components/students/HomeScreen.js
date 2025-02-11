@@ -16,7 +16,7 @@ const HomeScreen = () => {
   const [tutors, setTutors] = useState({}); // Lưu thông tin giảng viên theo ID
   const [filter, setFilter] = useState("");
   const [sortOption, setSortOption] = useState("default");
-  const [priceRange, setPriceRange] = useState([0, 1000]);
+  const [priceRange, setPriceRange] = useState([0, 10000]);
   const [ratingFilter, setRatingFilter] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
@@ -212,7 +212,7 @@ const HomeScreen = () => {
           <Slider
             range
             min={0}
-            max={1000}
+            max={10000}
             value={priceRange}
             onChange={(value) => setPriceRange(value)}
             className="w-full"

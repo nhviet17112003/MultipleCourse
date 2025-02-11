@@ -80,7 +80,6 @@ const WithdrawalHistory = () => {
                   className="hover:bg-gray-100 transition-all duration-300"
                 >
                   <td className="py-3 px-6 text-sm text-gray-700">
-                    {/* Định dạng ngày giờ theo kiểu dd/mm/yyyy HH:mm:ss */}
                     {new Date(request.date).toLocaleString("vi-VN", {
                       day: "2-digit",
                       month: "2-digit",
@@ -96,15 +95,18 @@ const WithdrawalHistory = () => {
                   </td>
                   <td className="py-3 px-6 text-sm text-gray-700">
                     <span
-                      className={`${
+                      className={`py-1 px-4 rounded-full text-sm ${
                         request.status === "Pending"
                           ? "bg-yellow-200 text-yellow-600"
+                          : request.status === "Rejected"
+                          ? "bg-red-200 text-red-600"
                           : "bg-green-200 text-green-600"
-                      } py-1 px-4 rounded-full text-sm`}
+                      }`}
                     >
                       {request.status}
                     </span>
                   </td>
+
                   <td className="py-3 px-6 text-sm text-gray-700">
                     {request._id}
                   </td>

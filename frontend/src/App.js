@@ -28,6 +28,9 @@ import MyCourses from "./components/students/MyCourse";
 import CourseLearningPage from "./components/students/CourseLearning";
 import CourseListForAdmin from "./components/admins/CourseListForAdmin";
 import CreateExam from "./components/tutors/exam/CreateExam";
+import ManageUser from "./components/admins/ManageUser";
+import PurchaseHistory from "./components/students/PurchaseHistory";
+import PurchaseHistoryForAdmin from "./components/admins/PurchaseHistoryForAdmin";
 
 function App() {
   return (
@@ -100,9 +103,22 @@ function App() {
                   />
 
                   <Route path="/my-courses" element={<MyCourses />} />
+                  <Route path="/manage-users" element={<ManageUser />} />
+
                   <Route
                     path="/courses/:courseId"
                     element={<CourseLearningPage />}
+                  />
+
+
+<Route
+                    path="/purchase-history"
+                    element={<PurchaseHistory />}
+                  />
+
+<Route
+                    path="/purchase-history-for-admin"
+                    element={<PurchaseHistoryForAdmin />}
                   />
 
 <Route path="/course-list-for-admin" element={<CourseListForAdmin />} />

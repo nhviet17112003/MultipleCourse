@@ -99,7 +99,10 @@
     
       navigate("/cart");
     };
-
+    const goToPurchaseHistory = () => {
+    
+      navigate("/purchase-history");
+    };
 
     const logout = async () => {
       try {
@@ -215,7 +218,12 @@
                   Cart
                 
                 </button>
-
+                <button
+                className="block w-full px-4 py-2 text-left hover:bg-teal-100"
+                onClick={goToPurchaseHistory}>
+                  Purchase history
+                
+                </button>
                 <Space className="w-full justify-center py-3">
                   <Switch
                     onClick={toggleTheme}

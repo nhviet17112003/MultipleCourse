@@ -102,13 +102,22 @@ function Sidebar() {
         label: "Admin Navigation",
         icon: <SettingOutlined />,
         children: [
-          { key: "12", label: "Manage Users" },
+         
+          
+          {
+            key: "12",
+            label: <Link to="/manage-users">Manage Users</Link>,
+          },
           { key: "13", label:<Link to="/course-list-for-admin">My Courses</Link> },
           { key: "14", label: "Reports" },
           { key: "15", label: "System Settings" },
           {
             key: "16",
             label: <Link to="/wallet-manage-for-admin">Withdrawal Manage</Link>,
+          },
+          {
+            key: "17",
+            label: <Link to="/purchase-history-for-admin">Purchase History</Link>,
           },
         ],
       },
