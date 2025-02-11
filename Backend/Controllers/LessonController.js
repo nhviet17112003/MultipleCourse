@@ -129,7 +129,9 @@ exports.getAllLessons = async (req, res) => {
 exports.getLessonById = async (req, res) => {
   try {
     const lesson_id = req.params.lesson_id;
-    const lesson = await Lesson.findById(lesson_id);
+    const lesson = await Lesson.findById(lesson_id)
+      .populate("tutor", "fullname")
+      .exec();
     if (!lesson) {
       return res.status(404).json({ message: "Lesson not found" });
     }
