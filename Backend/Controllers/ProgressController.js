@@ -43,19 +43,32 @@ exports.updateLessonProgress = async (req, res) => {
       student_id: user_id,
       "lesson.lesson_id": lesson_id,
     });
+
     if (!progress) {
       return res.status(404).json({ message: "Progress not found" });
     }
+
     const lesson = progress.lesson.find(
       (lesson) => lesson.lesson_id.toString() === lesson_id
     );
-    lesson.status = req.body.status;
-    lesson.note = req.body.note;
-    lesson.progress_time = req.body.progress_time;
+
+    if (!lesson) {
+      return res.status(404).json({ message: "Lesson not found" });
+    }
+
+    if (lesson.status === "Completed") {
+      lesson.note = req.body.note;
+    } else {
+      lesson.status =
+        req.body.status === "Completed" ? "Completed" : req.body.status;
+      lesson.note = req.body.note;
+      lesson.progress_time = req.body.progress_time;
+    }
+
     await progress.save();
     res.status(200).json(progress);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
