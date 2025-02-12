@@ -31,10 +31,16 @@ const StudentExamResultsSchema = new Schema({
         type: String,
         required: true,
       },
-      answer: [
+      answers: [
         {
-          type: String,
-          required: true,
+          answer: {
+            type: String,
+            required: true,
+          },
+          isCorrect: {
+            type: Boolean,
+            required: true,
+          },
         },
       ],
       isCorrect: {
