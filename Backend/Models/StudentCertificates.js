@@ -7,8 +7,7 @@ const StudentCertificateSchema = new Schema({
     required: true,
   },
   course: {
-    type: Schema.Types.ObjectId,
-    ref: "Courses",
+    type: String,
     required: true,
   },
   student: {
