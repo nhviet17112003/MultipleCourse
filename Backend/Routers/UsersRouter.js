@@ -81,7 +81,6 @@ router.put(
 
 // Get user profile by id
 router.get("/profile/:id", cors.corsWithOptions, userController.getUserById);
-module.exports = router;
 
 //log out
 router.post(
@@ -90,3 +89,10 @@ router.post(
   auth.verifyUser,
   userController.logout
 );
+
+//google auth
+router.get("/google/login", cors.corsWithOptions, userController.googleLogin);
+router.get("/auth/callback", cors.cors, userController.googleLoginCallback);
+
+module.exports = router;
+

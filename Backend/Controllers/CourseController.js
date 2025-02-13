@@ -1,6 +1,5 @@
 const Course = require("../Models/Courses");
 const Lesson = require("../Models/Lessons");
-const Order = require("../Models/Orders");
 const Request = require("../Models/Requests");
 const multer = require("multer");
 const admin = require("firebase-admin");
@@ -54,17 +53,6 @@ exports.getAllCourses = async (req, res) => {
   try {
     const courses = await Course.find();
     res.status(200).json(courses);
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-};
-
-//Get course for student
-exports.getCourseForStudent = async (req, res) => {
-  try {
-    const Orders = await Order.find({ student: req.user._id });
-    const courseIds = Orders.map((order) => order.course);
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Internal Server Error" });
