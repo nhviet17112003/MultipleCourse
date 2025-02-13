@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const Course = require("../Models/Courses");
 const StudentCertificate = require("../Models/StudentCertificates");
+const StudentExamRS = require("../Models/StudentExamResults");
 
 const width = 800;
 const height = 600;
@@ -37,11 +38,31 @@ exports.generateCertificate = async (req, res) => {
   try {
     const fullname = req.user.fullname;
     const course_id = req.params.course_id;
-    const total_mark = req.body.total_mark;
 
     const course = await Course.findById(course_id);
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
+    }
+
+    const studentExamRS = await StudentExamRS.findOne({
+      student: req.user._id,
+      course: course_id,
+    });
+    if (!studentExamRS) {
+      return res.status(404).json({ message: "Exam result not found" });
+    }
+
+    const certificate = await StudentCertificate.findOne({
+      student: req.user._id,
+      course: course.title,
+    });
+    if (certificate) {
+      return res.status(400).json({ message: "Certificate already exists" });
+    }
+
+    //nếu score < 80% của total mark thì không cấp chứng chỉ
+    if (studentExamRS.score < 0.8 * studentExamRS.total_mark) {
+      return res.status(400).json({ message: "You are not passed" });
     }
 
     // Nền sáng
@@ -97,7 +118,7 @@ exports.generateCertificate = async (req, res) => {
       title: "Certificate of Achievement",
       course: course.title,
       student: req.user._id,
-      totalMark: total_mark,
+      totalMark: studentExamRS.totalMark,
       isPassed: true,
       issue_date: new Date(),
       certificate_url: publicUrl,

@@ -1,6 +1,5 @@
 const Exam = require("../Models/Exams");
 const StudentExamRS = require("../Models/StudentExamResults");
-const StudentCertificate = require("../Models/StudentCertificates");
 const Course = require("../Models/Courses");
 
 exports.createExam = async (req, res) => {
@@ -147,7 +146,7 @@ exports.submitExam = async (req, res) => {
         return res.status(400).json({ error: "Invalid question" });
       }
 
-      const isCorrect = submittedQuestion.answers.every((answer) =>
+      const allCorrect = submittedQuestion.answers.every((answer) =>
         examQuestion.answers.some(
           (examAnswer) =>
             examAnswer.answer === answer.answer &&
@@ -155,7 +154,7 @@ exports.submitExam = async (req, res) => {
         )
       );
 
-      if (isCorrect) {
+      if (allCorrect) {
         totalScore += examQuestion.marks;
       }
 
@@ -172,23 +171,39 @@ exports.submitExam = async (req, res) => {
               : false,
           };
         }),
-        isCorrect,
+        allCorrect,
       });
     }
 
-    const studentExamRS = new StudentExamRS({
+    const existsStudentExamRS = await StudentExamRS.findOne({
       student: student_id,
       course: course_id,
       exam: exam_id,
-      score: totalScore,
-      totalMark: exam.totalMark,
-      questions: questionRS,
     });
 
-    res.status(201).json({
-      message: "Exam submitted successfully",
-      studentExamRS,
-    });
+    if (existsStudentExamRS) {
+      existsStudentExamRS.score = totalScore;
+      existsStudentExamRS.questions = questionRS;
+      await existsStudentExamRS.save();
+      return res.status(200).json({
+        message: "Exam updated successfully",
+        studentExamRS: existsStudentExamRS,
+      });
+    } else {
+      const newStudentExamRS = new StudentExamRS({
+        student: student_id,
+        course: course_id,
+        exam: exam_id,
+        score: totalScore,
+        totalMark: exam.totalMark,
+        questions: questionRS,
+      });
+      await newStudentExamRS.save();
+      return res.status(201).json({
+        message: "Exam submitted successfully",
+        studentExamRS: newStudentExamRS,
+      });
+    }
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Internal Server Error" });
