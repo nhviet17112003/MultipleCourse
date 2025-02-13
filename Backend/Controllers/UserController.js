@@ -105,8 +105,9 @@ exports.login = async (req, res) => {
       res.status(200).json({
         message: "Login successful",
         token: token,
-        fullname: user.fullname,
+        fullname: user.fullname, // Thêm fullname vào đây
         role: user.role,
+        status: user.status,
       });
     });
   } catch (err) {
