@@ -2,9 +2,12 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import { CheckCircleIcon, LockClosedIcon } from "@heroicons/react/24/solid";
 import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
+import { useNavigate } from "react-router-dom";
+
 
 const CourseLearningPage = () => {
   const { courseId } = useParams();
+  console.log(courseId);
   const [lessons, setLessons] = useState([]);
   const [currentLesson, setCurrentLesson] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,114 +19,46 @@ const CourseLearningPage = () => {
   const progressId = new URLSearchParams(location.search).get("progressId");
   const [progressData, setProgressData] = useState(null);
   const [activeTab, setActiveTab] = useState("Description");
+  const [isExamStarted, setIsExamStarted] = useState(false);
+  const navigate = useNavigate();
 
 
-
-  
-  const handleEditComment = async (commentId, newComment) => {
-    try {
-      const lessonId = currentLesson._id;  // Lấy ID bài học
-      const response = await fetch(
-        `http://localhost:3000/api/comments/update-lesson-comment`,
+  const exams = [
+    {
+      _id: "exam1",
+      number: 1,
+      title: "Exam 1: Basic Knowledge",
+      questions: [
         {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-          },
-          body: JSON.stringify({
-            comment: newComment,
-            commentId,
-            lessonId,
-          }),
-        }
-      );
-      const updatedComment = await response.json();
-      
-      // Cập nhật lại comment trong danh sách
-      setCurrentLesson((prevLesson) => ({
-        ...prevLesson,
-        comments: prevLesson.comments.map((comment) =>
-          comment._id === commentId ? { ...comment, comment: newComment } : comment
-        ),
-      }));
-    } catch (error) {
-      console.error("Failed to update comment", error);
-    }
-  };
-  
-  const handleDeleteComment = async (commentId) => {
-    try {
-      const lessonId = currentLesson._id;  // Lấy ID bài học
-             // Lấy ID bình luận
-      console.log('Sending lessonId:', lessonId, 'and commentId:', commentId);
-      
-  
-      // Gọi API xóa bình luận
-      const response = await fetch(
-        `http://localhost:3000/api/comments/delete-lesson-comment`,
+          question: "What is React?",
+          options: ["Library", "Framework", "Language"],
+          answer: "Library",
+        },
         {
-          method: "DELETE", // Sử dụng phương thức DELETE
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`, // Token xác thực
-          },
-          body: JSON.stringify({
-            lessonId, // ID của bài học
-            commentId, // ID của bình luận cần xóa
-          }),
-        }
-      );
-  
-      const data = await response.json();
-      if (response.ok) {
-        // Nếu xóa thành công, xóa bình luận khỏi danh sách
-        setCurrentLesson((prevLesson) => ({
-          ...prevLesson,
-          comments: prevLesson.comments.filter((comment) => comment._id !== commentId),
-        }));
-        console.log("Comment deleted successfully");
-      } else {
-        console.error(data.message || "Failed to delete comment");
-      }
-    } catch (error) {
-      console.error("Failed to delete comment", error);
-    }
-  };
-  
-  
-  
-  const handleCommentSubmit = async () => {
-    if (!note) return;
-  
-    try {
-      const response = await fetch(
-        `http://localhost:3000/api/comments/create-lesson-comment`,
+          question: "What is JSX?",
+          options: ["Syntax", "Database", "API"],
+          answer: "Syntax",
+        },
+      ],
+    },
+    {
+      _id: "exam2",
+      number: 2,
+      title: "Exam 2: Advanced Concepts",
+      questions: [
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-          },
-          body: JSON.stringify({
-            lessonId: currentLesson._id,
-            comment: note,
-            rating: 5, // Add logic for rating if required
-          }),
-        }
-      );
-      const newComment = await response.json();
-
-      setNote(""); // Clear the input after posting
-
-      
-    } catch (error) {
-      console.error("Failed to post comment", error);
-    }
-  };
-  
-
-  
+          question: "What is a Hook in React?",
+          options: ["Function", "Component", "Variable"],
+          answer: "Function",
+        },
+        {
+          question: "What does useState do?",
+          options: ["Fetch data", "Manage state", "Render UI"],
+          answer: "Manage state",
+        },
+      ],
+    },
+  ];
 
   useEffect(() => {
     const fetchLessonsAndProgress = async () => {
@@ -134,7 +69,6 @@ const CourseLearningPage = () => {
               "Content-Type": "application/json",
               Authorization: `Bearer ${localStorage.getItem("authToken")}`,
             },
-            
           }),
           progressId
             ? fetch(`http://localhost:3000/api/progress/${progressId}`, {
@@ -149,7 +83,17 @@ const CourseLearningPage = () => {
         const lessonsData = await lessonsResponse.json();
         const progressData = await progressResponse.json();
 
-        setLessons(lessonsData);
+        const updatedLessons = [
+          ...lessonsData,
+          {
+            _id: "exam_final",
+            title: "Final Exam",
+            type: "exam",
+            questions: exams,
+          },
+        ];
+
+        setLessons(updatedLessons);
         setProgressData(progressData);
       } catch (err) {
         setError("Failed to fetch lessons or progress.");
@@ -321,169 +265,104 @@ const CourseLearningPage = () => {
                 {new Date(currentLesson.created_at).toLocaleString()}
               </span>
             </div>
+            {currentLesson?.type === "exam" &&
+            currentLesson.title === "Final Exam" ? (
+              <div className="mt-6 flex justify-center">
+                <button
+  onClick={() => navigate(`/final-exam/${courseId}`)}
+  className="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold shadow-md hover:bg-blue-700 transition"
+>
+  Start Exam
+</button>
 
-            <video
-              ref={videoRef}
-              src={currentLesson.video_url}
-              controls
-              className="w-full rounded-xl shadow-lg mt-4"
-              onEnded={handleVideoEnd}
-            ></video>
-
-            {currentLesson.document_url && (
-              <div className="flex justify-center">
-                <div></div>
-                <a
-                  href={currentLesson.document_url}
-                  download
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className=" mt-3 py-3 px-6 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105"
-                >
-                  <span className="flex items-center justify-center gap-2">
-                    <ArrowDownTrayIcon className="w-5 h-5" />
-                    Download document
-                  </span>
-                </a>
               </div>
-            )}
-
-
-
-
-            <div className="border-b mb-4">
-              <nav className="flex space-x-4">
-                {["Description", "Note", "Comment"].map((tab) => (
-                  <button
-                    key={tab}
-                    className={`py-2 px-4 ${
-                      activeTab === tab
-                        ? "border-b-2 border-blue-500 font-semibold"
-                        : "text-gray-500"
-                    }`}
-                    onClick={() => setActiveTab(tab)}
-                  >
-                    {tab}
-                  </button>
-                ))}
-              </nav>
-            </div>
-
-            <div>
-              {activeTab === "Description" && (
-                <div className="mt-6 space-y-6">
-                  <div className="mt-4">
-                    <h3 className="text-2xl font-semibold text-gray-800">
-                      Lesson Description
-                    </h3>
-                    <p className="text-base text-gray-600 mt-2">
-                      {currentLesson.description}
-                    </p>
-
-                
+            ) : (
+              <>
+                <video
+                  ref={videoRef}
+                  src={currentLesson.video_url}
+                  controls
+                  className="w-full rounded-xl shadow-lg mt-4"
+                  onEnded={handleVideoEnd}
+                ></video>
+                {currentLesson.document_url && (
+                  <div className="flex justify-center">
+                    <a
+                      href={currentLesson.document_url}
+                      download
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className=" mt-3 py-3 px-6 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105"
+                    >
+                      <span className="flex items-center justify-center gap-2">
+                        <ArrowDownTrayIcon className="w-5 h-5" />
+                        Download document
+                      </span>
+                    </a>
                   </div>
+                )}
+                <div className="border-b mb-4">
+                  <nav className="flex space-x-4">
+                    {["Description", "Note", "Comment"].map((tab) => (
+                      <button
+                        key={tab}
+                        className={`py-2 px-4 ${
+                          activeTab === tab
+                            ? "border-b-2 border-blue-500 font-semibold"
+                            : "text-gray-500"
+                        }`}
+                        onClick={() => setActiveTab(tab)}
+                      >
+                        {tab}
+                      </button>
+                    ))}
+                  </nav>
                 </div>
-
-                
-              )}
-
-              {activeTab === "Note" && (
-                <div className="mt-6 space-y-6">
-                  {currentNote && (
-                    <div className="bg-gray-50 p-4 border-l-4 border-blue-500 text-lg text-gray-700 shadow-sm rounded-md">
-                      <h3 className="font-semibold text-blue-600">Note:</h3>
-                      <p className="text-gray-600">{currentNote}</p>
+                <div>
+                  {activeTab === "Description" && (
+                    <div className="mt-6 space-y-6">
+                      <div className="mt-4">
+                        <h3 className="text-2xl font-semibold text-gray-800">
+                          Lesson Description
+                        </h3>
+                        <p className="text-base text-gray-600 mt-2">
+                          {currentLesson.description}
+                        </p>
+                      </div>
                     </div>
                   )}
-
-                  <div className="space-y-3">
-                    <textarea
-                      className="w-full p-4 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out"
-                      placeholder="Lesson notes..."
-                      value={note}
-                      onChange={(e) => setNote(e.target.value)}
-                    ></textarea>
-                    <div className="flex justify-end">
-                      <button
-                        onClick={handleNoteSubmit}
-                        className="py-3 px-6 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105"
-                      >
-                        Save Note
-                      </button>
+                  {activeTab === "Note" && (
+                    <div className="mt-6 space-y-6">
+                      {currentNote && (
+                        <div className="bg-gray-50 p-4 border-l-4 border-blue-500 text-lg text-gray-700 shadow-sm rounded-md">
+                          <h3 className="font-semibold text-blue-600">Note:</h3>
+                          <p className="text-gray-600">{currentNote}</p>
+                        </div>
+                      )}
+                      <div className="space-y-3">
+                        <textarea
+                          className="w-full p-4 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out"
+                          placeholder="Lesson notes..."
+                          value={note}
+                          onChange={(e) => setNote(e.target.value)}
+                        ></textarea>
+                        <div className="flex justify-end">
+                          <button
+                            onClick={handleNoteSubmit}
+                            className="py-3 px-6 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105"
+                          >
+                            Save Note
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  )}
+                  {activeTab === "Comment" && (
+                    <p>View and add comments here.</p>
+                  )}
                 </div>
-              )}
-{activeTab === "Comment" && currentLesson && (
-  <div className="mt-6 space-y-6">
-    <h3 className="text-2xl font-semibold text-gray-800">Comments</h3>
-
-    {/* Form để viết comment */}
-    <div className="space-y-4">
-      <textarea
-        className="w-full p-4 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out"
-        placeholder="Write your comment..."
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-      ></textarea>
-      <button
-        onClick={() => {
-          if (note.trim()) {
-            handleCommentSubmit();
-          }
-        }}
-        className="py-3 px-6 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105"
-      >
-        Post Comment
-      </button>
-    </div>
-
-    {/* Hiển thị danh sách comment */}
-    {currentLesson.comments && currentLesson.comments.length > 0 ? (
-      currentLesson.comments.map((comment) => (
-       
-        <div key={comment._id} className="p-4 border-b">
-        <p className="text-sm">{comment.author}</p>
-        <p className="text-gray-700">{comment.comment}</p>
-        <div className="text-sm text-gray-500">
-          {new Date(comment.date).toLocaleString()}
-        </div>
-      
-        {/* Chỉnh sửa và xóa comment */}
-        <div className="flex gap-2 mt-2">
-          <button
-            onClick={() => {
-              const newComment = prompt("Edit your comment:", comment.comment);
-              if (newComment) handleEditComment(comment._id, newComment);
-            }}
-            className="text-blue-500 hover:text-blue-700"
-          >
-            Edit
-          </button>
-          <button
-            onClick={() => handleDeleteComment(comment._id)}
-            className="text-red-500 hover:text-red-700"
-          >
-            Delete
-          </button>
-        </div>
-      </div>
-      
-      ))
-    ) : (
-      <p className="text-gray-500">No comments yet.</p>
-    )}
-  </div>
-)}
-
-
-
-
-
-
-          
-
-            </div>
+              </>
+            )}
           </div>
         ) : (
           <p className="text-lg text-gray-600">
@@ -491,10 +370,9 @@ const CourseLearningPage = () => {
           </p>
         )}
       </div>
-
       <div className="w-full md:w-1/3 bg-white p-6 border-l shadow-lg">
         <h2 className="text-2xl font-semibold mb-4 text-gray-800">
-          List of lessons{" "}
+          List of lessons
         </h2>
         <ul className="space-y-3">
           {lessons.map((lesson, index) => (
@@ -507,9 +385,7 @@ const CourseLearningPage = () => {
               }`}
               onClick={() => canAccessLesson(index) && setCurrentLesson(lesson)}
             >
-              <span className="text-gray-700 font-medium">
-                <strong>Lesson {lesson.number}:</strong> {lesson.title}
-              </span>
+              <span className="text-gray-700 font-medium">{lesson.title}</span>
               {isLessonCompleted(lesson._id) ? (
                 <CheckCircleIcon className="h-6 w-6 text-green-500" />
               ) : !canAccessLesson(index) ? (

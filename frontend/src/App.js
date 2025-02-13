@@ -31,6 +31,9 @@ import CreateExam from "./components/tutors/exam/CreateExam";
 import ManageUser from "./components/admins/ManageUser";
 import PurchaseHistory from "./components/students/PurchaseHistory";
 import PurchaseHistoryForAdmin from "./components/admins/PurchaseHistoryForAdmin";
+import ManageReview from "./components/admins/ManageReview";
+import StatisticForAdmin from "./components/admins/StatisticForAdmin";
+import FinalExam from "./components/students/FinalExam";
 
 function App() {
   return (
@@ -119,6 +122,21 @@ function App() {
 <Route
                     path="/purchase-history-for-admin"
                     element={<PurchaseHistoryForAdmin />}
+                  />
+
+<Route
+                    path="/manage-review-for-admin"
+                    element={<ManageReview />}
+                  />
+
+<Route
+                    path="/statistic-for-admin"
+                    element={<StatisticForAdmin />}
+                  />
+
+<Route
+                    path="/final-exam/:courseId"
+                    element={<FinalExam />}
                   />
 
 <Route path="/course-list-for-admin" element={<CourseListForAdmin />} />

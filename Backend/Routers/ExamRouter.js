@@ -13,11 +13,12 @@ router.post(
 );
 
 router.get(
-  "/take-exam",
+  "/take-exam/:course_id",
   cors.corsWithOptions,
   auth.verifyUser,
   ExamController.createStudentExam
 );
+
 
 router.post(
   "/submit-exam",

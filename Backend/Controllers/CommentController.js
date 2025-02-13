@@ -12,7 +12,7 @@ exports.createCourseComment = async (req, res) => {
     }
 
     const newComment = {
-      author: req.user._id,
+      author: req.user.fullname,
       rating: req.body.rating,
       comment: req.body.comment,
       date: Date.now(),
@@ -88,6 +88,21 @@ exports.deleteCourseComment = async (req, res) => {
   }
 };
 
+//Show Course Comment
+exports.showCourseComment = async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.courseId);
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    res.status(200).json({ comments: course.comments });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 // Comment for Lesson
 
 // Create Comment for Lesson
@@ -99,7 +114,7 @@ exports.createLessonComment = async (req, res) => {
     }
 
     const newComment = {
-      author: req.user._id,
+      author: req.user.fullname,
       rating: req.body.rating,
       comment: req.body.comment,
       date: Date.now(),

@@ -113,11 +113,19 @@ function Sidebar() {
           { key: "15", label: "System Settings" },
           {
             key: "16",
-            label: <Link to="/wallet-manage-for-admin">Withdrawal Manage</Link>,
+            label: <Link to="/wallet-manage-for-admin">Manage Withdrawal</Link>,
           },
           {
             key: "17",
             label: <Link to="/purchase-history-for-admin">Purchase History</Link>,
+          },
+          {
+            key: "18",
+            label: <Link to="/manage-review-for-admin">Manage Reviews</Link>,
+          },
+          {
+            key: "19",
+            label: <Link to="/statistic-for-admin">Statistics</Link>,
           },
         ],
       },
