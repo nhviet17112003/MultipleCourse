@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from "react-router-dom";
 import { Button, Spin } from 'antd';
 import { FaShoppingCart } from "react-icons/fa";
-
+import { ToastContainer, toast } from 'react-toastify';
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
+import 'react-toastify/dist/ReactToastify.css';
 const HomeScreen = () => {
   const navigate = useNavigate();
   const [spinning, setSpinning] = useState(false);
@@ -105,39 +106,31 @@ const HomeScreen = () => {
       );
 
       const data = await response.json();
-      if (!response.ok) {
-        console.error("Error adding to cart:", data.message);
+      if (response.ok) {
+        toast.success("Thêm vào giỏ hàng thành công!", {
+          position: "top-right",
+          autoClose: 3000, // Đóng sau 3 giây
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        });
+      } else {
+        toast.error(`Lỗi: ${data.message}`, {
+          position: "top-right",
+          autoClose: 3000,
+        });
       }
     } catch (error) {
-      console.error("Error:", error);
+      toast.error("Đã xảy ra lỗi. Vui lòng thử lại!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
     }
   };
-  const goToLogin=()=>{
-    navigate("/login");
-  }
-  const goToSignup = () => {
-    navigate("/signup");
-  };
-  const toggleDropdown = () => {
-    setIsDropdownOpen((prev) => !prev);
-  };
-
-  const goToCart = () => {
-    setIsDropdownOpen(false);
-    navigate("/cart");
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("fullname");
-    setIsDropdownOpen(false);
-    setIsAuthenticated(false);
-    navigate("/login");
-  };
-  const goToProfile = () => {
-    setIsDropdownOpen(false);
-    navigate("/userprofile");
-  };
+ 
   const filteredCourses = courses
     .filter((course) => {
       const titleMatch = course.title
@@ -163,7 +156,7 @@ const HomeScreen = () => {
 <div className="min-h-screen bg-gray-100">
   <Spin spinning={spinning} fullscreen />
 
-  
+  <ToastContainer />
       
   <main className="container mx-auto px-4 py-8">
     <div className="mb-6 bg-white p-6 rounded-lg shadow-md">
