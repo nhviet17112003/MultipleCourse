@@ -80,8 +80,12 @@ const Login = () => {
       );
 
       if (response.status === 200) {
-        const { token, role, fullname } = response.data;
-
+        const { token, role, fullname,status } = response.data;
+        
+        if(!status){
+          setError("Tài khoản đã bị BAN");
+          return;
+        }
         // Lưu thông tin vào localStorage
         localStorage.setItem("authToken", token);
         localStorage.setItem("fullname", fullname);

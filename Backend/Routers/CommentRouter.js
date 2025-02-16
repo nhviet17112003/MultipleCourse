@@ -49,4 +49,27 @@ router.delete(
   commentController.deleteLessonComment
 );
 
+router.put(
+  "/change-course-comment-status/:course_id/:comment_id",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  auth.verifyAdmin,
+  commentController.updateCourseCommentStatus
+);
+
+router.put(
+  "/change-lesson-comment-status/:lesson_id/:comment_id",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  auth.verifyAdmin,
+  commentController.updateLessonCommentStatus
+);
+
+router.get(
+  "/show-all-comments",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  auth.verifyAdmin,
+  commentController.getAllCommentsForAdmin
+);
 module.exports = router;

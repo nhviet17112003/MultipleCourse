@@ -5,19 +5,6 @@ const CourseListForAdmin = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [fullname, setFullname] = useState("");
-
-  useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    if (token) {
-      setIsAuthenticated(true);
-      const savedFullname = localStorage.getItem("fullname");
-      setFullname(savedFullname || "Người dùng");
-    } else {
-      setIsAuthenticated(false);
-    }
-  }, []);
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -26,6 +13,7 @@ const CourseListForAdmin = () => {
         const response = await axios.get("http://localhost:3000/api/courses/all-courses", {
           headers: { Authorization: `Bearer ${token}` },
         });
+        console.log(response.data);
         setCourses(response.data);
       } catch (err) {
         setError("Lỗi khi tải danh sách khóa học");
@@ -33,7 +21,6 @@ const CourseListForAdmin = () => {
         setLoading(false);
       }
     };
-
     fetchCourses();
   }, []);
 
@@ -43,9 +30,7 @@ const CourseListForAdmin = () => {
       const response = await axios.put(
         `http://localhost:3000/api/courses/change-course-status/${courseId}`,
         {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       alert(response.data.message);
       setCourses((prevCourses) =>
@@ -58,40 +43,51 @@ const CourseListForAdmin = () => {
     }
   };
 
-  if (loading) return <p>Đang tải...</p>;
-  if (error) return <p>{error}</p>;
+  if (loading) return <p className="text-center text-gray-600">Đang tải...</p>;
+  if (error) return <p className="text-center text-red-500">{error}</p>;
 
   return (
-    <div>
-      <h2>Danh sách khóa học</h2>
-      <table border="1">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Tên khóa học</th>
-            <th>Mô tả</th>
-            <th>Giảng viên</th>
-            <th>Trạng thái</th>
-            <th>Hành động</th>
-          </tr>
-        </thead>
-        <tbody>
-          {courses.map((course) => (
-            <tr key={course._id}>
-              <td>{course._id}</td>
-              <td>{course.name}</td>
-              <td>{course.description}</td>
-              <td>{course.instructor}</td>
-              <td>{course.status ? "Hoạt động" : "Không hoạt động"}</td>
-              <td>
-                <button onClick={() => toggleCourseStatus(course._id)}>
-                  {course.status ? "Vô hiệu hóa" : "Kích hoạt"}
-                </button>
-              </td>
+    <div className="container mx-auto p-6 bg-gray-100 min-h-screen">
+      <h2 className="text-3xl font-bold text-teal-700 text-center mb-6">Danh sách khóa học</h2>
+      <div className="overflow-x-auto">
+        <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+          <thead className="bg-teal-700 text-white">
+            <tr>
+              {/* <th className="p-4">ID</th> */}
+              <th className="p-4">Course Name</th>
+              {/* <th className="p-4">Mô tả</th> */}
+              <th className="p-4">Tutor Name</th>
+              <th className="p-4">Status</th>
+              <th className="p-4">Press</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {courses.map((course) => (
+              <tr key={course._id} className="border-b text-center hover:bg-gray-100">
+                {/* <td className="p-4">{course._id}</td> */}
+                <td className="p-4 font-semibold text-gray-700">{course.title}</td>
+                {/* <td className="p-4 text-gray-600">{course.description}</td> */}
+                <td className="p-4 text-gray-600">{course.tutor}</td>
+                <td
+                  className={`p-4 font-bold ${course.status ? "text-green-600" : "text-red-600"}`}
+                >
+                  {course.status ? "Hoạt động" : "Không hoạt động"}
+                </td>
+                <td className="p-4">
+                  <button
+                    onClick={() => toggleCourseStatus(course._id)}
+                    className={`px-4 py-2 text-white rounded-lg font-semibold transition-all duration-300 ${
+                      course.status ? "bg-red-500 hover:bg-red-700" : "bg-green-500 hover:bg-green-700"
+                    }`}
+                  >
+                    {course.status ? "Vô hiệu hóa" : "Kích hoạt"}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-
+import { motion } from "framer-motion";
 
 const FinalExam = () => {
   const { courseId, exam_id } = useParams();
@@ -145,85 +145,83 @@ const FinalExam = () => {
   if (loading) return <p>Loading exam...</p>;
   if (!exam) return <p>Exam not found</p>;
 
-  return (
-    <div style={{ maxWidth: "600px", margin: "auto", padding: "20px" }}>
-      <h1>{exam.title}</h1>
-      <p>Duration: {exam.duration} minutes</p>
-      <p>
-        Time Left: {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, "0")}
-      </p>
+  
+    return (
+     
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit();
-        }}
-      >
-        {exam.questions.map((question) => (
-        // console.log("Question ID:", question.question_id),
-          <div key={question.question_id} style={{ marginBottom: "20px", padding: "10px", border: "1px solid #ddd", borderRadius: "5px" }}>
-            <span>
-              Question {exam.questions.indexOf(question) + 1} (<span>{question.questionType}</span>)
-            </span>
-            <h3>{question.question}</h3>
+
+
+
+    <div className="max-w-3xl mx-auto p-8 bg-gradient-to-br from-white to-gray-100 shadow-2xl rounded-xl">
+      <h1 className="text-3xl font-extrabold text-gray-800 text-center mb-4">{exam.title}</h1>
+      <p className="text-gray-600 text-center">Duration: <span className="font-semibold">{exam.duration} minutes</span></p>
+      <p className="text-red-500 text-center font-semibold text-lg">Time Left: {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, "0")}</p>
+      
+      <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="mt-6">
+        {exam.questions.map((question, index) => (
+          <motion.div key={question.question_id} className="mb-6 p-5 bg-white shadow-md rounded-lg" whileHover={{ scale: 1.02 }}>
+            <span className="text-gray-700 font-semibold">Question {index + 1} (<span className="text-blue-500">{question.questionType}</span>)</span>
+            <h3 className="text-lg font-semibold mt-2">{question.question}</h3>
             {question.answers.map((answer) => (
-              <div key={answer.answer}>
-                <label>
+              <div key={answer.answer} className="mt-2">
+                <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type={question.questionType === "Multiple Choice" ? "checkbox" : "radio"}
                     name={question.question_id}
                     value={answer.answer}
                     checked={answers[question.question_id]?.includes(answer.answer) || false}
-                    onChange={(e) =>
-                      handleAnswerChange(question.question_id, answer.answer, question.questionType, e.target.checked)
-                    }
+                    onChange={(e) => handleAnswerChange(question.question_id, answer.answer, question.questionType, e.target.checked)}
+                    className="form-checkbox text-blue-500 w-5 h-5"
                   />
-                  {answer.answer}
+                  <span className="text-gray-800">{answer.answer}</span>
                 </label>
               </div>
             ))}
 
-            {/* Hiển thị kết quả sau khi nộp bài */}
             {allCorrectResults[question.question_id] !== undefined && (
-           
-  <p style={{ fontWeight: "bold", color: allCorrectResults[question.question_id] ? "green" : "red" }}>
-    {allCorrectResults[question.question_id] ? "Correct" : "Incorrect"}
-  </p>
-)}
-
-          </div>
+              <p className={`font-bold mt-3 ${allCorrectResults[question.question_id] ? "text-green-600" : "text-red-600"}`}>
+                {allCorrectResults[question.question_id] ? "Correct" : "Incorrect"}
+              </p>
+            )}
+          </motion.div>
         ))}
-        <button type="submit" style={{ padding: "10px 20px", backgroundColor: "#28a745", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }}>
+
+        <motion.button whileTap={{ scale: 0.95 }} type="submit" className="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-all shadow-md">
           Submit Exam
-        </button>
+        </motion.button>
       </form>
 
-{/* modal */}
-      {modal && ( 
-        <div className="modal" style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center" }}>
-        <div style={{ background: "white", padding: "20px", borderRadius: "10px", textAlign: "center" }}>
-        <h2>Exam Result</h2>
-            <p>Your Score: {score} / {totalMark} ({((score / totalMark) * 100).toFixed(2)}%)</p>
-            <label>Rating:</label>
-            <input type="number" value={rating} onChange={(e) => setRating(e.target.value)} min="1" max="5" />
-            <label>Comment:</label>
-            <textarea value={comment} onChange={(e) => setComment(e.target.value)} />
-              <button onClick={handleCommentCourseSubmit}> Submit Comment </button>
-          <button onClick={() => setModal(false)}>Close</button>
+      {modal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <motion.div className="bg-white p-8 rounded-xl w-96 text-center shadow-xl" initial={{ scale: 0.8 }} animate={{ scale: 1 }}>
+            <h2 className="text-xl font-bold text-gray-800">Exam Result</h2>
+            <p className="mt-3">Your Score: <span className="font-semibold">{score} / {totalMark} ({((score / totalMark) * 100).toFixed(2)}%)</span></p>
+            <div className="mt-4">
+              <label className="block text-gray-700 font-medium">Rating:</label>
+              <input type="number" value={rating} onChange={(e) => setRating(e.target.value)} min="1" max="5" className="border p-2 w-full rounded-md" />
+            </div>
+            <div className="mt-3">
+              <label className="block text-gray-700 font-medium">Comment:</label>
+              <textarea value={comment} onChange={(e) => setComment(e.target.value)} className="border p-2 w-full rounded-md"></textarea>
+            </div>
+            <button onClick={handleCommentCourseSubmit} className="mt-4 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition">
+              Submit Comment
+            </button>
+            <button onClick={() => setModal(false)} className="mt-2 bg-gray-400 text-white py-2 px-4 rounded-lg hover:bg-gray-500 transition">
+              Close
+            </button>
+          </motion.div>
         </div>
-      </div>
-      )
-      }
-{/* score */}
-      {score !== null && totalMark !== null && (
-  <div style={{ marginTop: "20px", padding: "10px", backgroundColor: "#f8f9fa", borderRadius: "5px" }}>
-    <h2>Exam Result</h2>
-    <p>Your Score: <strong>{score} / {totalMark} ({((score / totalMark) * 100).toFixed(2)}%)</strong></p>
-  </div>
-)}
+      )}
 
+      {score !== null && totalMark !== null && (
+        <div className="mt-6 p-5 bg-gray-100 rounded-lg text-center shadow-md">
+          <h2 className="text-xl font-bold text-gray-800">Exam Result</h2>
+          <p className="mt-2 text-lg font-semibold text-blue-600">Your Score: {score} / {totalMark} ({((score / totalMark) * 100).toFixed(2)}%)</p>
+        </div>
+      )}
     </div>
-  );
+    );
 };
 
 export default FinalExam;

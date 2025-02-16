@@ -1,15 +1,19 @@
 import React, { useEffect, useState } from "react";
 
 const StatisticForAdmin = () => {
+  
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [revenueToday, setRevenueToday] = useState(0);
   const [revenueYear, setRevenueYear] = useState(0);
   const [monthlyRevenue, setMonthlyRevenue] = useState([]);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+console.log(orders)
+
 
   const fetchData = async (url, setState) => {
     try {
+  
       const token = localStorage.getItem("authToken");
       const response = await fetch(url, {
         headers: {
@@ -29,8 +33,11 @@ const StatisticForAdmin = () => {
     fetchData("http://localhost:3000/api/orders/revenue-year", (data) => setRevenueYear(data.totalRevenueThisYear));
     fetchData("http://localhost:3000/api/orders/revenue-each-month", setMonthlyRevenue);
     fetchData("http://localhost:3000/api/orders/all-orders", setOrders);
+    
     setLoading(false);
   }, []);
+
+ 
 
   if (loading) {
     return <p className="text-center text-gray-600">Đang tải dữ liệu...</p>;
@@ -63,6 +70,9 @@ const StatisticForAdmin = () => {
           </div>
         ))}
       </div>
+
+
+
 
       <h2 className="text-2xl font-semibold text-gray-700 mt-8">Danh sách đơn hàng</h2>
       <div className="overflow-x-auto">
