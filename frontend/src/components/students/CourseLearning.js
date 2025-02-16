@@ -22,6 +22,113 @@ const CourseLearningPage = () => {
   const [isExamStarted, setIsExamStarted] = useState(false);
   const navigate = useNavigate();
 
+const handleEditComment = async (commentId, newComment) => {
+    try {
+      const lessonId = currentLesson._id;  // Lấy ID bài học
+      const response = await fetch( 'http://localhost:3000/api/comments/update-lesson-comment',
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+          body: JSON.stringify({
+            comment: newComment,
+            commentId,
+            lessonId,
+          }),
+        }
+      );
+      const updatedComment = await response.json();
+      
+      // Cập nhật lại comment trong danh sách
+      setCurrentLesson((prevLesson) => ({
+        ...prevLesson,
+        comments: prevLesson.comments.map((comment) =>
+          comment._id === commentId ? { ...comment, comment: newComment } : comment
+        ),
+      }));
+    } catch (error) {
+      console.error("Failed to update comment", error);
+    }
+  };
+  
+  const handleDeleteComment = async (commentId) => {
+    try {
+      const lessonId = currentLesson._id;  // Lấy ID bài học
+             // Lấy ID bình luận
+      console.log('Sending lessonId:', lessonId, 'and commentId:', commentId);
+      
+  
+      // Gọi API xóa bình luận
+      const response = await fetch(
+        'http://localhost:3000/api/comments/delete-lesson-comment',
+        {
+          method: "DELETE", // Sử dụng phương thức DELETE
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`, // Token xác thực
+          },
+          body: JSON.stringify({
+            lessonId, // ID của bài học
+            commentId, // ID của bình luận cần xóa
+          }),
+        }
+      );
+  
+      const data = await response.json();
+      if (response.ok) {
+        // Nếu xóa thành công, xóa bình luận khỏi danh sách
+        setCurrentLesson((prevLesson) => ({
+          ...prevLesson,
+          comments: prevLesson.comments.filter((comment) => comment._id !== commentId),
+        }));
+        console.log("Comment deleted successfully");
+      } else {
+        console.error(data.message || "Failed to delete comment");
+      }
+    } catch (error) {
+      console.error("Failed to delete comment", error);
+    }
+  };
+  
+  
+  
+  const handleCommentSubmit = async () => {
+    if (!note) return;
+  
+    try {
+      const response = await fetch(
+        'http://localhost:3000/api/comments/create-lesson-comment',
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+          body: JSON.stringify({
+            lessonId: currentLesson._id,
+            comment: note,
+            rating: 5, // Add logic for rating if required
+          }),
+        }
+      );
+      const newComment = await response.json();
+
+      setNote(""); // Clear the input after posting
+
+      
+    } catch (error) {
+      console.error("Failed to post comment", error);
+    }
+  };
+  
+
+  
+
+  
+
+
 
   const exams = [
     {
@@ -357,9 +464,67 @@ const CourseLearningPage = () => {
                       </div>
                     </div>
                   )}
-                  {activeTab === "Comment" && (
-                    <p>View and add comments here.</p>
-                  )}
+                {activeTab === "Comment" && currentLesson && (
+  <div className="mt-6 space-y-6">
+    <h3 className="text-2xl font-semibold text-gray-800">Comments</h3>
+
+    {/* Form để viết comment */}
+    <div className="space-y-4">
+      <textarea
+        className="w-full p-4 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out"
+        placeholder="Write your comment..."
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+      ></textarea>
+      <button
+        onClick={() => {
+          if (note.trim()) {
+            handleCommentSubmit();
+          }
+        }}
+        className="py-3 px-6 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105"
+      >
+        Post Comment
+      </button>
+    </div>
+
+    {/* Hiển thị danh sách comment */}
+    {currentLesson.comments && currentLesson.comments.length > 0 ? (
+      currentLesson.comments.map((comment) => (
+       
+        <div key={comment._id} className="p-4 border-b">
+        <p className="text-sm">{comment.author}</p>
+        <p className="text-gray-700">{comment.comment}</p>
+        <div className="text-sm text-gray-500">
+          {new Date(comment.date).toLocaleString()}
+        </div>
+      
+        {/* Chỉnh sửa và xóa comment */}
+        <div className="flex gap-2 mt-2">
+          <button
+            onClick={() => {
+              const newComment = prompt("Edit your comment:", comment.comment);
+              if (newComment) handleEditComment(comment._id, newComment);
+            }}
+            className="text-blue-500 hover:text-blue-700"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => handleDeleteComment(comment._id)}
+            className="text-red-500 hover:text-red-700"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+      
+      ))
+    ) : (
+      <p className="text-gray-500">No comments yet.</p>
+    )}
+  </div>
+)}
                 </div>
               </>
             )}

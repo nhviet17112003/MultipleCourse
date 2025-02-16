@@ -1,6 +1,5 @@
 const Exam = require("../Models/Exams");
 const StudentExamRS = require("../Models/StudentExamResults");
-const StudentCertificate = require("../Models/StudentCertificates");
 const Course = require("../Models/Courses");
 
 exports.createExam = async (req, res) => {
@@ -91,6 +90,7 @@ exports.createStudentExam = async (req, res) => {
 
     const randomQuestions = shuffleArray(
       exam.questions.map((question) => ({
+        question_id: question._id,
         question: question.question,
         questionType: question.questionType,
         marks: question.marks,
@@ -119,7 +119,7 @@ exports.submitExam = async (req, res) => {
   try {
     const student_id = req.user._id;
     const course_id = req.body.course_id;
-    const exam_id = req.body.exam_id;
+    const exam_id = req.params.exam_id;
     const questions = req.body.questions;
 
     const course = await Course.findById(course_id);
@@ -134,48 +134,100 @@ exports.submitExam = async (req, res) => {
 
     //Calculate total marks
     let totalScore = 0;
+    let questionRS = [];
 
-    const questionRS = questions.map((submmitedQuestion) => {
+    for (let submittedQuestion of questions) {
       const examQuestion = exam.questions.find(
-        (question) => question.toString() === submmitedQuestion.question
+        (question) =>
+          question._id.toString() === submittedQuestion.question_id.toString()
       );
 
       if (!examQuestion) {
         return res.status(400).json({ error: "Invalid question" });
       }
 
-      const isCorrect = submmitedQuestion.answers.every((answer) => {
-        examQuestion.answers.some(
-          (examAnswer) =>
-            examAnswer.answer === submmitedQuestion.answer &&
-            examAnswer.isCorrect === submmitedQuestion.isCorrect
-        );
-      });
+      // Lấy danh sách id của đáp án đúng trong đề
+      const examCorrectIds = examQuestion.answers
+        .filter((ans) => ans.isCorrect)
+        .map((ans) => ans._id.toString());
 
-      if (isCorrect) {
+      // Lấy danh sách id của đáp án mà học sinh chọn
+      const studentSelectedIds = submittedQuestion.answers.map((answer) =>
+        answer.answer_id.toString()
+      );
+
+      // Điều kiện 1: Học sinh phải chọn đủ tất cả các đáp án đúng
+      const allCorrectSelected = examCorrectIds.every((id) =>
+        studentSelectedIds.includes(id)
+      );
+      // Điều kiện 2: Học sinh không chọn đáp án nào sai
+      const noIncorrectSelected = studentSelectedIds.every((id) =>
+        examCorrectIds.includes(id)
+      );
+
+      const allCorrect = allCorrectSelected && noIncorrectSelected;
+
+      // const allCorrect = submittedQuestion.answers.every((answer) =>
+      //   examQuestion.answers.some(
+      //     (examAnswer) =>
+      //       examAnswer._id.toString() === answer.answer_id.toString() &&
+      //       examAnswer.isCorrect === answer.isCorrect
+      //   )
+      // );
+
+      if (allCorrect) {
         totalScore += examQuestion.marks;
       }
 
-      return {
+      questionRS.push({
+        question_id: examQuestion._id,
         question: examQuestion.question,
-        answers: submmitedQuestion.answer.map((a) => a.answer),
-        isCorrect,
-      };
-    });
+        answers: submittedQuestion.answers.map((answer) => {
+          const matchingExamAnswer = examQuestion.answers.find(
+            (examAnswer) =>
+              examAnswer._id.toString() === answer.answer_id.toString()
+          );
+          return {
+            answer_id: answer.answer_id,
+            answer: matchingExamAnswer.answer,
+            isCorrect: matchingExamAnswer
+              ? matchingExamAnswer.isCorrect
+              : false,
+          };
+        }),
+        allCorrect,
+      });
+    }
 
-    const studentExamRS = new StudentExamRS({
+    const existsStudentExamRS = await StudentExamRS.findOne({
       student: student_id,
       course: course_id,
       exam: exam_id,
-      score: totalScore,
-      totalMark: exam.totalMark,
-      questions: questionRS,
     });
 
-    res.status(201).json({
-      message: "Exam submitted successfully",
-      studentExamRS,
-    });
+    if (existsStudentExamRS) {
+      existsStudentExamRS.score = totalScore;
+      existsStudentExamRS.questions = questionRS;
+      await existsStudentExamRS.save();
+      return res.status(200).json({
+        message: "Exam updated successfully",
+        studentExamRS: existsStudentExamRS,
+      });
+    } else {
+      const newStudentExamRS = new StudentExamRS({
+        student: student_id,
+        course: course_id,
+        exam: exam_id,
+        score: totalScore,
+        totalMark: exam.totalMark,
+        questions: questionRS,
+      });
+      await newStudentExamRS.save();
+      return res.status(201).json({
+        message: "Exam submitted successfully",
+        studentExamRS: newStudentExamRS,
+      });
+    }
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Internal Server Error" });

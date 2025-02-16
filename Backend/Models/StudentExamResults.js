@@ -7,7 +7,7 @@ const StudentExamResultsSchema = new Schema({
     ref: "Users",
     required: true,
   },
-  courses: {
+  course: {
     type: Schema.Types.ObjectId,
     ref: "Courses",
     required: true,
@@ -27,17 +27,31 @@ const StudentExamResultsSchema = new Schema({
   },
   questions: [
     {
+      question_id: {
+        type: String,
+        required: true,
+      },
       question: {
         type: String,
         required: true,
       },
-      answer: [
+      answers: [
         {
-          type: String,
-          required: true,
+          answer_id: {
+            type: String,
+            required: true,
+          },
+          answer: {
+            type: String,
+            required: true,
+          },
+          isCorrect: {
+            type: Boolean,
+            required: true,
+          },
         },
       ],
-      isCorrect: {
+      allCorrect: {
         type: Boolean,
         required: true,
       },
