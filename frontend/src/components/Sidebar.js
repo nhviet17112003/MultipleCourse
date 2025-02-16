@@ -43,7 +43,7 @@ function Sidebar() {
         icon: <MailOutlined />,
         children: [
           { key: "1", label: <Link to="/my-courses">My Courses</Link> },
-          { key: "2", label: "My Assignments" },
+          { key: "2", label: <Link to="/my-certificate">My Certificates</Link> },
           { key: "3", label: "My Grades" },
         ],
       },

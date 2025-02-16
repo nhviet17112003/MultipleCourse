@@ -34,6 +34,7 @@ import PurchaseHistoryForAdmin from "./components/admins/PurchaseHistoryForAdmin
 import ManageReview from "./components/admins/ManageReview";
 import StatisticForAdmin from "./components/admins/StatisticForAdmin";
 import FinalExam from "./components/students/FinalExam";
+import Certificate from "./components/students/Certificate";
 
 function App() {
   return (
@@ -141,6 +142,7 @@ function App() {
 
 <Route path="/course-list-for-admin" element={<CourseListForAdmin />} />
 <Route path="/create-exam/:courseId" element={<CreateExam />} />
+<Route path="/my-certificate" element={<Certificate />} />
                 </Routes>
               </div>
             </div>

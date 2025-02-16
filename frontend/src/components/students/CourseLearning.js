@@ -130,42 +130,42 @@ const handleEditComment = async (commentId, newComment) => {
 
 
 
-  const exams = [
-    {
-      _id: "exam1",
-      number: 1,
-      title: "Exam 1: Basic Knowledge",
-      questions: [
-        {
-          question: "What is React?",
-          options: ["Library", "Framework", "Language"],
-          answer: "Library",
-        },
-        {
-          question: "What is JSX?",
-          options: ["Syntax", "Database", "API"],
-          answer: "Syntax",
-        },
-      ],
-    },
-    {
-      _id: "exam2",
-      number: 2,
-      title: "Exam 2: Advanced Concepts",
-      questions: [
-        {
-          question: "What is a Hook in React?",
-          options: ["Function", "Component", "Variable"],
-          answer: "Function",
-        },
-        {
-          question: "What does useState do?",
-          options: ["Fetch data", "Manage state", "Render UI"],
-          answer: "Manage state",
-        },
-      ],
-    },
-  ];
+  // const exams = [
+  //   {
+  //     _id: "exam1",
+  //     number: 1,
+  //     title: "Exam 1: Basic Knowledge",
+  //     questions: [
+  //       {
+  //         question: "What is React?",
+  //         options: ["Library", "Framework", "Language"],
+  //         answer: "Library",
+  //       },
+  //       {
+  //         question: "What is JSX?",
+  //         options: ["Syntax", "Database", "API"],
+  //         answer: "Syntax",
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     _id: "exam2",
+  //     number: 2,
+  //     title: "Exam 2: Advanced Concepts",
+  //     questions: [
+  //       {
+  //         question: "What is a Hook in React?",
+  //         options: ["Function", "Component", "Variable"],
+  //         answer: "Function",
+  //       },
+  //       {
+  //         question: "What does useState do?",
+  //         options: ["Fetch data", "Manage state", "Render UI"],
+  //         answer: "Manage state",
+  //       },
+  //     ],
+  //   },
+  // ];
 
   useEffect(() => {
     const fetchLessonsAndProgress = async () => {
@@ -196,7 +196,7 @@ const handleEditComment = async (commentId, newComment) => {
             _id: "exam_final",
             title: "Final Exam",
             type: "exam",
-            questions: exams,
+            // questions: exams,
           },
         ];
 

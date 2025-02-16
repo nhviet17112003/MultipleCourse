@@ -3,6 +3,9 @@ import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
+
+
+
 const FinalExam = () => {
   const { courseId, exam_id } = useParams();
   const navigate = useNavigate();
@@ -17,7 +20,8 @@ const FinalExam = () => {
   const [modal, setModal] = useState(false);
   const [comment, setComment] = useState("");
   const [rating, setRating] = useState(0);
-
+  const [certificate, setCertificate] = useState(null);
+const [certificateUrl, setCertificateUrl] = useState(null);
 
   const handleCommentCourseSubmit = async () => {
     try {
@@ -79,25 +83,23 @@ const FinalExam = () => {
 
   // Xử lý nộp bài
   const handleSubmit = async () => {
-    
     try {
       console.log("Answers State:", answers);
-  
+      
       const formattedAnswers = Object.keys(answers).map((question_id) => {
         const questionData = exam.questions.find((q) => q.question_id === question_id);
         if (!questionData) return null;
-  
+        
         const correctAnswers = questionData.answers
           .filter((ans) => ans.isCorrect)
           .map((ans) => ans.answer);
-  
+        
         const selectedAnswers = answers[question_id] || [];
-  
-        // Kiểm tra nếu tất cả đáp án đúng được chọn hết
+        
         const isCorrect =
           selectedAnswers.length === correctAnswers.length &&
           correctAnswers.every((ans) => selectedAnswers.includes(ans));
-  
+        
         return {
           question_id,
           questionType: questionData.questionType,
@@ -110,34 +112,58 @@ const FinalExam = () => {
           }),
         };
       });
-  
+      
       console.log("Formatted Answers:", formattedAnswers);
       
-  
       const response = await axios.post(
         `http://localhost:3000/api/exams/submit-exam/${exam.exam_id}`,
         { course_id: courseId, questions: formattedAnswers },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-  
-      console.log("API Response:", response.data); // Kiểm tra API trả về
-  
+      
+      console.log("API Response:", response.data);
+      
       setScore(response.data.studentExamRS.score);
       setTotalMark(response.data.studentExamRS.totalMark);
-  
-      // Kiểm tra và lưu dữ liệu allCorrect
-      if (response.data.studentExamRS.questions) {
-        const updatedAllCorrect = {};
-        response.data.studentExamRS.questions.forEach((q) => {
-          updatedAllCorrect[q.question_id] = q.allCorrect ?? false; // Nếu không có giá trị, mặc định là false
-        });
-        console.log("API Response:", response.data.studentExamRS);
-        setModal(true);
-        setAllCorrectResults(updatedAllCorrect);
-        console.log("Updated allCorrectResults:", updatedAllCorrect);
+      setModal(true);
+      
+      if (response.data.studentExamRS.score >= 0.8 * response.data.studentExamRS.totalMark) {
+        try {
+          const certResponse = await axios.post(
+            `http://localhost:3000/api/certificates/create-certificate/${courseId}`,
+            {},
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          console.log("Certificate API Response:", certResponse.data);
+          // setCertificate(true);
+        setCertificate(certResponse.data.certificate);
+  await fetchCertificate();
+          // alert("Certificate generated successfully!");
+        } catch (certError) {
+          console.error("Error generating certificate:", certError);
+        }
+      } else {
+        alert("You did not pass the exam. Try again next time!");
       }
     } catch (error) {
       console.error("Error submitting exam:", error);
+    }
+  };
+  
+  const fetchCertificate = async () => {
+    try {
+      console.log("Fetching certificate...");
+      console.log("Course ID:", courseId);
+      const response = await axios.get(
+        `http://localhost:3000/api/certificates/get-certificate/${courseId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+  
+      if (response.data.certificateUrl) {
+        setCertificateUrl(response.data.certificateUrl);
+      }
+    } catch (error) {
+      console.error("Error fetching certificate:", error);
     }
   };
   
@@ -214,12 +240,33 @@ const FinalExam = () => {
         </div>
       )}
 
+
       {score !== null && totalMark !== null && (
         <div className="mt-6 p-5 bg-gray-100 rounded-lg text-center shadow-md">
           <h2 className="text-xl font-bold text-gray-800">Exam Result</h2>
           <p className="mt-2 text-lg font-semibold text-blue-600">Your Score: {score} / {totalMark} ({((score / totalMark) * 100).toFixed(2)}%)</p>
         </div>
       )}
+{certificateUrl && (
+  <a
+    href={certificateUrl}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="mt-4 bg-purple-500 text-white py-3 px-6 rounded-lg hover:bg-purple-600 transition-all shadow-md inline-block"
+  >
+    View Certificate (PDF)
+  </a>
+)}
+
+{certificate && (
+  <motion.button
+    whileTap={{ scale: 0.95 }}
+    onClick={() => navigate("/my-certificate")}
+    className="mt-4 bg-purple-500 text-white py-3 px-6 rounded-lg hover:bg-purple-600 transition-all shadow-md"
+  >
+    Certificate List
+  </motion.button>
+)}
     </div>
     );
 };
