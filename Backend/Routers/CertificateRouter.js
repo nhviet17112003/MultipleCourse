@@ -11,4 +11,11 @@ router.post(
   certificateController.generateCertificate
 );
 
+router.get(
+  "/get-certificate/:course_id",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  certificateController.getCertificate
+);
+
 module.exports = router;

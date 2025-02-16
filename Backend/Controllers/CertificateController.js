@@ -131,3 +131,27 @@ exports.generateCertificate = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+exports.getCertificate = async (req, res) => {
+  try {
+    const course_id = req.params.course_id;
+    const course = await Course.findById(course_id);
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    const certificate = await StudentCertificate.findOne({
+      student: req.user._id,
+      course: course.course_title,
+    });
+
+    if (!certificate) {
+      return res.status(404).json({ message: "Certificate not found" });
+    }
+
+    res.status(200).json({ certificate });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};

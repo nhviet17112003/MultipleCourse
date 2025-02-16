@@ -90,6 +90,7 @@ exports.createStudentExam = async (req, res) => {
 
     const randomQuestions = shuffleArray(
       exam.questions.map((question) => ({
+        question_id: question._id,
         question: question.question,
         questionType: question.questionType,
         marks: question.marks,
@@ -138,34 +139,57 @@ exports.submitExam = async (req, res) => {
     for (let submittedQuestion of questions) {
       const examQuestion = exam.questions.find(
         (question) =>
-          question.question.trim().toLowerCase() ===
-          submittedQuestion.question.trim().toLowerCase()
+          question._id.toString() === submittedQuestion.question_id.toString()
       );
 
       if (!examQuestion) {
         return res.status(400).json({ error: "Invalid question" });
       }
 
-      const allCorrect = submittedQuestion.answers.every((answer) =>
-        examQuestion.answers.some(
-          (examAnswer) =>
-            examAnswer.answer === answer.answer &&
-            examAnswer.isCorrect === answer.isCorrect
-        )
+      // Lấy danh sách id của đáp án đúng trong đề
+      const examCorrectIds = examQuestion.answers
+        .filter((ans) => ans.isCorrect)
+        .map((ans) => ans._id.toString());
+
+      // Lấy danh sách id của đáp án mà học sinh chọn
+      const studentSelectedIds = submittedQuestion.answers.map((answer) =>
+        answer.answer_id.toString()
       );
+
+      // Điều kiện 1: Học sinh phải chọn đủ tất cả các đáp án đúng
+      const allCorrectSelected = examCorrectIds.every((id) =>
+        studentSelectedIds.includes(id)
+      );
+      // Điều kiện 2: Học sinh không chọn đáp án nào sai
+      const noIncorrectSelected = studentSelectedIds.every((id) =>
+        examCorrectIds.includes(id)
+      );
+
+      const allCorrect = allCorrectSelected && noIncorrectSelected;
+
+      // const allCorrect = submittedQuestion.answers.every((answer) =>
+      //   examQuestion.answers.some(
+      //     (examAnswer) =>
+      //       examAnswer._id.toString() === answer.answer_id.toString() &&
+      //       examAnswer.isCorrect === answer.isCorrect
+      //   )
+      // );
 
       if (allCorrect) {
         totalScore += examQuestion.marks;
       }
 
       questionRS.push({
+        question_id: examQuestion._id,
         question: examQuestion.question,
         answers: submittedQuestion.answers.map((answer) => {
           const matchingExamAnswer = examQuestion.answers.find(
-            (examAnswer) => examAnswer.answer === answer.answer
+            (examAnswer) =>
+              examAnswer._id.toString() === answer.answer_id.toString()
           );
           return {
-            answer: answer.answer,
+            answer_id: answer.answer_id,
+            answer: matchingExamAnswer.answer,
             isCorrect: matchingExamAnswer
               ? matchingExamAnswer.isCorrect
               : false,
