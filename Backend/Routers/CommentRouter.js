@@ -50,19 +50,19 @@ router.delete(
 );
 
 router.put(
-  "/change-course-comment-status/:course_id/:comment_id",
+  "/change-course-comment-status/:comment_id",
   cors.corsWithOptions,
   auth.verifyUser,
   auth.verifyAdmin,
-  commentController.updateCourseCommentStatus
+  commentController.updateCommentStatusById
 );
 
 router.put(
-  "/change-lesson-comment-status/:lesson_id/:comment_id",
+  "/change-lesson-comment-status/:comment_id",
   cors.corsWithOptions,
   auth.verifyUser,
   auth.verifyAdmin,
-  commentController.updateLessonCommentStatus
+  commentController.updateLessonCommentStatusById
 );
 
 router.get(
