@@ -58,4 +58,12 @@ router.get(
   orderController.getRevenueForThisYear
 );
 
+router.get(
+  "/total-course-sold/:course_id",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  auth.verifyAdmin,
+  orderController.getCourseSalesCountById
+);
+
 module.exports = router;
