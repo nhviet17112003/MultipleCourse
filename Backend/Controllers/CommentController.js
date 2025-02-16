@@ -205,56 +205,64 @@ exports.showLessonComment = async (req, res) => {
   }
 };
 
-// Update Course Comment Status (toggle status)
-exports.updateCourseCommentStatus = async (req, res) => {
+// Update Comment Status (toggle status) without Course ID
+exports.updateCommentStatusById = async (req, res) => {
   try {
-    const course = await Course.findById(req.params.course_id);
+    const { comment_id } = req.params;
+
+    // Tìm khóa học chứa comment theo ID
+    const course = await Course.findOne({ "comments._id": comment_id });
+
     if (!course) {
-      return res.status(404).json({ message: "Course not found" });
+      return res.status(404).json({ message: "Comment not found" });
     }
 
-    const comment = course.comments.id(req.params.comment_id);
+    // Tìm comment trong khóa học
+    const comment = course.comments.id(comment_id);
     if (!comment) {
       return res.status(404).json({ message: "Comment not found" });
     }
 
-    comment.status = !comment.status; // Toggle trạng thái comment
+    // Toggle trạng thái comment
+    comment.status = !comment.status;
     await course.save();
 
-    if (comment.status === false) {
-      res.status(200).json({ message: "Comment is now inactive" });
-    } else {
-      res.status(200).json({ message: "Comment is now active" });
-    }
+    res.status(200).json({
+      message: `Comment is now ${comment.status ? "active" : "inactive"}`,
+    });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
-// Update Lesson Comment Status (toggle status)
-exports.updateLessonCommentStatus = async (req, res) => {
+// Update Lesson Comment Status (toggle status) without Lesson ID
+exports.updateLessonCommentStatusById = async (req, res) => {
   try {
-    const lesson = await Lesson.findById(req.params.lesson_id);
+    const { comment_id } = req.params;
+
+    // Tìm bài học chứa comment theo ID
+    const lesson = await Lesson.findOne({ "comments._id": comment_id });
+
     if (!lesson) {
-      return res.status(404).json({ message: "Lesson not found" });
+      return res.status(404).json({ message: "Comment not found" });
     }
 
-    const comment = lesson.comments.id(req.params.comment_id);
+    // Tìm comment trong bài học
+    const comment = lesson.comments.id(comment_id);
     if (!comment) {
       return res.status(404).json({ message: "Comment not found" });
     }
 
-    comment.status = !comment.status; // Toggle trạng thái comment
+    // Toggle trạng thái comment
+    comment.status = !comment.status;
     await lesson.save();
 
-    if (comment.status === false) {
-      res.status(200).json({ message: "Comment is now inactive" });
-    } else {
-      res.status(200).json({ message: "Comment is now active" });
-    }
+    res.status(200).json({
+      message: `Comment is now ${comment.status ? "active" : "inactive"}`,
+    });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
