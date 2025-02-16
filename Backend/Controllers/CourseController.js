@@ -51,7 +51,7 @@ exports.getActiveCourses = async (req, res) => {
 //Get All Courses
 exports.getAllCourses = async (req, res) => {
   try {
-    const courses = await Course.find();
+    const courses = await Course.find().populate("tutor", "fullname").exec();
     res.status(200).json(courses);
   } catch (err) {
     console.log(err);
