@@ -93,9 +93,10 @@ exports.googlePassport = passport.use(
           if (user) {
             return done(null, user);
           } else {
-            user = new User({ fullname: profile.displayName });
+            user = new User({ username: profile.displayName });
             user.googleId = profile.id;
             user.email = profile.emails[0].value;
+            user.fullname = profile.displayName;
             user.role = "Student";
             user.save().then((user) => {
               return done(null, user);
