@@ -1,4 +1,6 @@
 const Wallet = require("../Models/Wallet");
+const AdminActivityHistory = require("../Models/AdminActivityHistory");
+const User = require("../Models/Users");
 const mongoose = require("mongoose");
 // Show số tiền
 exports.showBalance = async (req, res) => {
@@ -127,6 +129,11 @@ exports.confirmWithdrawRequest = async (req, res) => {
       return res.status(404).json({ message: "Wallet not found" });
     }
 
+    const tutor = await User.findById(wallet.tutor);
+    if (!tutor) {
+      return res.status(404).json({ message: "Tutor not found" });
+    }
+
     // Tìm lệnh rút trong wallet
     const withdrawal = wallet.withdrawals.id(withdrawalId);
 
@@ -143,13 +150,18 @@ exports.confirmWithdrawRequest = async (req, res) => {
     // Cập nhật trạng thái lệnh rút và trừ tiền từ ví của tutor
     withdrawal.status = "Approved";
     wallet.current_balance -= withdrawal.amount; // Trừ tiền vào ví của tutor
-
     // Chỉ cộng vào `total_withdrawal` khi lệnh rút được duyệt
     wallet.total_withdrawal =
       (wallet.total_withdrawal || 0) + withdrawal.amount;
 
-    await wallet.save();
+    // Lưu lại lịch sử hoạt động của admin
+    const adminActivity = new AdminActivityHistory({
+      admin: req.user._id,
+      description: `Approved withdrawal request of ${withdrawal.amount} VND for tutor ${tutor.fullname}`,
+    });
 
+    await wallet.save();
+    await adminActivity.save();
     res
       .status(200)
       .json({ message: "Withdrawal request confirmed successfully." });
@@ -173,6 +185,11 @@ exports.rejectWithdrawRequest = async (req, res) => {
       return res.status(404).json({ message: "Wallet not found" });
     }
 
+    const tutor = await User.findById(wallet.tutor);
+    if (!tutor) {
+      return res.status(404).json({ message: "Tutor not found" });
+    }
+
     // Tìm lệnh rút trong wallet
     const withdrawal = wallet.withdrawals.id(withdrawalId);
 
@@ -188,8 +205,13 @@ exports.rejectWithdrawRequest = async (req, res) => {
 
     // Cập nhật trạng thái lệnh rút
     withdrawal.status = "Rejected";
+    const adminActivity = new AdminActivityHistory({
+      admin: req.user._id,
+      description: `Rejected withdrawal request of ${withdrawal.amount} VND for tutor ${tutor.fullname}`,
+    });
 
     await wallet.save();
+    await adminActivity.save();
 
     res
       .status(200)

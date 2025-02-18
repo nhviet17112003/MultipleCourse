@@ -1,6 +1,7 @@
 const Course = require("../Models/Courses");
 const Lesson = require("../Models/Lessons");
 const Request = require("../Models/Requests");
+const AdminActivityHistory = require("../Models/AdminActivityHistory");
 const multer = require("multer");
 const admin = require("firebase-admin");
 const { request } = require("express");
@@ -147,8 +148,13 @@ exports.processCreateCourse = async (req, res) => {
       return res.status(400).json({ message: "Request has been rejected" });
     }
 
+    const newAdminActivity = new AdminActivityHistory({
+      admin: req.user._id,
+    });
+
     if (status === "Rejected") {
       request.status = "Rejected";
+      newAdminActivity.description = `Rejected the request to create a new course with ID: ${request.course}`;
       await request.save();
       return res.status(200).json({ message: "Request has been rejected" });
     }
@@ -161,8 +167,10 @@ exports.processCreateCourse = async (req, res) => {
 
       course.status = true;
       request.status = "Approved";
+      newAdminActivity.description = `Approved the request to create a new course with ID: ${request.course}`;
       await course.save();
       await request.save();
+      await newAdminActivity.save();
       res
         .status(200)
         .json({ message: "Course has been created", course: course });
@@ -222,8 +230,13 @@ exports.processUpdateCourse = async (req, res) => {
       return res.status(400).json({ message: "Request has been rejected" });
     }
 
+    const newAdminActivity = new AdminActivityHistory({
+      admin: req.user._id,
+    });
+
     if (status === "Rejected") {
       request.status = "Rejected";
+      newAdminActivity.description = `Rejected the request to update course with ID: ${request.course}`;
       await request.save();
       return res.status(200).json({ message: "Request has been rejected" });
     }
@@ -301,8 +314,10 @@ exports.processUpdateCourse = async (req, res) => {
       course.price = price;
       course.category = category;
       request.status = "Approved";
+      newAdminActivity.description = `Approved the request to update course with ID: ${request.course}`;
       await course.save();
       await request.save();
+      await newAdminActivity.save();
       res.status(200).json(course);
     }
   } catch (err) {
@@ -320,6 +335,12 @@ exports.requestDeleteCourse = async (req, res) => {
     });
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
+    }
+
+    if (course.status === true) {
+      return res
+        .status(400)
+        .json({ message: "Course is active, you can not delete." });
     }
 
     const newRequest = new Request({
@@ -349,8 +370,13 @@ exports.processDeleteCourse = async (req, res) => {
       return res.status(400).json({ message: "Request has been rejected" });
     }
 
+    const newAdminActivity = new AdminActivityHistory({
+      admin: req.user._id,
+    });
+
     if (status === "Rejected") {
       request.status = "Rejected";
+      newAdminActivity.description = `Rejected the request to delete course with ID: ${request.course}`;
       await request.save();
       return res.status(200).json({ message: "Request has been rejected" });
     }
@@ -378,7 +404,9 @@ exports.processDeleteCourse = async (req, res) => {
       // Xóa khóa học
       await course.deleteOne();
       request.status = "Approved";
+      newAdminActivity.description = `Approved the request to delete course with ID: ${request.course}`;
       await request.save();
+      await newAdminActivity.save();
       res.status(200).json({ message: "Course has been deleted" });
     }
   } catch (err) {
@@ -442,8 +470,16 @@ exports.changeCourseStatus = async (req, res) => {
       return res.status(404).json({ message: "Course not found" });
     }
 
+    const newAdminActivity = new AdminActivityHistory({
+      admin: req.user._id,
+      description: `Changed the status of course with ID: ${
+        req.params.course_id
+      } form ${course.status} to ${!course.status}`,
+    });
+
     course.status = !course.status;
     await course.save();
+    await newAdminActivity.save();
     if (course.status == false) {
       res.status(200).json({ message: "Course now is not available" });
     } else {
@@ -454,5 +490,3 @@ exports.changeCourseStatus = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
-//Delete Course
