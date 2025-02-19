@@ -197,6 +197,15 @@ exports.requestUpdateCourse = async (req, res) => {
       return res.status(404).json({ message: "Course not found" });
     }
 
+    const existingRequest = await Request.findOne({
+      course: req.params.course_id,
+      request_type: "Updated course and waiting for approval",
+      status: "Pending",
+    });
+    if (existingRequest) {
+      return res.status(400).json({ message: "Request is already pending" });
+    }
+
     const newRequest = new Request({
       tutor: req.user._id,
       course: course._id,
@@ -341,6 +350,15 @@ exports.requestDeleteCourse = async (req, res) => {
       return res
         .status(400)
         .json({ message: "Course is active, you can not delete." });
+    }
+
+    const existingRequest = await Request.findOne({
+      course: req.params.course_id,
+      request_type: "Deleted course and waiting for approval",
+      status: "Pending",
+    });
+    if (existingRequest) {
+      return res.status(400).json({ message: "Request is already pending" });
     }
 
     const newRequest = new Request({
