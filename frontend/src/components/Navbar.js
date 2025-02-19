@@ -99,7 +99,10 @@
     
       navigate("/cart");
     };
-
+    const goToPurchaseHistory = () => {
+    
+      navigate("/purchase-history");
+    };
 
     const logout = async () => {
       try {
@@ -215,7 +218,12 @@
                   Cart
                 
                 </button>
-
+                <button
+                className="block w-full px-4 py-2 text-left hover:bg-teal-100"
+                onClick={goToPurchaseHistory}>
+                  Purchase history
+                
+                </button>
                 <Space className="w-full justify-center py-3">
                   <Switch
                     onClick={toggleTheme}
@@ -226,6 +234,33 @@
                 </Space>
               </div>
             </div>
+          </div>
+  
+          {/* Dropdown */}
+          <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
+            <div className="px-4 py-2 border-b border-gray-200 text-center">
+              <span className="font-semibold text-sm">{fullname}</span>
+            </div>
+            <button
+              className="block w-full px-4 py-2 text-left hover:bg-gray-100"
+              onClick={goToUserProfile}
+            >
+              <UserOutlined className="mr-2" /> Profile
+            </button>
+            <button
+              className="block w-full px-4 py-2 text-left hover:bg-gray-100"
+              onClick={logout}
+            >
+              <LogoutOutlined className="mr-2" /> Logout
+            </button>
+            <Space className="w-full justify-center py-3">
+              <Switch
+                onClick={toggleTheme}
+                checkedChildren="dark"
+                unCheckedChildren="light"
+                defaultChecked={theme === "dark"}
+              />
+            </Space>
           </div>
         </div>
       </nav>

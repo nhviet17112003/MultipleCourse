@@ -31,7 +31,7 @@ const UpdateCourseModal = ({ course, onClose, onUpdate }) => {
       theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-gray-900"
     }`}
   >
-        <h2 className="text-xl font-semibold mb-4">Update Course</h2>
+        <h2 className="text-2xl font-semibold border-b-2 border-teal-500 pb-4 mb-4">Update Course</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-sm font-medium mb-2">Title</label>

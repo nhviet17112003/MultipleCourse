@@ -11,6 +11,7 @@ router.post(
   commentController.createCourseComment
 );
 
+
 router.put(
   "/update-course-comment",
   cors.corsWithOptions,

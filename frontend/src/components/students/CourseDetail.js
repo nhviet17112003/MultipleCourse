@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 const DetailCourse = () => {
-  const { id } = useParams(); // Lấy id từ URL
-  const navigate = useNavigate(); // Điều hướng quay lại hoặc tới nơi khác
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [fullname, setFullname] = useState(""); // Thêm phần tên người dùng
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // Xác định người dùng đã đăng nhập hay chưa
+  const [fullname, setFullname] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
@@ -47,43 +47,33 @@ const DetailCourse = () => {
       }
     };
     fetchCourseDetail();
-  }, [id]); // Đảm bảo mảng dependencies chỉ chứa `id`
+  }, [id]);
 
   if (loading) {
-    return <p>Đang tải thông tin khóa học...</p>;
+    return <p className="text-center text-lg font-medium text-gray-700 mt-10">Đang tải thông tin khóa học...</p>;
   }
 
   if (!course) {
-    return <p>Không tìm thấy khóa học.</p>;
+    return <p className="text-center text-lg font-medium text-gray-700 mt-10">Không tìm thấy khóa học.</p>;
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        {/* Thông tin chi tiết khóa học */}
-        <div className="bg-white shadow-lg rounded-lg overflow-hidden md:grid md:grid-cols-2 md:gap-8 p-6">
+    <div className="min-h-screen py-10">
+      <div className="container mx-auto px-4">
+        <div className="bg-white shadow-2xl rounded-xl overflow-hidden md:grid md:grid-cols-2 md:gap-8 p-8">
           <div className="md:flex md:justify-center md:items-center">
             <img
               src={course.image}
               alt={course.title}
-              className="w-full h-64 object-cover rounded-lg shadow-md"
+              className="w-full h-72 object-cover rounded-xl shadow-lg transform hover:scale-105 transition duration-300"
             />
           </div>
           <div className="mt-4 md:mt-0">
-            <h2 className="text-3xl font-semibold text-teal-600">
-              {course.title}
-            </h2>
-            <p className="text-lg text-gray-600 mt-2 italic">
-              Danh mục: {course.category}
-            </p>
-            <p className="mt-4 text-gray-700 leading-relaxed">
-              {course.description}
-            </p>
+            <h2 className="text-4xl font-bold text-teal-700">{course.title}</h2>
+            <p className="text-lg text-gray-600 mt-2 italic">Danh mục: {course.category}</p>
+            <p className="mt-4 text-gray-700 leading-relaxed">{course.description}</p>
             <div className="mt-6 flex justify-between items-center">
-              <p className="text-2xl text-teal-700 font-semibold">
-                Giá: ${course.price}
-              </p>
+              <p className="text-3xl text-teal-800 font-bold">${course.price}</p>
               <p className="text-sm text-gray-500 italic">
                 Ngày tạo: {new Date(course.createAt).toLocaleDateString()}
               </p>
@@ -91,19 +81,45 @@ const DetailCourse = () => {
           </div>
         </div>
 
+        {/* Bình luận */}
+        <div className="mt-12 bg-white shadow-lg rounded-xl p-6">
+          <h3 className="text-2xl font-semibold text-teal-600">Comments:</h3>
+
+          {course.comments && course.comments.length > 0 ? (
+            <div className="mt-4 space-y-4">
+              {course.comments.map((comment) => (
+                <div
+                  key={comment._id}
+                  className="p-4 bg-gray-50 rounded-lg shadow-sm flex gap-4 items-center"
+                >
+                  <div className="w-10 h-10 flex items-center justify-center bg-teal-500 text-white font-semibold rounded-full">
+                    {comment.author.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="font-medium">{comment.author}</p>
+                    <p className="text-gray-700">{comment.comment}</p>
+                    <p className="text-sm text-gray-500">{new Date(comment.date).toLocaleString()}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 mt-4">No comment.</p>
+          )}
+        </div>
+
         {/* Nút quay lại */}
-        <div className="mt-6 text-center">
+        <div className="mt-8 text-center">
           <button
-            onClick={() => navigate(-1)} // Quay lại trang trước
-            className="bg-teal-600 text-white py-2 px-6 rounded-lg hover:bg-teal-700 transition duration-300"
+            onClick={() => navigate(-1)}
+            className="bg-teal-600 text-white py-3 px-8 rounded-lg shadow-md text-lg font-semibold hover:bg-teal-700 transition duration-300"
           >
             Quay lại
           </button>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
 };
 
 export default DetailCourse;

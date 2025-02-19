@@ -26,7 +26,16 @@ import WithdrawalHistory from "./components/tutors/wallet/WithdrawalHistory";
 import WalletManageForAdmin from "./components/admins/WalletManageForAdmin";
 import MyCourses from "./components/students/MyCourse";
 import CourseLearningPage from "./components/students/CourseLearning";
+import CourseListForAdmin from "./components/admins/CourseListForAdmin";
+import CreateExam from "./components/tutors/exam/CreateExam";
 import ManageUser from "./components/admins/ManageUser";
+import PurchaseHistory from "./components/students/PurchaseHistory";
+import PurchaseHistoryForAdmin from "./components/admins/PurchaseHistoryForAdmin";
+import ManageReview from "./components/admins/ManageReview";
+import StatisticForAdmin from "./components/admins/StatisticForAdmin";
+import FinalExam from "./components/students/FinalExam";
+import Certificate from "./components/students/Certificate";
+import RequestList from "./components/admins/RequestList";
 
 function App() {
   return (
@@ -105,6 +114,37 @@ function App() {
                     path="/courses/:courseId"
                     element={<CourseLearningPage />}
                   />
+
+
+<Route
+                    path="/purchase-history"
+                    element={<PurchaseHistory />}
+                  />
+
+<Route
+                    path="/purchase-history-for-admin"
+                    element={<PurchaseHistoryForAdmin />}
+                  />
+
+<Route
+                    path="/manage-review-for-admin"
+                    element={<ManageReview />}
+                  />
+
+<Route
+                    path="/statistic-for-admin"
+                    element={<StatisticForAdmin />}
+                  />
+
+<Route
+                    path="/final-exam/:courseId"
+                    element={<FinalExam />}
+                  />
+
+<Route path="/course-list-for-admin" element={<CourseListForAdmin />} />
+<Route path="/create-exam/:courseId" element={<CreateExam />} />
+<Route path="/my-certificate" element={<Certificate />} />
+<Route path="/manage-request-list" element={<RequestList />} />
                 </Routes>
               </div>
             </div>

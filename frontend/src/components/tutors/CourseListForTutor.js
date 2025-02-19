@@ -3,7 +3,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import UpdateCourseModal from "./UpdateCourseModal"; // Import modal
 import { useTheme } from "../context/ThemeContext"; // Import context
-import { Button, Spin } from 'antd';
+import { Button, Spin, Breadcrumb } from 'antd';
+import { HomeOutlined, UserOutlined } from '@ant-design/icons';
 
 const CourseListForTutor = () => {
   const [courses, setCourses] = useState([]);
@@ -140,7 +141,7 @@ const CourseListForTutor = () => {
 
 
   return (
-    <div className={`course-list-tutor p-6 ${theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
+    <div className={`course-list-tutor p-6 h-full ${theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-gray-900"}`}>
       <Spin spinning={spinning} fullscreen />
       <h1 className="text-2xl font-semibold text-gray-800 mb-6">Course List</h1>
       {errorMessage && <p className="text-red-500 mb-4">{errorMessage}</p>}

@@ -105,7 +105,7 @@ useEffect(() => {
 
   return (
     
-    <div className={`min-h-screen px-4 py-8 ${theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
+    <div className={`min-h-screen px-4 py-8 ${theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-gray-900"}`}>
         <Spin spinning={spinning} percent={percent} fullscreen />
      <form
   className={`w-full p-8 rounded-lg shadow-lg 
@@ -113,15 +113,31 @@ useEffect(() => {
   onSubmit={handleSubmit(onSubmit)}
 >
 
-        <h1 className="text-4xl font-bold text-left mb-8">
+<div className="flex justify-between items-center">        <h1 className="text-4xl font-bold text-left mb-8">
           Create New Course
         </h1>
+
+        <div className="flex justify-center mb-8">
+        <button
+  type="submit"
+  className={`font-semibold py-4 px-6 rounded-lg transition duration-300 
+    ${theme === "dark" 
+      ? "bg-green-700 hover:bg-green-600 text-white" 
+      : "bg-green-600 hover:bg-green-700 text-white"}`}
+  disabled={isSubmitting}
+>
+  
+  {isSubmitting ? "Submitting..." : "Create Course"}
+</button>
+
+</div></div>
 
         {errorMessage && (
           <p className="text-red-500 text-center font-semibold mb-6">{errorMessage}</p>
         )}
+<div className="border border-gray-300 p-6 rounded-lg shadow-sm">
 
-        <div className="mb-6">
+<div className="mb-6">
         <label
   className={`block text-lg font-medium mb-2 ${
     theme === "dark" ? "text-gray-300" : "text-gray-700"
@@ -224,20 +240,10 @@ useEffect(() => {
           )}
         </div>
 
-        <div className="flex justify-center">
-        <button
-  type="submit"
-  className={`font-semibold py-4 px-6 rounded-lg transition duration-300 
-    ${theme === "dark" 
-      ? "bg-green-700 hover:bg-green-600 text-white" 
-      : "bg-green-600 hover:bg-green-700 text-white"}`}
-  disabled={isSubmitting}
->
-  
-  {isSubmitting ? "Submitting..." : "Create Course"}
-</button>
 
 </div>
+       
+      
 
       </form>
 

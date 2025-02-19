@@ -163,7 +163,6 @@ exports.updateLessonComment = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
 // Delete Comment for Lesson
 exports.deleteLessonComment = async (req, res) => {
   try {
@@ -228,6 +227,11 @@ exports.updateCommentStatusById = async (req, res) => {
     comment.status = !comment.status;
     await course.save();
 
+    res.status(200).json({
+      
+      message: `Comment is now ${comment.status ? "active" : "inactive"}`,
+      comment: comment,
+    });
     if (comment.status === false) {
       const adminActivity = new AdminActivityHistory({
         admin: req.user._id,
