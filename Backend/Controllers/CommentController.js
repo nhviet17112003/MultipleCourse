@@ -227,7 +227,9 @@ exports.updateCommentStatusById = async (req, res) => {
     await course.save();
 
     res.status(200).json({
+      
       message: `Comment is now ${comment.status ? "active" : "inactive"}`,
+      comment: comment,
     });
   } catch (err) {
     console.error(err);

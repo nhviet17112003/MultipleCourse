@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
+
 export default function ManageReview() {
+  const [comment, setComment] = useState([]);
   const [comments, setComments] = useState([]);
   const token = localStorage.getItem('authToken'); // Assuming token is stored in localStorage
 
   useEffect(() => {
     fetchComments();
+    
  
   }, []);
 
@@ -16,23 +19,29 @@ export default function ManageReview() {
       const response = await axios.get('http://localhost:3000/api/comments/show-all-comments', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log(response.data.comments)
+      // console.log(response.data.comments);
       setComments(response.data.comments);
+      // response.data.comments.forEach(comment => {
+      //   console.log(comment.commentId);
+      // });
     } catch (error) {
       console.error('Error fetching comments:', error);
     }
   };
 
-  const toggleCommentStatus = async (type, parentId, commentId) => {
+  const toggleCommentStatus = async (type, commentId) => {
+    
+ 
     try {
-      console.log('Toggling comment status:', type, parentId, commentId);
+      console.log('Toggling comment status:', type, commentId);
       const url = type === 'course' 
-        ? `http://localhost:3000/api/comments/change-course-comment-status/${parentId}/${commentId}`
-        : `http://localhost:3000/api/comments/change-lesson-comment-status/${parentId}/${commentId}`;
+        ? `http://localhost:3000/api/comments/change-course-comment-status/${commentId}`
+        : `http://localhost:3000/api/comments/change-lesson-comment-status/${commentId}`;
       await axios.put(url, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchComments();
+      console.log('Comment status updated successfully');
     } catch (error) {
       console.error('Error updating comment status:', error);
     }
@@ -51,7 +60,8 @@ export default function ManageReview() {
                 <p className="text-sm text-gray-500">Rating: {comment.rating} | Status: {comment.status ? 'Active' : 'Inactive'}</p>
               </div>
               <button 
-                onClick={() => toggleCommentStatus(comment.type, comment.type === 'course' ? comment.courseId : comment.lessonId, comment.commentId)} 
+                onClick={() => toggleCommentStatus(comment.type, comment.commentId)}
+ 
                 className={`px-4 py-2 rounded-md text-white ${comment.status ? 'bg-red-500' : 'bg-green-500'}`}>
                 {comment.status ? 'Deactivate' : 'Activate'}
               </button>

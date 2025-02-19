@@ -67,7 +67,7 @@ const CourseListForAdmin = () => {
                 {/* <td className="p-4">{course._id}</td> */}
                 <td className="p-4 font-semibold text-gray-700">{course.title}</td>
                 {/* <td className="p-4 text-gray-600">{course.description}</td> */}
-                <td className="p-4 text-gray-600">{course.tutor}</td>
+                <td className="p-4 text-gray-600">{course.tutor.fullname}</td>
                 <td
                   className={`p-4 font-bold ${course.status ? "text-green-600" : "text-red-600"}`}
                 >

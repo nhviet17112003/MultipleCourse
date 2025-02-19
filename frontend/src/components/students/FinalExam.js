@@ -154,13 +154,16 @@ const [certificateUrl, setCertificateUrl] = useState(null);
     try {
       console.log("Fetching certificate...");
       console.log("Course ID:", courseId);
+      
       const response = await axios.get(
+   
         `http://localhost:3000/api/certificates/get-certificate/${courseId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-  
-      if (response.data.certificateUrl) {
-        setCertificateUrl(response.data.certificateUrl);
+      console.log(response.data.certificate.certificate_url);
+      if (response.data.certificate.certificate_url) {
+        setCertificateUrl(response.data.certificate.certificate_url);
+        console.log("Certificate URL:", response.data.certificate.certificate_url);
       }
     } catch (error) {
       console.error("Error fetching certificate:", error);
@@ -252,13 +255,13 @@ const [certificateUrl, setCertificateUrl] = useState(null);
     href={certificateUrl}
     target="_blank"
     rel="noopener noreferrer"
-    className="mt-4 bg-purple-500 text-white py-3 px-6 rounded-lg hover:bg-purple-600 transition-all shadow-md inline-block"
+    className="mt-4 block bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition-all shadow-md text-center"
   >
-    View Certificate (PDF)
+    {certificateUrl}
   </a>
 )}
 
-{certificate && (
+{/* {certificate && (
   <motion.button
     whileTap={{ scale: 0.95 }}
     onClick={() => navigate("/my-certificate")}
@@ -266,7 +269,7 @@ const [certificateUrl, setCertificateUrl] = useState(null);
   >
     Certificate List
   </motion.button>
-)}
+)} */}
     </div>
     );
 };
