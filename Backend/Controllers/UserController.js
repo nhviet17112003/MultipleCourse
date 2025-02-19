@@ -4,6 +4,7 @@ const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const Users = require("../Models/Users");
 const Wallet = require("../Models/Wallet");
+const AdminActivityHistory = require("../Models/AdminActivityHistory");
 const config = require("../Configurations/Config");
 const multer = require("multer");
 const admin = require("firebase-admin");
@@ -390,8 +391,17 @@ exports.banAndUnbanUser = async (req, res) => {
     if (user.role === "Admin") {
       return res.status(400).json({ message: "Cannot ban or unban admin" });
     }
+    const newAdminActivity = new AdminActivityHistory({
+      admin: req.user._id,
+    });
+
     user.status = !user.status;
-    user.save();
+    newAdminActivity.description = user.status
+      ? `Unbanned user ${user.fullname}`
+      : `Banned user ${user.fullname}`;
+
+    await user.save();
+    await newAdminActivity.save();
     if (user.status) {
       res.status(200).json({ message: "User unbanned" });
     } else {

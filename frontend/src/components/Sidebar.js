@@ -125,6 +125,10 @@ function Sidebar() {
           },
           {
             key: "19",
+            label: <Link to="/manage-request-list">Manage Requests</Link>,
+          },
+          {
+            key: "20",
             label: <Link to="/statistic-for-admin">Statistics</Link>,
           },
         ],

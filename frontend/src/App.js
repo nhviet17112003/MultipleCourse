@@ -35,6 +35,7 @@ import ManageReview from "./components/admins/ManageReview";
 import StatisticForAdmin from "./components/admins/StatisticForAdmin";
 import FinalExam from "./components/students/FinalExam";
 import Certificate from "./components/students/Certificate";
+import RequestList from "./components/admins/RequestList";
 
 function App() {
   return (
@@ -143,6 +144,7 @@ function App() {
 <Route path="/course-list-for-admin" element={<CourseListForAdmin />} />
 <Route path="/create-exam/:courseId" element={<CreateExam />} />
 <Route path="/my-certificate" element={<Certificate />} />
+<Route path="/manage-request-list" element={<RequestList />} />
                 </Routes>
               </div>
             </div>

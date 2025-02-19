@@ -26,4 +26,29 @@ router.post(
   auth.verifyUser,
   ExamController.submitExam
 );
+//Get exam for tutor
+router.get(
+  "/get-exam/:course_id",
+  cors.cors,
+  auth.verifyUser,
+  auth.verifyTutor,
+  ExamController.getExam
+);
+//Get exam for student
+router.put(
+  "/update-exam/:exam_id",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  auth.verifyTutor,
+  ExamController.updateExam
+);
+//Delete exam
+router.delete(
+  "/delete-exam/:exam_id",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  auth.verifyTutor,
+  ExamController.deleteExam
+);
+
 module.exports = router;

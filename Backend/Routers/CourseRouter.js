@@ -73,6 +73,7 @@ router.delete(
   auth.verifyAdmin,
   courseController.processDeleteCourse
 );
+
 router.put(
   "/update-course-image/:course_id",
   cors.corsWithOptions,

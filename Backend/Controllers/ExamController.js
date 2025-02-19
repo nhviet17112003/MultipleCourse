@@ -233,3 +233,81 @@ exports.submitExam = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+//Get exam for tutor
+exports.getExam = async (req, res) => {
+  try {
+    const course_id = req.params.course_id;
+
+    const course = await Course.findById(course_id);
+    if (!course) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    const exam = await Exam.findOne({ course_id: course_id });
+    if (!exam) {
+      return res.status(404).json({ error: "Exam not found" });
+    }
+
+    res.status(200).json(exam);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+//Update exam
+exports.updateExam = async (req, res) => {
+  try {
+    const exam_id = req.params.exam_id;
+    const title = req.body.title;
+    const questions = req.body.questions;
+    const totalMark = req.body.totalMark;
+    const duration = req.body.duration;
+
+    const exam = await Exam.findById(exam_id);
+    if (!exam) {
+      return res.status(404).json({ error: "Exam not found" });
+    }
+
+    if (title) exam.title = title;
+    if (questions) exam.questions = questions;
+    if (totalMark) exam.totalMark = totalMark;
+    let totalMarks = 0;
+    exam.questions.forEach((question) => {
+      totalMarks += question.marks;
+    });
+
+    if (totalMarks !== totalMark) {
+      return res.status(400).json({
+        error: "Total marks of questions must equal the totalMark field.",
+      });
+    }
+
+    if (duration) exam.duration = duration;
+
+    await exam.save();
+    res.status(200).json(exam);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+//Delete exam
+exports.deleteExam = async (req, res) => {
+  try {
+    const exam_id = req.params.exam_id;
+
+    const exam = await Exam.findById(exam_id);
+    if (!exam) {
+      return res.status(404).json({ error: "Exam not found" });
+    }
+
+    const examDeleted = await Exam.findByIdAndDelete(exam_id);
+    res.status(200).json({ message: "Exam deleted successfully" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};

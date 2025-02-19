@@ -1,5 +1,6 @@
 const Course = require("../Models/Courses");
 const Lesson = require("../Models/Lessons");
+const AdminActivityHistory = require("../Models/AdminActivityHistory");
 
 //Comment For Course
 
@@ -231,6 +232,23 @@ exports.updateCommentStatusById = async (req, res) => {
       message: `Comment is now ${comment.status ? "active" : "inactive"}`,
       comment: comment,
     });
+    if (comment.status === false) {
+      const adminActivity = new AdminActivityHistory({
+        admin: req.user._id,
+        activity: `Change comment status of user ${comment.author} to inactive\n
+      Comment: ${comment.comment}`,
+      });
+      await adminActivity.save();
+      res.status(200).json({ message: "Comment is now inactive" });
+    } else {
+      const adminActivity = new AdminActivityHistory({
+        admin: req.user._id,
+        activity: `Change comment status of user ${comment.author} to active\n
+      Comment: ${comment.comment}`,
+      });
+      await adminActivity.save();
+      res.status(200).json({ message: "Comment is now active" });
+    }
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Internal Server Error" });
@@ -259,9 +277,23 @@ exports.updateLessonCommentStatusById = async (req, res) => {
     comment.status = !comment.status;
     await lesson.save();
 
-    res.status(200).json({
-      message: `Comment is now ${comment.status ? "active" : "inactive"}`,
-    });
+    if (comment.status === false) {
+      const adminActivity = new AdminActivityHistory({
+        admin: req.user._id,
+        activity: `Change comment status of user ${comment.author} to inactive\n
+      Comment: ${comment.comment}`,
+      });
+      await adminActivity.save();
+      res.status(200).json({ message: "Comment is now inactive" });
+    } else {
+      const adminActivity = new AdminActivityHistory({
+        admin: req.user._id,
+        activity: `Change comment status of user ${comment.author} to active\n
+      Comment: ${comment.comment}`,
+      });
+      await adminActivity.save();
+      res.status(200).json({ message: "Comment is now active" });
+    }
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Internal Server Error" });
