@@ -493,11 +493,12 @@ exports.googleLoginCallback = (req, res, next) => {
       email: user.email,
     });
     res.cookie("Token", token, { maxAge: 7200000, path: "/" }); // dùng cookie để lưu token
-    res.status(200).json({
-      message: "Login successful",
-      token: token,
-      fullname: user.fullname,
-      role: user.role,
-    });
+    return res.redirect("http://localhost:3001/homescreen");
+    // res.status(200).json({
+    //   message: "Login successful",
+    //   token: token,
+    //   fullname: user.fullname,
+    //   role: user.role,
+    // });
   })(req, res, next);
 };

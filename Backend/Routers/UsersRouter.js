@@ -91,7 +91,7 @@ router.post(
 );
 
 //google auth
-router.get("/google/login", cors.corsWithOptions, userController.googleLogin);
+ router.get("/google/login", cors.corsWithOptions, userController.googleLogin);
 router.get("/auth/callback", cors.cors, userController.googleLoginCallback);
 
 module.exports = router;

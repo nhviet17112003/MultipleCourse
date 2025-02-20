@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import {
   AppstoreOutlined,
   MailOutlined,
@@ -12,7 +13,7 @@ function Sidebar() {
   const [current, setCurrent] = useState("1");
   const [role, setRole] = useState("Student"); // Default to "Student"
   const [token, setToken] = useState(null);
-
+  const location = useLocation();
   useEffect(() => {
     // Lấy thông tin từ localStorage khi component được mount hoặc token/role thay đổi
     const authToken = localStorage.getItem("authToken");
@@ -135,6 +136,13 @@ function Sidebar() {
       },
     ];
   }
+// Danh sách các trang không muốn hiển thị Navbar
+const hideNavbarRoutes = ["/login", "/signup"];
+
+// Kiểm tra nếu đường dẫn hiện tại nằm trong danh sách cần ẩn Navbar
+if (hideNavbarRoutes.includes(location.pathname)) {
+  return null; // Không render Navbar
+}
 
   return (
     <div

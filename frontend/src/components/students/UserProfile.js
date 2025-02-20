@@ -128,9 +128,42 @@ const UserProfile = () => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("authToken"); // Remove token from localStorage
-    navigate("/login"); // Redirect to login page
+  const deleteCookie = (name) => {
+    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost; secure; SameSite=None;`;
+  };
+  
+  
+  const logout = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (token) {
+        await axios.post(
+          "http://localhost:3000/api/users/logout",
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      }
+  
+      // Xóa token và thông tin trong localStorage
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("fullname");
+      localStorage.removeItem("role");
+      localStorage.removeItem("avatar");
+  
+      // Xóa cookie Token
+      deleteCookie("Token");
+  
+      // Chuyển về trang login
+      navigate("/login");
+      window.location.reload();
+    } catch (error) {
+      console.error("Đăng xuất thất bại:", error);
+      alert("Có lỗi xảy ra khi đăng xuất. Vui lòng thử lại!");
+    }
   };
 
   return (
@@ -212,7 +245,7 @@ const UserProfile = () => {
         </button>
         <button
           className="ml-4 px-6 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 focus:outline-none"
-          onClick={handleLogout} // Add logout functionality
+          onClick={logout} // Add logout functionality
         >
           Logout
         </button>
@@ -283,7 +316,13 @@ const UserProfile = () => {
         </div>
       )}
     </div>
+
   );
 };
 
 export default UserProfile;
+
+
+
+
+
