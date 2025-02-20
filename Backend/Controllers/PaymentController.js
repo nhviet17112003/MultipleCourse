@@ -57,6 +57,11 @@ exports.checkPayment = async (req, res) => {
     const payment = await Payment.findOne({
       order_code: orderCode,
     });
+
+    if (!payment) {
+      return res.status(404).json({ message: "Payment not found" });
+    }
+
     if (payment.payment_status !== "Pending") {
       return res.status(400).json({ message: "Payment already processed" });
     }
@@ -75,50 +80,48 @@ exports.checkPayment = async (req, res) => {
       const orderItems = order.order_items;
       const updatedWallets = new Set();
 
-      for (item of orderItems) {
-        // Update wallet
+      for (const item of orderItems) {
         const courseId = item.course;
-        // Check if course exists
         const course = await Course.findById(courseId);
         if (!course) {
           return res.status(404).json({ message: "Course not found" });
         }
-        // Check if wallet has already been updated for tutor of course
+
         const tutorId = course.tutor;
-        if (updatedWallets.has(tutorId)) {
-          continue;
-        } else {
-          // Check if wallet exists for tutor of course
+        if (!updatedWallets.has(tutorId)) {
           const wallet = await Wallet.findOne({ tutor: tutorId });
           if (!wallet) {
             return res.status(404).json({ message: "Wallet not found" });
           }
-          // Update wallet balance
+
           wallet.total_earning += course.price;
           wallet.current_balance += course.price;
           await wallet.save();
-          console.log(wallet);
 
           updatedWallets.add(tutorId);
         }
       }
+
       await Cart.findOneAndDelete({ user: order.user });
 
-      res.status(200).json({ message: "Payment successful" });
+      return res.redirect("http://localhost:3001/my-courses");
     }
+
     if (status === "CANCELLED") {
       payment.payment_status = "Cancelled";
       await payment.save();
+
       const order = await Order.findById(payment.order);
       if (!order) {
         return res.status(404).json({ message: "Order not found" });
       }
       order.status = "Failed";
       await order.save();
-      res.status(200).json({ message: "Payment cancelled" });
+
+      return res.redirect("http://localhost:3001/");
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

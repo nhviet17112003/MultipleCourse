@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Spin } from 'antd';
+import { Button, Spin } from "antd";
 import { FaShoppingCart } from "react-icons/fa";
 import { ToastContainer, toast } from 'react-toastify';
 import Slider from "rc-slider";
@@ -13,14 +13,14 @@ const HomeScreen = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [cartCount, setCartCount] = useState(0); // Số lượng sản phẩm trong giỏ hàng
-  const [tutors, setTutors] = useState({}); // Lưu thông tin giảng viên theo ID
+  const [cartCount, setCartCount] = useState(0);
+  const [tutors, setTutors] = useState({});
   const [filter, setFilter] = useState("");
   const [sortOption, setSortOption] = useState("default");
-  const [priceRange, setPriceRange] = useState([0, 1000]);
+  const [priceRange, setPriceRange] = useState([0, 100000]);
   const [ratingFilter, setRatingFilter] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const dropdownRef = useRef(null);
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     setSpinning(true);
@@ -38,45 +38,100 @@ const HomeScreen = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Fetch danh sách khóa học
   useEffect(() => {
     const fetchCourses = async () => {
       try {
         setLoading(true);
-        const response = await fetch("http://localhost:3000/api/courses/active-courses");
-        const data = await response.json();
-        
-        if (response.ok) {
-          setCourses(data);
+        console.log("Fetching courses...");
 
-          // Lấy danh sách tutorId duy nhất từ danh sách khóa học
-          const uniqueTutorIds = [
-            ...new Set(data.map((course) => course.tutorId)),
-          ];
+        const coursesResponse = await fetch(
+          "http://localhost:3000/api/courses/active-courses"
+        );
+        const coursesData = await coursesResponse.json();
 
-          // Fetch thông tin của tất cả tutor
-          const tutorsData = {};
-          await Promise.all(
-            uniqueTutorIds.map(async (tutorId) => {
-              if (tutorId) {
-                const tutorResponse = await fetch(
-                  `http://localhost:3000/api/tutors/${tutorId}`
-                );
-                const tutorData = await tutorResponse.json();
-                if (tutorResponse.ok) {
-                  tutorsData[tutorId] = tutorData.fullname;
-                }
-              }
-            })
-          );
+        console.log("Courses data received:", coursesData);
 
-          setTutors(tutorsData); // Lưu tutors vào state
-        } else {
-          console.error("Error fetching courses:", data.message);
+        if (!coursesResponse.ok) {
+          console.error("Error fetching courses:", coursesData.message);
+          return;
         }
+
+        console.log("Fetching orders...");
+
+        const authToken = localStorage.getItem("authToken");
+        const ordersResponse = await fetch(
+          "http://localhost:3000/api/orders/my-orders",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${authToken}`,
+            },
+          }
+        );
+
+        const ordersData = await ordersResponse.json();
+        console.log("Orders data received:", ordersData);
+
+        if (!ordersResponse.ok) {
+          console.error("Error fetching orders:", ordersData.message);
+          return;
+        }
+
+        const purchasedCourseIds = new Set(
+          ordersData
+            .filter((order) => order.status === "Success")
+            .flatMap((order) =>
+              order.order_items.map((item) => item.course._id)
+            )
+        );
+
+        console.log("Purchased course IDs:", purchasedCourseIds);
+
+        const filteredCourses = coursesData.filter(
+          (course) => !purchasedCourseIds.has(course._id)
+        );
+
+        console.log("Filtered courses:", filteredCourses);
+        setCourses(filteredCourses);
+
+        const uniqueTutorIds = [
+          ...new Set(filteredCourses.map((course) => course.tutorId)),
+        ];
+
+        console.log("Unique tutor IDs:", uniqueTutorIds);
+
+        const tutorsData = {};
+        await Promise.all(
+          uniqueTutorIds.map(async (tutorId) => {
+            if (tutorId) {
+              console.log(`Fetching tutor data for ID: ${tutorId}`);
+              const tutorResponse = await fetch(
+                `http://localhost:3000/api/tutors/${tutorId}`
+              );
+              const tutorData = await tutorResponse.json();
+              if (tutorResponse.ok) {
+                console.log(
+                  `Tutor data received for ID ${tutorId}:`,
+                  tutorData
+                );
+                tutorsData[tutorId] = tutorData.fullname;
+              } else {
+                console.error(
+                  `Error fetching tutor ${tutorId}:`,
+                  tutorData.message
+                );
+              }
+            }
+          })
+        );
+
+        console.log("Tutors data:", tutorsData);
+        setTutors(tutorsData);
       } catch (error) {
         console.error("Error:", error);
       } finally {
+        console.log("Fetch process completed.");
         setLoading(false);
       }
     };
@@ -149,8 +204,6 @@ const HomeScreen = () => {
       if (sortOption === "desc") return b.price - a.price;
       return 0;
     });
-
-
 
   return (
 <div className="min-h-screen bg-gray-100">

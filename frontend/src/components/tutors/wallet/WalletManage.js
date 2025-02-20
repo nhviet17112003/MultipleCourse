@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -16,6 +16,7 @@ const WalletManage = () => {
   const [newAccountHolder, setNewAccountHolder] = useState("");
   const [isConfirmVisible, setIsConfirmVisible] = useState(false);
   const [filteredBanks, setFilteredBanks] = useState([]);
+  const [hasPendingRequest, setHasPendingRequest] = useState(false);
 
   const bankList = [
     "SHB",
@@ -68,6 +69,39 @@ const WalletManage = () => {
     "Vietnam International Bank (VIB)",
     "Keppel Bank",
   ];
+
+  const fetchWithdrawHistory = useCallback(async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:3000/api/wallet/requests-history",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok && data.withdrawals) {
+        const pendingRequest = data.withdrawals.some(
+          (withdrawal) => withdrawal.status === "Pending"
+        );
+        setHasPendingRequest(pendingRequest);
+      } else {
+        toast.error(data.message || "Error fetching withdrawal history.");
+      }
+    } catch (error) {
+      console.error("Error fetching withdrawal history:", error);
+      toast.error("An error occurred while fetching withdrawal history.");
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchWithdrawHistory();
+  }, [fetchWithdrawHistory]);
 
   const handleCancelUpdate = () => {
     setNewBankName("");
@@ -182,11 +216,22 @@ const WalletManage = () => {
 
       if (response.ok) {
         toast.success("Withdrawal request has been submitted successfully.");
+        setHasPendingRequest(true);
         setWithdrawAmount(0);
         setIsWithdrawFormVisible(false);
         setIsConfirmVisible(false);
+        fetchWithdrawHistory();
       } else {
-        toast.error("Please fill in your bank information completely.");
+        if (data.message === "You already have a pending withdrawal request.") {
+          toast.error(
+            "You have a pending withdrawal request. Please wait and try again later!"
+          );
+          setHasPendingRequest(true);
+        } else {
+          toast.error(
+            data.message || "Please fill in your bank information completely."
+          );
+        }
       }
     } catch (error) {
       console.error("Error submitting withdrawal request:", error);
@@ -261,14 +306,20 @@ const WalletManage = () => {
             {balance?.toLocaleString("vi-VN")} ₫
           </p>
         </div>
-
-        {!isWithdrawFormVisible && (
-          <button
-            onClick={() => setIsWithdrawFormVisible(true)}
-            className="w-full py-3 bg-blue-600 text-white rounded-lg shadow-lg hover:bg-blue-700 transition-all ease-in-out"
-          >
-            Withdrawal Request
-          </button>
+        {hasPendingRequest ? (
+          <p className="text-red-500 font-semibold">
+            You have a pending withdrawal request. Please wait and try again
+            later.
+          </p>
+        ) : (
+          !isWithdrawFormVisible && (
+            <button
+              onClick={() => setIsWithdrawFormVisible(true)}
+              className="w-full py-3 bg-blue-600 text-white rounded-lg shadow-lg hover:bg-blue-700 transition-all ease-in-out"
+            >
+              Withdrawal Request
+            </button>
+          )
         )}
 
         {isWithdrawFormVisible && (

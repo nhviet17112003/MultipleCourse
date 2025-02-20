@@ -107,7 +107,7 @@ exports.login = async (req, res) => {
         token: token,
         fullname: user.fullname, // Thêm fullname vào đây
         role: user.role,
-        status:user.status
+        status: user.status,
       });
     });
   } catch (err) {
@@ -442,4 +442,53 @@ exports.updateBankAccount = async (req, res) => {
     console.log(err);
     res.status(500).json({ message: "Internal Server Error" });
   }
+};
+
+//Login with Google account
+exports.googleLogin = (req, res) => {
+  passport.authenticate(
+    "google",
+    { scope: ["profile", "email"] },
+    (req, res) => {
+      if (req.user) {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json({ mess: "Login success!" });
+      } else if (req.user.status === false) {
+        res.statusCode = 403;
+        res.setHeader("Content-Type", "application/json");
+        res.json({ err: "You are banned!" });
+      } else {
+        res.statusCode = 500;
+        res.setHeader("Content-Type", "application/json");
+        res.json({ err: "Login failed!" });
+      }
+    }
+  )(req, res);
+};
+
+//Google login callback
+exports.googleLoginCallback = (req, res, next) => {
+  passport.authenticate("google", (err, user, info) => {
+    if (err) {
+      return next(err);
+    }
+    if (!user) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Authentication failed" });
+    }
+    var token = auth.getToken({
+      _id: user._id,
+      email: user.email,
+    });
+    res.cookie("Token", token, { maxAge: 7200000, path: "/" }); // dùng cookie để lưu token
+    return res.redirect("http://localhost:3001/homescreen");
+    // res.status(200).json({
+    //   message: "Login successful",
+    //   token: token,
+    //   fullname: user.fullname,
+    //   role: user.role,
+    // });
+  })(req, res, next);
 };

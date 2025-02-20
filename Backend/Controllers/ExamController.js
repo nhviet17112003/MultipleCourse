@@ -1,6 +1,5 @@
 const Exam = require("../Models/Exams");
 const StudentExamRS = require("../Models/StudentExamResults");
-const StudentCertificate = require("../Models/StudentCertificates");
 const Course = require("../Models/Courses");
 
 exports.createExam = async (req, res) => {
@@ -17,6 +16,14 @@ exports.createExam = async (req, res) => {
     });
     if (!course) {
       return res.status(404).json({ error: "Course not found" });
+    }
+
+    const exam = await Exam.findOne({
+      course: course_id,
+    });
+
+    if (exam) {
+      return res.status(400).json({ error: "Exam already exists" });
     }
 
     // Tính tổng điểm của tất cả các câu hỏi
@@ -46,8 +53,8 @@ exports.createExam = async (req, res) => {
     });
 
     // Tạo bài thi mới
-    const exam = new Exam({ ...req.body, questions });
-    await exam.save();
+    const newExam = new Exam({ ...req.body, questions });
+    await newExam.save();
 
     res.status(201).json(exam);
   } catch (err) {
@@ -68,8 +75,7 @@ const shuffleArray = (array) => {
 //Randomize questions and answers in an array
 exports.createStudentExam = async (req, res) => {
   try {
-    const course_id = req.body.course_id;
-    const exam_id = req.body.exam_id;
+    const course_id = req.params.course_id;
     const student_id = req.user._id;
 
     const course = await Course.findById(course_id);
@@ -77,7 +83,7 @@ exports.createStudentExam = async (req, res) => {
       return res.status(404).json({ error: "Course not found" });
     }
 
-    const exam = await Exam.findById(exam_id);
+    const exam = await Exam.findOne({ course_id: course_id });
     if (!exam) {
       return res.status(404).json({ error: "Exam not found" });
     }
@@ -112,7 +118,7 @@ exports.submitExam = async (req, res) => {
   try {
     const student_id = req.user._id;
     const course_id = req.body.course_id;
-    const exam_id = req.body.exam_id;
+    const exam_id = req.params.exam_id;
     const questions = req.body.questions;
 
     const course = await Course.findById(course_id);
@@ -127,48 +133,77 @@ exports.submitExam = async (req, res) => {
 
     //Calculate total marks
     let totalScore = 0;
+    let questionRS = [];
 
-    const questionRS = questions.map((submmitedQuestion) => {
+    for (let submittedQuestion of questions) {
       const examQuestion = exam.questions.find(
-        (question) => question.toString() === submmitedQuestion.question
+        (question) =>
+          question.question.trim().toLowerCase() ===
+          submittedQuestion.question.trim().toLowerCase()
       );
 
       if (!examQuestion) {
         return res.status(400).json({ error: "Invalid question" });
       }
 
-      const isCorrect = submmitedQuestion.answers.every((answer) => {
+      const allCorrect = submittedQuestion.answers.every((answer) =>
         examQuestion.answers.some(
           (examAnswer) =>
-            examAnswer.answer === submmitedQuestion.answer &&
-            examAnswer.isCorrect === submmitedQuestion.isCorrect
-        );
-      });
+            examAnswer.answer === answer.answer &&
+            examAnswer.isCorrect === answer.isCorrect
+        )
+      );
 
-      if (isCorrect) {
+      if (allCorrect) {
         totalScore += examQuestion.marks;
       }
 
-      return {
+      questionRS.push({
         question: examQuestion.question,
-        answers: submmitedQuestion.answer.map((a) => a.answer),
-        isCorrect,
-      };
-    });
+        answers: submittedQuestion.answers.map((answer) => {
+          const matchingExamAnswer = examQuestion.answers.find(
+            (examAnswer) => examAnswer.answer === answer.answer
+          );
+          return {
+            answer: answer.answer,
+            isCorrect: matchingExamAnswer
+              ? matchingExamAnswer.isCorrect
+              : false,
+          };
+        }),
+        allCorrect,
+      });
+    }
 
-    const studentExamRS = new StudentExamRS({
+    const existsStudentExamRS = await StudentExamRS.findOne({
       student: student_id,
       course: course_id,
       exam: exam_id,
-      score: totalScore,
-      totalMark: exam.totalMark,
-      questions: questionRS,
     });
 
-    res.status(201).json({
-      message: "Exam submitted successfully",
-      studentExamRS,
-    });
+    if (existsStudentExamRS) {
+      existsStudentExamRS.score = totalScore;
+      existsStudentExamRS.questions = questionRS;
+      await existsStudentExamRS.save();
+      return res.status(200).json({
+        message: "Exam updated successfully",
+        studentExamRS: existsStudentExamRS,
+      });
+    } else {
+      const newStudentExamRS = new StudentExamRS({
+        student: student_id,
+        course: course_id,
+        exam: exam_id,
+        score: totalScore,
+        totalMark: exam.totalMark,
+        questions: questionRS,
+      });
+      await newStudentExamRS.save();
+      return res.status(201).json({
+        message: "Exam submitted successfully",
+        studentExamRS: newStudentExamRS,
+      });
+    }
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Internal Server Error" });

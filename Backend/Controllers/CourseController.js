@@ -62,7 +62,9 @@ exports.getAllCourses = async (req, res) => {
 //Get Course of Tutor
 exports.getCourseOfTutor = async (req, res) => {
   try {
-    const courses = await Course.find({ tutor: req.user._id });
+    const courses = await Course.find({ tutor: req.user._id })
+      .populate("tutor", "fullname")
+      .exec();
     res.status(200).json(courses);
   } catch (err) {
     console.log(err);

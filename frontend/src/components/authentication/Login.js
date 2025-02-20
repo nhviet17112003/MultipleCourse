@@ -80,9 +80,9 @@ const Login = () => {
       );
 
       if (response.status === 200) {
-        const { token, role, fullname,status } = response.data;
-        
-        if(!status){
+        const { token, role, fullname, status } = response.data;
+
+        if (!status) {
           setError("Tài khoản đã bị BAN");
           return;
         }
@@ -113,11 +113,32 @@ const Login = () => {
   const handleSignUpForStudent = () => {
     navigate("/signup", { state: { role: "Student" } });
   };
-  
+
   const handleSignUpForTutor = () => {
     navigate("/signup", { state: { role: "Tutor" } });
   };
+ 
+  const handleGoogleLogin = () => {
+    // Mở trang đăng nhập Google
+    window.open("http://localhost:3000/api/users/google/login", "_self");
   
+    // Dùng polling để kiểm tra token trong cookie
+    const checkToken = setInterval(() => {
+      const token = getCookie("token"); // Hàm lấy token từ cookie
+      if (token) {
+        clearInterval(checkToken); // Dừng kiểm tra khi đã có token
+        console.log("Đăng nhập thành công! Token:", token);
+        window.location.href = "/homescreen"; // Chuyển đến trang Home
+      }
+    }, 500); // Kiểm tra mỗi 500ms
+  };
+  
+  // Hàm để lấy cookie theo tên
+  const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2 bg-gray-100">
@@ -131,9 +152,25 @@ const Login = () => {
               <h2 className="text-3xl font-bold text-green-500 mb-2">LOGIN</h2>
               <div className="border-2 w-10 border-green-500 inline-block mb-2"></div>
               <div className="flex justify-center my-2">
-                <button className="border-2 border-gray-200 rounded-full p-3 mx-1">
-                  <FaGoogle className="text-sm" />
+                {/* 
+              login with gg */}
+                <div className="flex justify-center mt-4 mb-4">
+                <button
+                  className="flex items-center px-4 py-2 border rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
+                  onClick={handleGoogleLogin}
+                >
+                  <img
+                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQb3JJON85iCMGiuY2-fwef-kegI10la8ClXg&s"
+                    alt="Google Logo"
+                    className="w-5 h-5 mr-2"
+                  />
+                  Sign in with Google
                 </button>
+                </div>
+                
+               
+                {/* 
+              login with gg */}
               </div>
               <p className="text-gray-400 my-3">or use your UserName account</p>
               <div className="flex flex-col items-center">

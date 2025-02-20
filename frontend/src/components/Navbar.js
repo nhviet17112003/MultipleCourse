@@ -8,6 +8,7 @@ import {
   LogoutOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
+import Cookies from "js-cookie";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -21,21 +22,23 @@ const Navbar = () => {
   const [filteredCourses, setFilteredCourses] = useState([]); // Mảng khóa học sau khi lọc
   const location = useLocation();
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
+    let token = localStorage.getItem("authToken");
 
-    // Danh sách các đường dẫn cần kiểm tra token
-    const protectedRoutes = ["/", "/userprofile", "/cart"];
-
-    if (protectedRoutes.includes(location.pathname)) {
-      if (!token) {
-        navigate("/login"); // Chuyển về trang đăng nhập nếu không có token
-      } else {
-        // Nếu có token, tải thông tin người dùng
-        const savedFullname = localStorage.getItem("fullname");
-        const savedAvatar = localStorage.getItem("avatar");
-        setFullname(savedFullname || "Người dùng");
-        setAvatarUrl(savedAvatar || "https://via.placeholder.com/40");
+    if (!token) {
+      token = Cookies.get("Token");
+      if (token) {
+        localStorage.setItem("authToken", token);
       }
+    }
+
+    const protectedRoutes = ["/", "/userprofile", "/cart"];
+    if (protectedRoutes.includes(location.pathname) && !token) {
+      navigate("/login"); // Chuyển hướng nếu không có token
+    } else {
+      const savedFullname = localStorage.getItem("fullname");
+      const savedAvatar = localStorage.getItem("avatar");
+      setFullname(savedFullname || "Người dùng");
+      setAvatarUrl(savedAvatar || "https://via.placeholder.com/40");
     }
   }, [navigate, location.pathname]);
 
@@ -102,7 +105,11 @@ const Navbar = () => {
   const goToCart = () => {
     navigate("/cart");
   };
-
+  const deleteCookie = (name) => {
+    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost; secure; SameSite=None;`;
+  };
+  
+  
   const logout = async () => {
     try {
       const token = localStorage.getItem("authToken");
@@ -117,12 +124,17 @@ const Navbar = () => {
           }
         );
       }
-
+  
+      // Xóa token và thông tin trong localStorage
       localStorage.removeItem("authToken");
       localStorage.removeItem("fullname");
       localStorage.removeItem("role");
       localStorage.removeItem("avatar");
-
+  
+      // Xóa cookie Token
+      deleteCookie("Token");
+  
+      // Chuyển về trang login
       navigate("/login");
       window.location.reload();
     } catch (error) {
@@ -130,6 +142,7 @@ const Navbar = () => {
       alert("Có lỗi xảy ra khi đăng xuất. Vui lòng thử lại!");
     }
   };
+  
 
   const fetchUserProfile = async () => {
     const token = localStorage.getItem("authToken");
@@ -161,6 +174,14 @@ const Navbar = () => {
   useEffect(() => {
     fetchUserProfile();
   }, []);
+
+  // Danh sách các trang không muốn hiển thị Navbar
+  const hideNavbarRoutes = ["/login", "/signup"];
+
+  // Kiểm tra nếu đường dẫn hiện tại nằm trong danh sách cần ẩn Navbar
+  if (hideNavbarRoutes.includes(location.pathname)) {
+    return null; // Không render Navbar
+  }
 
   return (
     <nav
@@ -199,13 +220,14 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center space-x-4">
+          {/* Dropdown Avatar */}
           <div className="relative group">
             <img
               src={userData?.avatar || avatarUrl}
               alt="Avatar"
-              className="w-10 h-10 rounded-full cursor-pointer border-2 border-white block"
+              className="w-10 h-10 rounded-full cursor-pointer border-2 border-white"
             />
-            <div className="absolute right-0 mt-1 w-48 bg-white text-teal-900 rounded-lg shadow-lg z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible pointer-events-none group-hover:pointer-events-auto transition-all duration-200">
+            <div className="absolute right-0 mt-2 w-48 bg-white text-teal-900 rounded-lg shadow-lg z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               <div className="px-4 py-2 border-b border-gray-200 text-center">
                 <span className="font-semibold">{fullname}</span>
               </div>
@@ -227,6 +249,7 @@ const Navbar = () => {
               >
                 Cart
               </button>
+
               <Space className="w-full justify-center py-3">
                 <Switch
                   onClick={toggleTheme}
