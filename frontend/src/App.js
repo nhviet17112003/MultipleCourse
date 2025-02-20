@@ -36,6 +36,7 @@ import StatisticForAdmin from "./components/admins/StatisticForAdmin";
 import FinalExam from "./components/students/FinalExam";
 import Certificate from "./components/students/Certificate";
 import RequestList from "./components/admins/RequestList";
+import UpdateExam from "./components/tutors/exam/UpdateExam";
 
 function App() {
   return (
@@ -115,36 +116,46 @@ function App() {
                     element={<CourseLearningPage />}
                   />
 
-
-<Route
+                  <Route
                     path="/purchase-history"
                     element={<PurchaseHistory />}
                   />
 
-<Route
+                  <Route
                     path="/purchase-history-for-admin"
                     element={<PurchaseHistoryForAdmin />}
                   />
 
-<Route
+                  <Route
                     path="/manage-review-for-admin"
                     element={<ManageReview />}
                   />
 
-<Route
+                  <Route
                     path="/statistic-for-admin"
                     element={<StatisticForAdmin />}
                   />
 
-<Route
-                    path="/final-exam/:courseId"
-                    element={<FinalExam />}
+                  <Route path="/final-exam/:courseId" element={<FinalExam />} />
+
+                  <Route
+                    path="/course-list-for-admin"
+                    element={<CourseListForAdmin />}
+                  />
+                  <Route
+                    path="/create-exam/:courseId"
+                    element={<CreateExam />}
+                  />
+                  <Route
+                    path="/update-exam/:courseId"
+                    element={<UpdateExam />}
                   />
 
-<Route path="/course-list-for-admin" element={<CourseListForAdmin />} />
-<Route path="/create-exam/:courseId" element={<CreateExam />} />
-<Route path="/my-certificate" element={<Certificate />} />
-<Route path="/manage-request-list" element={<RequestList />} />
+                  <Route path="/my-certificate" element={<Certificate />} />
+                  <Route
+                    path="/manage-request-list"
+                    element={<RequestList />}
+                  />
                 </Routes>
               </div>
             </div>
