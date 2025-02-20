@@ -20,6 +20,10 @@ const CommentsSchema = new Schema({
     type: Date,
     default: Date.now,
   },
+  status: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 const LessonSchema = new Schema({

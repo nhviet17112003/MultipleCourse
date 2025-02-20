@@ -1,58 +1,130 @@
 import React, { useState } from "react";
-import axios from "axios";
+import { useTheme } from "../../context/ThemeContext";  // Giả sử bạn có context ThemeContext
 
 const UpdateLessonModal = ({ lesson, onClose, onUpdate }) => {
-  const [formData, setFormData] = useState({ ...lesson });
-  
-console.log(lesson);
-  const handleSubmit = async (e) => {
+  const { theme } = useTheme();
+  const [title, setTitle] = useState(lesson.title);
+  const [description, setDescription] = useState(lesson.description);
+  const [videoFile, setVideoFile] = useState(null);
+  const [documentFile, setDocumentFile] = useState(null);
+
+  const handleVideoChange = (e) => {
+    const file = e.target.files[0];
+    setVideoFile(file);
+  };
+
+  const handleDocumentChange = (e) => {
+    const file = e.target.files[0];
+    setDocumentFile(file);
+  };
+
+  const handleSubmit = (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("authToken");
-    try {
-      await axios.put(
-        `http://localhost:3000/api/lessons/${lesson._id}`,
-        formData,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      onUpdate(formData);
-      onClose();
-    } catch (err) {
-      console.error(err);
-    }
+    
+    // Tạo FormData để gửi dữ liệu
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("description", description);
+    
+    if (videoFile) formData.append("video", videoFile);
+    if (documentFile) formData.append("document", documentFile);
+
+    // Gửi dữ liệu cho hàm cập nhật
+    onUpdate(formData);
   };
 
   return (
-    <div className="modal">
-      <form onSubmit={handleSubmit} className="p-4">
-        <h1>Update Lesson</h1>
-        <input
-          type="text"
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          required
-        />
-        <textarea
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          required
-        />
-        <input
-          type="text"
-          value={formData.video_url}
-          onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
-          required
-        />
-        <input
-          type="text"
-          value={formData.document_url}
-          onChange={(e) => setFormData({ ...formData, document_url: e.target.value })}
-          required
-        />
-        <button type="submit">Update</button>
-        <button type="button" onClick={onClose}>Cancel</button>
-      </form>
+    <div
+      className={`fixed inset-0 flex items-center justify-center ${
+        theme === "dark" ? "bg-gray-900 bg-opacity-80" : "bg-black bg-opacity-50"
+      } z-50`}
+    >
+      <div
+        className={`rounded-lg shadow-lg p-8 w-full sm:w-96 ${
+          theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-gray-900"
+        }`}
+      >
+        <h2 className="text-2xl font-semibold border-b-2 border-teal-500 pb-4 mb-4">
+          Update Lesson
+        </h2>
+        <form onSubmit={handleSubmit}>
+          <div className="mt-4">
+            <label className="block text-sm font-medium mb-2">Title</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className={`w-full px-6 py-4 rounded-lg border 
+                ${theme === "dark" 
+                  ? "bg-gray-800 text-white border-gray-600 focus:ring-teal-400" 
+                  : "bg-white text-gray-900 border-gray-300 focus:ring-teal-500"} 
+                focus:outline-none`}
+              required
+            />
+          </div>
+
+          <div className="mt-4">
+            <label className="block text-sm font-medium mb-2">Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className={`w-full px-6 py-4 rounded-lg border 
+                ${theme === "dark" 
+                  ? "bg-gray-800 text-white border-gray-600 focus:ring-teal-400" 
+                  : "bg-white text-gray-900 border-gray-300 focus:ring-teal-500"} 
+                focus:outline-none`}
+              required
+            ></textarea>
+          </div>
+
+          <div className="mt-4">
+            <label className="block text-sm font-medium mb-2">Video Upload</label>
+            <input
+              type="file"
+              accept="video/*"
+              onChange={handleVideoChange}
+              className={`w-full px-6 py-4 rounded-lg border 
+                ${theme === "dark" 
+                  ? "bg-gray-800 text-white border-gray-600 focus:ring-teal-400" 
+                  : "bg-white text-gray-900 border-gray-300 focus:ring-teal-500"} 
+                focus:outline-none`}
+            />
+          </div>
+
+          <div className="mt-4">
+            <label className="block text-sm font-medium mb-2">Document Upload</label>
+            <input
+              type="file"
+              accept=".pdf,.docx,.txt"
+              onChange={handleDocumentChange}
+              className={`w-full px-6 py-4 rounded-lg border 
+                ${theme === "dark" 
+                  ? "bg-gray-800 text-white border-gray-600 focus:ring-teal-400" 
+                  : "bg-white text-gray-900 border-gray-300 focus:ring-teal-500"} 
+                focus:outline-none`}
+            />
+          </div>
+
+          <div className="mt-6 flex justify-end">
+            <button
+              type="button"
+              onClick={onClose}
+              className={`px-4 py-2 rounded-lg mr-2 transition 
+                ${theme === "dark" 
+                  ? "bg-gray-500 text-white hover:bg-gray-400" 
+                  : "bg-gray-300 text-gray-900 hover:bg-gray-400"}`}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition"
+            >
+              Update
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

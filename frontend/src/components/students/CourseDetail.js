@@ -5,8 +5,8 @@ import { ToastContainer, toast } from 'react-toastify';
 import "rc-slider/assets/index.css";
 import 'react-toastify/dist/ReactToastify.css';
 const DetailCourse = () => {
-  const { id } = useParams(); // Lấy id từ URL
-  const navigate = useNavigate(); // Điều hướng quay lại hoặc tới nơi khác
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [fullname, setFullname] = useState(""); // Thêm phần tên người dùng
@@ -112,7 +112,7 @@ const [cartCount, setCartCount] = useState(0);
             <img
               src={course.image}
               alt={course.title}
-              className="w-full h-64 object-cover rounded-lg shadow-md"
+              className="w-full h-72 object-cover rounded-xl shadow-lg transform hover:scale-105 transition duration-300"
             />
           </div>
           <div className="mt-4 md:mt-0">
@@ -122,9 +122,7 @@ const [cartCount, setCartCount] = useState(0);
             </p>
             <p className="mt-4 text-gray-700 leading-relaxed">{course.description}</p>
             <div className="mt-6 flex justify-between items-center">
-              <p className="text-2xl text-teal-700 font-semibold">
-                Giá: ${course.price}
-              </p>
+              <p className="text-3xl text-teal-800 font-bold">${course.price}</p>
               <p className="text-sm text-gray-500 italic">
                 Ngày tạo: {new Date(course.createAt).toLocaleDateString()}
               </p>

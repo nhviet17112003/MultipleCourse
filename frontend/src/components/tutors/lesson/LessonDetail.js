@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import { useTheme } from "../../context/ThemeContext";
 
 const LessonDetail = () => {
   const { lessonId } = useParams();
   const [lesson, setLesson] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
     const fetchLesson = async () => {
@@ -18,26 +22,75 @@ const LessonDetail = () => {
         );
         setLesson(response.data);
       } catch (err) {
+        setError("Failed to load lesson.");
         console.error(err);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchLesson();
   }, [lessonId]);
 
+  if (loading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${theme === "dark" ? "bg-gray-900" : "bg-gray-50"}`}>
+        <p className="text-gray-500 text-lg font-medium animate-bounce">Loading...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${theme === "dark" ? "bg-gray-900" : "bg-gray-50"}`}>
+        <p className="text-red-500 text-lg font-medium">{error}</p>
+      </div>
+    );
+  }
+
   return lesson ? (
-    <div className="p-4">
-      <h1>{lesson.title}</h1>
-      <p>{lesson.description}</p>
-      <a href={lesson.video_url} target="_blank" rel="noopener noreferrer">
-        Watch Video
-      </a>
-      <a href={lesson.document_url} target="_blank" rel="noopener noreferrer">
-        View Document
-      </a>
+    <div className={`min-h-screen flex items-center justify-center ${theme === "dark" ? "bg-gray-900" : "bg-gray-50"}`}>
+      <div className={`max-w-4xl w-full ${theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-gray-900"} rounded-xl shadow-lg p-8`}>
+        <h1 className="text-3xl font-bold border-b-2 border-teal-500 pb-4">{lesson.title}</h1>
+        <p className="text-gray-500 mt-2">
+  {new Date(lesson.created_at).toLocaleDateString("en-US", {
+    month: "long",
+    
+    day: "2-digit",
+    
+    year: "numeric",
+  })}
+</p>
+        <p className="text-lg leading-relaxed mt-6">{lesson.description}</p>
+
+       
+        {lesson.video_url && (
+          <div className="mt-8">
+            {/* <h3 className="text-xl font-semibold">Video</h3> */}
+            <video width="100%" controls>
+              <source src={lesson.video_url} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        )}
+
+        {lesson.document_url && (
+          <div className="mt-8">
+            {/* <h3 className="text-xl font-semibold">Document</h3> */}
+            <embed
+              src={lesson.document_url}
+              width="100%"
+              height="600px"
+              type="application/pdf"
+            />
+          </div>
+        )}
+      </div>
     </div>
   ) : (
-    <p>Loading...</p>
+    <div className={`min-h-screen flex items-center justify-center ${theme === "dark" ? "bg-gray-900" : "bg-gray-50"}`}>
+      <p className="text-gray-500 text-lg font-medium">Loading lesson details...</p>
+    </div>
   );
 };
 

@@ -1,40 +1,50 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useTheme } from "../../context/ThemeContext";
+import { InboxOutlined, UploadOutlined } from '@ant-design/icons';
+import {
+  Button,
+  Checkbox,
+  Col,
+  ColorPicker,
+  Form,
+  InputNumber,
+  Radio,
+  Rate,
+  Row,
+  Select,
+  Slider,
+  Space,
+  Switch,
+  Upload,
+} from 'antd';
 
 const CreateLesson = () => {
-  const { courseId } = useParams(); // Lấy courseId từ URL
-  const navigate = useNavigate(); // Điều hướng sau khi tạo bài học
+  const { courseId } = useParams();
+  const navigate = useNavigate();
+  const { theme } = useTheme(); // Lấy theme từ context
 
-  // State lưu dữ liệu form
   const [formData, setFormData] = useState({
     number: "",
     title: "",
     description: "",
-    video: null, // Định dạng file video
-    document: null, // Định dạng file tài liệu
+    video: null,
+    document: null,
   });
 
-  // Hàm xử lý khi submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const token = localStorage.getItem("authToken");
-    const formDataToSend = new FormData(); // Tạo đối tượng FormData để gửi dữ liệu
-
-    // Thêm dữ liệu vào FormData
+    const formDataToSend = new FormData();
+    
     formDataToSend.append("number", formData.number);
     formDataToSend.append("title", formData.title);
     formDataToSend.append("description", formData.description);
-    if (formData.video) {
-      formDataToSend.append("video", formData.video);
-    }
-    if (formData.document) {
-      formDataToSend.append("document", formData.document);
-    }
+    if (formData.video) formDataToSend.append("video", formData.video);
+    if (formData.document) formDataToSend.append("document", formData.document);
 
     try {
-      // Gửi yêu cầu POST tới server
       await axios.post(
         `http://localhost:3000/api/lessons/create-lesson/${courseId}`,
         formDataToSend,
@@ -45,29 +55,25 @@ const CreateLesson = () => {
           },
         }
       );
-
-      // Điều hướng về trang course sau khi tạo bài học thành công
       navigate(`/courses-list-tutor/${courseId}`);
     } catch (err) {
       console.error("Lỗi khi tạo bài học: ", err.response?.data?.message || err.message);
     }
   };
 
-  // Hàm xử lý thay đổi giá trị form
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (files) {
-      setFormData({ ...formData, [name]: files[0] }); // Lưu file vào state
+      setFormData({ ...formData, [name]: files[0] });
     } else {
-      setFormData({ ...formData, [name]: value }); // Lưu text input vào state
+      setFormData({ ...formData, [name]: value });
     }
   };
 
   return (
-    <div className="create-lesson-container p-4">
-      <h1 className="mb-4">Create New Lesson</h1>
+    <div className={`min-h-screen px-4 py-8 ${theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
+      <h1 className="mb-4 text-xl font-semibold">Create New Lesson</h1>
       <form onSubmit={handleSubmit}>
-        {/* Số bài học */}
         <input
           type="number"
           name="number"
@@ -75,10 +81,8 @@ const CreateLesson = () => {
           value={formData.number}
           onChange={handleChange}
           required
-          className="form-input mb-3"
+          className={`w-full p-3 mb-3 rounded-md ${theme === "dark" ? "bg-gray-700 text-white border-gray-600" : " border-gray-300 text-gray-900"} border`}
         />
-
-        {/* Tiêu đề bài học */}
         <input
           type="text"
           name="title"
@@ -86,49 +90,42 @@ const CreateLesson = () => {
           value={formData.title}
           onChange={handleChange}
           required
-          className="form-input mb-3"
+          className={`w-full p-3 mb-3 rounded-md ${theme === "dark" ? "bg-gray-700 text-white border-gray-600" : " border-gray-300 text-gray-900"} border`}
         />
-
-        {/* Mô tả bài học */}
         <textarea
           name="description"
           placeholder="Lesson Description"
           value={formData.description}
           onChange={handleChange}
           required
-          className="form-textarea mb-3"
+          className={`w-full p-3 mb-3 rounded-md ${theme === "dark" ? "bg-gray-700 text-white border-gray-600" : " border-gray-300 text-gray-900"} border`}
         />
-
-        {/* Upload video */}
         <div className="mb-3">
-          <label htmlFor="video" className="form-label">
-            Upload Video:
-          </label>
+          <label htmlFor="video" className="form-label">Upload Video:</label>
           <input
             type="file"
             name="video"
             accept="video/*"
             onChange={handleChange}
-            className="form-input"
+            className={`w-full p-3 mb-3 rounded-md ${theme === "dark" ? "bg-gray-700 text-white border-gray-600" : " border-gray-300 text-gray-900"} border`}
           />
         </div>
 
-        {/* Upload tài liệu */}
         <div className="mb-3">
-          <label htmlFor="document" className="form-label">
-            Upload Document:
-          </label>
+          <label htmlFor="document" className="form-label">Upload Document:</label>
           <input
             type="file"
             name="document"
             accept=".pdf,.doc,.docx"
             onChange={handleChange}
-            className="form-input"
+            className={`w-full p-3 mb-3 rounded-md ${theme === "dark" ? "bg-gray-700 text-white border-gray-600" : " border-gray-300 text-gray-900"} border`}
           />
         </div>
-
-        {/* Nút tạo bài học */}
-        <button type="submit" className="btn btn-primary">
+        
+        <button 
+          type="submit" 
+          className={`w-full py-3 rounded-md ${theme === "dark" ? "bg-teal-500" : "bg-blue-500"} text-white`}
+        >
           Create Lesson
         </button>
       </form>

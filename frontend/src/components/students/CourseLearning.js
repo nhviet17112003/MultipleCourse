@@ -2,9 +2,11 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import { CheckCircleIcon, LockClosedIcon } from "@heroicons/react/24/solid";
 import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
+import { useNavigate } from "react-router-dom";
 
 const CourseLearningPage = () => {
   const { courseId } = useParams();
+  console.log(courseId);
   const [lessons, setLessons] = useState([]);
   const [currentLesson, setCurrentLesson] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -17,43 +19,109 @@ const CourseLearningPage = () => {
   const [progressData, setProgressData] = useState(null);
   const [activeTab, setActiveTab] = useState("Description");
   const [isExamStarted, setIsExamStarted] = useState(false);
+  const navigate = useNavigate();
+  const [isCompleted, setIsCompleted] = useState(false);
 
-  const exams = [
-    {
-      _id: "exam1",
-      number: 1,
-      title: "Exam 1: Basic Knowledge",
-      questions: [
+  const handleEditComment = async (commentId, newComment) => {
+    try {
+      const lessonId = currentLesson._id; // Lấy ID bài học
+      const response = await fetch(
+        "http://localhost:3000/api/comments/update-lesson-comment",
         {
-          question: "What is React?",
-          options: ["Library", "Framework", "Language"],
-          answer: "Library",
-        },
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+          body: JSON.stringify({
+            comment: newComment,
+            commentId,
+            lessonId,
+          }),
+        }
+      );
+      const updatedComment = await response.json();
+
+      // Cập nhật lại comment trong danh sách
+      setCurrentLesson((prevLesson) => ({
+        ...prevLesson,
+        comments: prevLesson.comments.map((comment) =>
+          comment._id === commentId
+            ? { ...comment, comment: newComment }
+            : comment
+        ),
+      }));
+    } catch (error) {
+      console.error("Failed to update comment", error);
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    try {
+      const lessonId = currentLesson._id; // Lấy ID bài học
+      // Lấy ID bình luận
+      console.log("Sending lessonId:", lessonId, "and commentId:", commentId);
+
+      // Gọi API xóa bình luận
+      const response = await fetch(
+        "http://localhost:3000/api/comments/delete-lesson-comment",
         {
-          question: "What is JSX?",
-          options: ["Syntax", "Database", "API"],
-          answer: "Syntax",
-        },
-      ],
-    },
-    {
-      _id: "exam2",
-      number: 2,
-      title: "Exam 2: Advanced Concepts",
-      questions: [
+          method: "DELETE", // Sử dụng phương thức DELETE
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`, // Token xác thực
+          },
+          body: JSON.stringify({
+            lessonId, // ID của bài học
+            commentId, // ID của bình luận cần xóa
+          }),
+        }
+      );
+
+      const data = await response.json();
+      if (response.ok) {
+        // Nếu xóa thành công, xóa bình luận khỏi danh sách
+        setCurrentLesson((prevLesson) => ({
+          ...prevLesson,
+          comments: prevLesson.comments.filter(
+            (comment) => comment._id !== commentId
+          ),
+        }));
+        console.log("Comment deleted successfully");
+      } else {
+        console.error(data.message || "Failed to delete comment");
+      }
+    } catch (error) {
+      console.error("Failed to delete comment", error);
+    }
+  };
+
+  const handleCommentSubmit = async () => {
+    if (!note) return;
+
+    try {
+      const response = await fetch(
+        "http://localhost:3000/api/comments/create-lesson-comment",
         {
-          question: "What is a Hook in React?",
-          options: ["Function", "Component", "Variable"],
-          answer: "Function",
-        },
-        {
-          question: "What does useState do?",
-          options: ["Fetch data", "Manage state", "Render UI"],
-          answer: "Manage state",
-        },
-      ],
-    },
-  ];
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+          body: JSON.stringify({
+            lessonId: currentLesson._id,
+            comment: note,
+            rating: 5, // Add logic for rating if required
+          }),
+        }
+      );
+      const newComment = await response.json();
+
+      setNote(""); // Clear the input after posting
+    } catch (error) {
+      console.error("Failed to post comment", error);
+    }
+  };
 
   useEffect(() => {
     const fetchLessonsAndProgress = async () => {
@@ -84,7 +152,7 @@ const CourseLearningPage = () => {
             _id: "exam_final",
             title: "Final Exam",
             type: "exam",
-            questions: exams,
+            // questions: exams,
           },
         ];
 
@@ -228,6 +296,36 @@ const CourseLearningPage = () => {
     }
   };
 
+  useEffect(() => {
+    const fetchCertificates = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:3000/api/certificates/get-all-certificates",
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            },
+          }
+        );
+
+        const data = await response.json();
+        const certificates = data.certificates;
+
+        // Kiểm tra xem người dùng đã hoàn thành khóa học hay chưa
+        const isCourseCompleted = certificates.some((certificate) => {
+          return certificate.course._id === courseId && certificate.isPassed;
+        });
+
+        setIsCompleted(isCourseCompleted);
+      } catch (error) {
+        console.error("Failed to fetch certificates", error);
+      }
+    };
+
+    fetchCertificates();
+  }, [courseId]);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen text-xl text-gray-500">
@@ -251,7 +349,7 @@ const CourseLearningPage = () => {
                 <CheckCircleIcon className="w-6 h-6 text-green-500" />
               )}
             </h1>
-            <div className="mt-3 text-sm text-gray-500 flex items-center gap-2">
+            {/* <div className="mt-3 text-sm text-gray-500 flex items-center gap-2">
               <span className="text-blue-500">
                 <i className="fas fa-calendar-alt"></i>
               </span>
@@ -259,16 +357,49 @@ const CourseLearningPage = () => {
               <span className="text-gray-600">
                 {new Date(currentLesson.created_at).toLocaleString()}
               </span>
-            </div>
+            </div> */}
             {currentLesson?.type === "exam" &&
             currentLesson.title === "Final Exam" ? (
               <div className="mt-6 flex justify-center">
-                <button
-                  onClick={() => alert("Starting Final Exam...")}
-                  className="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold shadow-md hover:bg-blue-700 transition"
-                >
-                  Start Exam
-                </button>
+                {isCompleted ? (
+                  <div className="bg-green-100 p-8 rounded-lg shadow-md mb-8 flex flex-col items-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-24 w-24 text-green-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.431-1.307 12.02 12.02 0 002.643 2.679a1 1 0 001-1.51l-1.214-1.214 3.5-3.5a1 1 0 001.5 1.5l-1.5 1.5-3.5-3.5a3.42 3.42 0 00-1.43 1.306"
+                      />
+                    </svg>
+                    <h3 className="text-green-600 font-bold mb-4 text-2xl">
+                      Congratulations!
+                    </h3>
+                    <p className="text-gray-600 text-center mb-8 text-xl">
+                      You have completed the course...
+                    </p>
+                    <a
+                      href="http://localhost:3001/my-certificate"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-lg shadow-md transition duration-300 ease-in-out"
+                    >
+                      View your certificate here
+                    </a>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => navigate(`/final-exam/${courseId}`)}
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold shadow-md hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105"
+                  >
+                    Start Exam
+                  </button>
+                )}
               </div>
             ) : (
               <>
@@ -351,8 +482,71 @@ const CourseLearningPage = () => {
                       </div>
                     </div>
                   )}
-                  {activeTab === "Comment" && (
-                    <p>View and add comments here.</p>
+                  {activeTab === "Comment" && currentLesson && (
+                    <div className="mt-6 space-y-6">
+                      <h3 className="text-2xl font-semibold text-gray-800">
+                        Comments
+                      </h3>
+
+                      {/* Form để viết comment */}
+                      <div className="space-y-4">
+                        <textarea
+                          className="w-full p-4 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out"
+                          placeholder="Write your comment..."
+                          value={note}
+                          onChange={(e) => setNote(e.target.value)}
+                        ></textarea>
+                        <button
+                          onClick={() => {
+                            if (note.trim()) {
+                              handleCommentSubmit();
+                            }
+                          }}
+                          className="py-3 px-6 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105"
+                        >
+                          Post Comment
+                        </button>
+                      </div>
+
+                      {/* Hiển thị danh sách comment */}
+                      {currentLesson.comments &&
+                      currentLesson.comments.length > 0 ? (
+                        currentLesson.comments.map((comment) => (
+                          <div key={comment._id} className="p-4 border-b">
+                            <p className="text-sm">{comment.author}</p>
+                            <p className="text-gray-700">{comment.comment}</p>
+                            <div className="text-sm text-gray-500">
+                              {new Date(comment.date).toLocaleString()}
+                            </div>
+
+                            {/* Chỉnh sửa và xóa comment */}
+                            <div className="flex gap-2 mt-2">
+                              <button
+                                onClick={() => {
+                                  const newComment = prompt(
+                                    "Edit your comment:",
+                                    comment.comment
+                                  );
+                                  if (newComment)
+                                    handleEditComment(comment._id, newComment);
+                                }}
+                                className="text-blue-500 hover:text-blue-700"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDeleteComment(comment._id)}
+                                className="text-red-500 hover:text-red-700"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-gray-500">No comments yet.</p>
+                      )}
+                    </div>
                   )}
                 </div>
               </>
@@ -380,7 +574,9 @@ const CourseLearningPage = () => {
               onClick={() => canAccessLesson(index) && setCurrentLesson(lesson)}
             >
               <span className="text-gray-700 font-medium">{lesson.title}</span>
-              {isLessonCompleted(lesson._id) ? (
+              {lesson._id === "exam_final" && isCompleted ? (
+                <CheckCircleIcon className="h-6 w-6 text-green-500" />
+              ) : isLessonCompleted(lesson._id) ? (
                 <CheckCircleIcon className="h-6 w-6 text-green-500" />
               ) : !canAccessLesson(index) ? (
                 <LockClosedIcon className="h-6 w-6 text-gray-500" />

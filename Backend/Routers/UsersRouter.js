@@ -95,3 +95,4 @@ router.post(
 router.get("/auth/callback", cors.cors, userController.googleLoginCallback);
 
 module.exports = router;
+

@@ -90,6 +90,7 @@ exports.createStudentExam = async (req, res) => {
 
     const randomQuestions = shuffleArray(
       exam.questions.map((question) => ({
+        question_id: question._id,
         question: question.question,
         questionType: question.questionType,
         marks: question.marks,
@@ -138,34 +139,57 @@ exports.submitExam = async (req, res) => {
     for (let submittedQuestion of questions) {
       const examQuestion = exam.questions.find(
         (question) =>
-          question.question.trim().toLowerCase() ===
-          submittedQuestion.question.trim().toLowerCase()
+          question._id.toString() === submittedQuestion.question_id.toString()
       );
 
       if (!examQuestion) {
         return res.status(400).json({ error: "Invalid question" });
       }
 
-      const allCorrect = submittedQuestion.answers.every((answer) =>
-        examQuestion.answers.some(
-          (examAnswer) =>
-            examAnswer.answer === answer.answer &&
-            examAnswer.isCorrect === answer.isCorrect
-        )
+      // Lấy danh sách id của đáp án đúng trong đề
+      const examCorrectIds = examQuestion.answers
+        .filter((ans) => ans.isCorrect)
+        .map((ans) => ans._id.toString());
+
+      // Lấy danh sách id của đáp án mà học sinh chọn
+      const studentSelectedIds = submittedQuestion.answers.map((answer) =>
+        answer.answer_id.toString()
       );
+
+      // Điều kiện 1: Học sinh phải chọn đủ tất cả các đáp án đúng
+      const allCorrectSelected = examCorrectIds.every((id) =>
+        studentSelectedIds.includes(id)
+      );
+      // Điều kiện 2: Học sinh không chọn đáp án nào sai
+      const noIncorrectSelected = studentSelectedIds.every((id) =>
+        examCorrectIds.includes(id)
+      );
+
+      const allCorrect = allCorrectSelected && noIncorrectSelected;
+
+      // const allCorrect = submittedQuestion.answers.every((answer) =>
+      //   examQuestion.answers.some(
+      //     (examAnswer) =>
+      //       examAnswer._id.toString() === answer.answer_id.toString() &&
+      //       examAnswer.isCorrect === answer.isCorrect
+      //   )
+      // );
 
       if (allCorrect) {
         totalScore += examQuestion.marks;
       }
 
       questionRS.push({
+        question_id: examQuestion._id,
         question: examQuestion.question,
         answers: submittedQuestion.answers.map((answer) => {
           const matchingExamAnswer = examQuestion.answers.find(
-            (examAnswer) => examAnswer.answer === answer.answer
+            (examAnswer) =>
+              examAnswer._id.toString() === answer.answer_id.toString()
           );
           return {
-            answer: answer.answer,
+            answer_id: answer.answer_id,
+            answer: matchingExamAnswer.answer,
             isCorrect: matchingExamAnswer
               ? matchingExamAnswer.isCorrect
               : false,
@@ -204,6 +228,84 @@ exports.submitExam = async (req, res) => {
         studentExamRS: newStudentExamRS,
       });
     }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+//Get exam for tutor
+exports.getExam = async (req, res) => {
+  try {
+    const course_id = req.params.course_id;
+
+    const course = await Course.findById(course_id);
+    if (!course) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    const exam = await Exam.findOne({ course_id: course_id });
+    if (!exam) {
+      return res.status(404).json({ error: "Exam not found" });
+    }
+
+    res.status(200).json(exam);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+//Update exam
+exports.updateExam = async (req, res) => {
+  try {
+    const exam_id = req.params.exam_id;
+    const title = req.body.title;
+    const questions = req.body.questions;
+    const totalMark = req.body.totalMark;
+    const duration = req.body.duration;
+
+    const exam = await Exam.findById(exam_id);
+    if (!exam) {
+      return res.status(404).json({ error: "Exam not found" });
+    }
+
+    if (title) exam.title = title;
+    if (questions) exam.questions = questions;
+    if (totalMark) exam.totalMark = totalMark;
+    let totalMarks = 0;
+    exam.questions.forEach((question) => {
+      totalMarks += question.marks;
+    });
+
+    if (totalMarks !== totalMark) {
+      return res.status(400).json({
+        error: "Total marks of questions must equal the totalMark field.",
+      });
+    }
+
+    if (duration) exam.duration = duration;
+
+    await exam.save();
+    res.status(200).json(exam);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+//Delete exam
+exports.deleteExam = async (req, res) => {
+  try {
+    const exam_id = req.params.exam_id;
+
+    const exam = await Exam.findById(exam_id);
+    if (!exam) {
+      return res.status(404).json({ error: "Exam not found" });
+    }
+
+    const examDeleted = await Exam.findByIdAndDelete(exam_id);
+    res.status(200).json({ message: "Exam deleted successfully" });
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Internal Server Error" });

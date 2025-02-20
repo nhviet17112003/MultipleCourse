@@ -131,3 +131,33 @@ exports.getMyOrders = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+// Get Sold Count for a Specific Course
+exports.getCourseSalesCountById = async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.course_id);
+
+    // Kiểm tra nếu không tìm thấy khóa học
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    // Tìm tất cả đơn hàng có chứa khóa học này
+    const orders = await Order.find({ "order_items.course": course._id });
+
+    // Đếm số lần khóa học này xuất hiện trong tất cả các đơn hàng
+    const soldCount = orders.reduce((count, order) => {
+      return (
+        count +
+        order.order_items.filter(
+          (item) => item.course.toString() === course._id.toString()
+        ).length
+      );
+    }, 0);
+
+    res.status(200).json({ course_id: course._id, soldCount });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};

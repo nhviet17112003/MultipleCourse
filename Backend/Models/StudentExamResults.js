@@ -27,12 +27,20 @@ const StudentExamResultsSchema = new Schema({
   },
   questions: [
     {
+      question_id: {
+        type: String,
+        required: true,
+      },
       question: {
         type: String,
         required: true,
       },
       answers: [
         {
+          answer_id: {
+            type: String,
+            required: true,
+          },
           answer: {
             type: String,
             required: true,

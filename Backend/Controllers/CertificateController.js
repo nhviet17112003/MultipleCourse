@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const Course = require("../Models/Courses");
 const StudentCertificate = require("../Models/StudentCertificates");
+const User = require("../Models/Users");
 const StudentExamRS = require("../Models/StudentExamResults");
 
 const width = 800;
@@ -54,7 +55,7 @@ exports.generateCertificate = async (req, res) => {
 
     const certificate = await StudentCertificate.findOne({
       student: req.user._id,
-      course: course.title,
+      course: course_id,
     });
     if (certificate) {
       return res.status(400).json({ message: "Certificate already exists" });
@@ -116,7 +117,7 @@ exports.generateCertificate = async (req, res) => {
     // Lưu thông tin chứng chỉ vào database
     const newCertificate = new StudentCertificate({
       title: "Certificate of Achievement",
-      course: course.title,
+      course: course_id,
       student: req.user._id,
       totalMark: studentExamRS.totalMark,
       isPassed: true,
@@ -126,6 +127,129 @@ exports.generateCertificate = async (req, res) => {
     await newCertificate.save();
 
     res.status(201).json({ certificateUrl: publicUrl });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.getCertificate = async (req, res) => {
+  try {
+    const course_id = req.params.course_id;
+    const course = await Course.findById(course_id);
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    const certificate = await StudentCertificate.findOne({
+      student: req.user._id,
+      course: course_id,
+    })
+      .populate("course", "title")
+      .exec();
+
+    if (!certificate) {
+      return res.status(404).json({ message: "Certificate not found" });
+    }
+
+    res.status(200).json({ certificate });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.getAllStudentCertificates = async (req, res) => {
+  try {
+    const certificates = await StudentCertificate.find({
+      student: req.user._id,
+    })
+      .populate("course", "title")
+      .exec();
+    res.status(200).json({ certificates });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.getTutorCertificate = async (req, res) => {
+  try {
+    const tutor = await User.findById(req.user._id);
+    if (!tutor) {
+      return res.status(404).json({ message: "Tutor not found" });
+    }
+    res.status(200).json({ certificates: tutor.tutor_certificates });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+//Upload tutor certificate
+exports.uploadTutorCertificate = async (req, res) => {
+  try {
+    const newCertificates = req.body.certificates;
+    const tutor = await User.findById(req.user._id);
+    if (!tutor) {
+      return res.status(404).json({ message: "Tutor not found" });
+    }
+
+    const existsCertificate = [];
+
+    if (tutor.tutor_certificates && tutor.tutor_certificates.length > 0) {
+      for (let newCert of newCertificates) {
+        // Kiểm tra xem chứng chỉ đã tồn tại chưa trước khi thêm vào
+        const exists = tutor.tutor_certificates.some(
+          (cert) => cert.title === newCert.title
+        );
+        if (exists) {
+          existsCertificate.push(newCert.title);
+        } else {
+          tutor.tutor_certificates.push(newCert);
+        }
+      }
+
+      if (existsCertificate.length > 0) {
+        return res.status(400).json({
+          message:
+            "Certificate" +
+            existsCertificate.map((cert) => " " + cert) +
+            " already exists",
+        });
+      }
+    } else {
+      // Nếu `tutor_certificates` chưa tồn tại, gán trực tiếp mảng mới
+      tutor.tutor_certificates = newCertificates;
+    }
+    await tutor.save();
+    res.status(200).json({
+      message: "Certificate uploaded",
+      certificates: tutor.tutor_certificates,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+//Delete tutor certificate
+exports.deleteTutorCertificate = async (req, res) => {
+  try {
+    const certificate_id = req.params.certificate_id;
+    const tutor = await User.findById(req.user._id);
+    if (!tutor) {
+      return res.status(404).json({ message: "Tutor not found" });
+    }
+
+    tutor.tutor_certificates = tutor.tutor_certificates.filter(
+      (cert) => cert._id.toString() !== certificate_id
+    );
+    await tutor.save();
+    res.status(200).json({
+      message: "Certificate deleted",
+      certificates: tutor.tutor_certificates,
+    });
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Internal Server Error" });

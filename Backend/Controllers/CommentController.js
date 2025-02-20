@@ -1,5 +1,6 @@
 const Course = require("../Models/Courses");
 const Lesson = require("../Models/Lessons");
+const AdminActivityHistory = require("../Models/AdminActivityHistory");
 
 //Comment For Course
 
@@ -162,7 +163,6 @@ exports.updateLessonComment = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
 // Delete Comment for Lesson
 exports.deleteLessonComment = async (req, res) => {
   try {
@@ -201,6 +201,148 @@ exports.showLessonComment = async (req, res) => {
     res.status(200).json({ comments: lesson.comments });
   } catch (err) {
     console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Update Comment Status (toggle status) without Course ID
+exports.updateCommentStatusById = async (req, res) => {
+  try {
+    const { comment_id } = req.params;
+
+    // Tìm khóa học chứa comment theo ID
+    const course = await Course.findOne({ "comments._id": comment_id });
+
+    if (!course) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    // Tìm comment trong khóa học
+    const comment = course.comments.id(comment_id);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    // Toggle trạng thái comment
+    comment.status = !comment.status;
+    await course.save();
+
+    res.status(200).json({
+      
+      message: `Comment is now ${comment.status ? "active" : "inactive"}`,
+      comment: comment,
+    });
+    if (comment.status === false) {
+      const adminActivity = new AdminActivityHistory({
+        admin: req.user._id,
+        activity: `Change comment status of user ${comment.author} to inactive\n
+      Comment: ${comment.comment}`,
+      });
+      await adminActivity.save();
+      res.status(200).json({ message: "Comment is now inactive" });
+    } else {
+      const adminActivity = new AdminActivityHistory({
+        admin: req.user._id,
+        activity: `Change comment status of user ${comment.author} to active\n
+      Comment: ${comment.comment}`,
+      });
+      await adminActivity.save();
+      res.status(200).json({ message: "Comment is now active" });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Update Lesson Comment Status (toggle status) without Lesson ID
+exports.updateLessonCommentStatusById = async (req, res) => {
+  try {
+    const { comment_id } = req.params;
+
+    // Tìm bài học chứa comment theo ID
+    const lesson = await Lesson.findOne({ "comments._id": comment_id });
+
+    if (!lesson) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    // Tìm comment trong bài học
+    const comment = lesson.comments.id(comment_id);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    // Toggle trạng thái comment
+    comment.status = !comment.status;
+    await lesson.save();
+
+    if (comment.status === false) {
+      const adminActivity = new AdminActivityHistory({
+        admin: req.user._id,
+        activity: `Change comment status of user ${comment.author} to inactive\n
+      Comment: ${comment.comment}`,
+      });
+      await adminActivity.save();
+      res.status(200).json({ message: "Comment is now inactive" });
+    } else {
+      const adminActivity = new AdminActivityHistory({
+        admin: req.user._id,
+        activity: `Change comment status of user ${comment.author} to active\n
+      Comment: ${comment.comment}`,
+      });
+      await adminActivity.save();
+      res.status(200).json({ message: "Comment is now active" });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Get all comments for admin
+exports.getAllCommentsForAdmin = async (req, res) => {
+  try {
+    // Lấy tất cả các khóa học có bình luận
+    const courses = await Course.find({}, "title comments");
+    const lessons = await Lesson.find({}, "title comments");
+
+    // Xử lý dữ liệu bình luận từ khóa học
+    const courseComments = courses.flatMap((course) =>
+      course.comments.map((comment) => ({
+        type: "course",
+        courseTitle: course.title,
+        commentId: comment._id,
+        author: comment.author,
+        rating: comment.rating,
+        comment: comment.comment,
+        date: comment.date,
+        status: comment.status,
+      }))
+    );
+
+    // Xử lý dữ liệu bình luận từ bài học
+    const lessonComments = lessons.flatMap((lesson) =>
+      lesson.comments.map((comment) => ({
+        type: "lesson",
+        lessonTitle: lesson.title,
+        commentId: comment._id,
+        author: comment.author,
+        rating: comment.rating,
+        comment: comment.comment,
+        date: comment.date,
+        status: comment.status,
+      }))
+    );
+
+    // Gộp tất cả bình luận
+    const allComments = [...courseComments, ...lessonComments];
+
+    res
+      .status(200)
+      .json({ totalComments: allComments.length, comments: allComments });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
