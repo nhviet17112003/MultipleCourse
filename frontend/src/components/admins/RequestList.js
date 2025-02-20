@@ -231,7 +231,10 @@ export default function RequestList() {
       if (!response.ok) throw new Error(`Error: ${response.status}`);
 
       const result = await response.json();
-      alert(result.message);
+    //   alert(result.message);
+    // console.log("result", result)
+    alert("Successfully processed request.")
+       
       await fetchRequests();
     } catch (err) {
       console.error("Error processing request:", err);
