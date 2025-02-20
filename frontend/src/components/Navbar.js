@@ -184,89 +184,89 @@ const Navbar = () => {
 
   return (
     <nav
-    className={`text-white shadow-md ${
-      theme === "dark" ? "bg-gray-800" : "bg-teal-500"
-    }`}
-  >
-    <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-      <h1
-        className="text-xl font-bold cursor-pointer hover:text-yellow-300"
-        onClick={() => navigate("/")}
-      >
-        MultiCourse
-      </h1>
-
-      {/* Search */}
-      <div className="flex items-center space-x-4">
-        <Input
-          value={searchQuery}
-          onChange={handleSearchChange}
-          placeholder="Search courses..."
-          className={`w-64 px-4 py-2 rounded-lg focus:outline-none ${
-            theme === "dark"
-              ? "bg-gray-700 text-gray-900"
-              : "bg-white text-gray-900"
-          }`}
-          style={{
-            border: "1px solid",
-            borderColor: theme === "dark" ? "#444" : "#ccc",
-          }}
-          prefix={<SearchOutlined />}
-        />
-        <Button type="primary" onClick={handleSearchSubmit}>
-          Search
-        </Button>
-      </div>
-
-      <div className="flex items-center space-x-4">
-        {/* Gộp avatar và dropdown vào chung container */}
-        <div
-          className="relative inline-block"
-          onMouseEnter={() => setShowDropdown(true)}
-          onMouseLeave={() => setShowDropdown(false)}
+      className={`text-white shadow-md ${
+        theme === "dark" ? "bg-gray-800" : "bg-teal-500"
+      }`}
+    >
+      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+        <h1
+          className="text-xl font-bold cursor-pointer hover:text-yellow-300"
+          onClick={() => navigate("/")}
         >
-          <img
-            src={userData?.avatar || avatarUrl}
-            alt="Avatar"
-            className="w-10 h-10 rounded-full cursor-pointer border-2 border-white"
+          MultiCourse
+        </h1>
+
+        {/* Search */}
+        <div className="flex items-center space-x-4">
+          <Input
+            value={searchQuery}
+            onChange={handleSearchChange}
+            placeholder="Search courses..."
+            className={`w-64 px-4 py-2 rounded-lg focus:outline-none ${
+              theme === "dark"
+                ? "bg-gray-700 text-gray-900"
+                : "bg-white text-gray-900"
+            }`}
+            style={{
+              border: "1px solid",
+              borderColor: theme === "dark" ? "#444" : "#ccc",
+            }}
+            prefix={<SearchOutlined />}
           />
-          {showDropdown && (
-            <div className="absolute right-0 mt-2 w-48 bg-white text-teal-900 rounded-lg shadow-lg z-50 transition-opacity duration-200">
-              <div className="px-4 py-2 border-b border-gray-200 text-center">
-                <span className="font-semibold">{fullname}</span>
+          <Button type="primary" onClick={handleSearchSubmit}>
+            Search
+          </Button>
+        </div>
+
+        <div className="flex items-center space-x-4">
+          {/* Gộp avatar và dropdown vào chung container */}
+          <div
+            className="relative inline-block"
+            onMouseEnter={() => setShowDropdown(true)}
+            onMouseLeave={() => setShowDropdown(false)}
+          >
+            <img
+              src={userData?.avatar || avatarUrl}
+              alt="Avatar"
+              className="w-10 h-10 rounded-full cursor-pointer border-2 border-white"
+            />
+            {showDropdown && (
+              <div className="absolute right-0 mt-0 w-48 bg-white text-teal-900 rounded-lg shadow-lg z-50 transition-opacity duration-200">
+                <div className="px-4 py-2 border-b border-gray-200 text-center">
+                  <span className="font-semibold">{fullname}</span>
+                </div>
+                <button
+                  className="block w-full px-4 py-2 text-left hover:bg-teal-100"
+                  onClick={goToUserProfile}
+                >
+                  <UserOutlined className="mr-2" /> Profile
+                </button>
+                <button
+                  className="block w-full px-4 py-2 text-left hover:bg-teal-100"
+                  onClick={logout}
+                >
+                  <LogoutOutlined className="mr-2" /> Logout
+                </button>
+                <button
+                  className="block w-full px-4 py-2 text-left hover:bg-teal-100"
+                  onClick={goToCart}
+                >
+                  Cart
+                </button>
+                <Space className="w-full justify-center py-3">
+                  <Switch
+                    onClick={toggleTheme}
+                    checkedChildren="dark"
+                    unCheckedChildren="light"
+                    defaultChecked={theme === "dark"}
+                  />
+                </Space>
               </div>
-              <button
-                className="block w-full px-4 py-2 text-left hover:bg-teal-100"
-                onClick={goToUserProfile}
-              >
-                <UserOutlined className="mr-2" /> Profile
-              </button>
-              <button
-                className="block w-full px-4 py-2 text-left hover:bg-teal-100"
-                onClick={logout}
-              >
-                <LogoutOutlined className="mr-2" /> Logout
-              </button>
-              <button
-                className="block w-full px-4 py-2 text-left hover:bg-teal-100"
-                onClick={goToCart}
-              >
-                Cart
-              </button>
-              <Space className="w-full justify-center py-3">
-                <Switch
-                  onClick={toggleTheme}
-                  checkedChildren="dark"
-                  unCheckedChildren="light"
-                  defaultChecked={theme === "dark"}
-                />
-              </Space>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  </nav>
+    </nav>
   );
 };
 
