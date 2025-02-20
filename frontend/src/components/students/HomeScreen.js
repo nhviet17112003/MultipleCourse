@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Spin } from "antd";
 import { FaShoppingCart } from "react-icons/fa";
-
+import { ToastContainer, toast } from 'react-toastify';
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
+import 'react-toastify/dist/ReactToastify.css';
 const HomeScreen = () => {
   const navigate = useNavigate();
   const [spinning, setSpinning] = useState(false);
@@ -160,39 +161,31 @@ const HomeScreen = () => {
       );
 
       const data = await response.json();
-      if (!response.ok) {
-        console.error("Error adding to cart:", data.message);
+      if (response.ok) {
+        toast.success("Thêm vào giỏ hàng thành công!", {
+          position: "top-right",
+          autoClose: 3000, // Đóng sau 3 giây
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        });
+      } else {
+        toast.error(`Lỗi: ${data.message}`, {
+          position: "top-right",
+          autoClose: 3000,
+        });
       }
     } catch (error) {
-      console.error("Error:", error);
+      toast.error("Đã xảy ra lỗi. Vui lòng thử lại!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
     }
   };
-  const goToLogin = () => {
-    navigate("/login");
-  };
-  const goToSignup = () => {
-    navigate("/signup");
-  };
-  const toggleDropdown = () => {
-    setIsDropdownOpen((prev) => !prev);
-  };
-
-  const goToCart = () => {
-    setIsDropdownOpen(false);
-    navigate("/cart");
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("fullname");
-    setIsDropdownOpen(false);
-    setIsAuthenticated(false);
-    navigate("/login");
-  };
-  const goToProfile = () => {
-    setIsDropdownOpen(false);
-    navigate("/userprofile");
-  };
+ 
   const filteredCourses = courses
     .filter((course) => {
       const titleMatch = course.title
@@ -213,117 +206,120 @@ const HomeScreen = () => {
     });
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <Spin spinning={spinning} fullscreen />
+<div className="min-h-screen bg-gray-100">
+  <Spin spinning={spinning} fullscreen />
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-6 bg-white p-6 rounded-lg shadow-md">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex-1">
-              <input
-                type="text"
-                placeholder="🔍 Search by course or tutor name..."
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-              />
-            </div>
-            <div className="w-32">
-              <select
-                value={sortOption}
-                onChange={(e) => setSortOption(e.target.value)}
-                className="w-full p-3 text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-              >
-                <option value="default">Sort by</option>
-                <option value="asc">Price Low to High</option>
-                <option value="desc">Price High to Low</option>
-              </select>
-            </div>
-            <div className="w-32">
-              <select
-                value={ratingFilter}
-                onChange={(e) => setRatingFilter(Number(e.target.value))}
-                className="w-full p-3 text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-              >
-                <option value={0}>All Ratings</option>
-                {[1, 2, 3, 4, 5].map((rating) => (
-                  <option key={rating} value={rating}>
-                    {Array.from({ length: rating }).map((_, idx) => (
-                      <span key={idx}>★</span>
-                    ))}{" "}
-                    {rating} Star{rating > 1 ? "s" : ""}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex-1">
-              <p className="text-gray-800 text-center font-semibold mb-2">
-                Price: ${priceRange[0]} - ${priceRange[1]}
-              </p>
-              <Slider
-                range
-                min={0}
-                max={100000}
-                value={priceRange}
-                onChange={(value) => setPriceRange(value)}
-                className="w-full"
-              />
-            </div>
-          </div>
+  <ToastContainer />
+      
+  <main className="container mx-auto px-4 py-8">
+    <div className="mb-6 bg-white p-6 rounded-lg shadow-md">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex-1">
+          <input
+            type="text"
+            placeholder="🔍 Search by course or tutor name..."
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+          />
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          {loading ? (
-            <p>Đang tải danh sách khóa học...</p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {filteredCourses.length > 0 ? (
-                filteredCourses.map((course) => (
-                  <div
-                    key={course._id}
-                    onClick={() => handleCourseClick(course._id)}
-                    className="bg-white shadow-md rounded-lg overflow-hidden"
-                  >
-                    <img
-                      src={course.image}
-                      alt={course.title}
-                      className="w-full h-48 object-cover"
-                    />
-                    <div className="p-4">
-                      <h4 className="text-lg font-semibold text-teal-600">
-                        {course.title}
-                      </h4>
-                      <p className="text-sm text-gray-500 mt-1 italic">
-                        {course.category}
-                      </p>
-                      <p className="text-sm text-gray-600 mt-2">
-                        Tutor: {course.tutor?.fullname}
-                      </p>
-                      <p className="text-gray-600 mt-2">{course.description}</p>
-                      <div className="mt-4 flex items-center justify-between">
-                        <span className="text-teal-700 font-bold">
-                          ${course.price}
-                        </span>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAddToCart(course._id);
-                          }}
-                          className="bg-teal-500 text-white px-4 py-2 rounded hover:bg-teal-600"
-                        >
-                          Thêm vào giỏ
-                        </button>
-                      </div>
-                    </div>
+        <div className="w-32">
+          <select
+            value={sortOption}
+            onChange={(e) => setSortOption(e.target.value)}
+            className="w-full p-3 text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+          >
+            <option value="default">Sort by</option>
+            <option value="asc">Price Low to High</option>
+            <option value="desc">Price High to Low</option>
+          </select>
+        </div>
+        <div className="w-32">
+          <select
+            value={ratingFilter}
+            onChange={(e) => setRatingFilter(Number(e.target.value))}
+            className="w-full p-3 text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+          >
+            <option value={0}>All Ratings</option>
+            {[1, 2, 3, 4, 5].map((rating) => (
+              <option key={rating} value={rating}>
+                {Array.from({ length: rating }).map((_, idx) => (
+                  <span key={idx}>★</span>
+                ))}{" "}
+                {rating} Star{rating > 1 ? "s" : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex-1">
+          <p className="text-gray-800 text-center font-semibold mb-2">
+            Price: ${priceRange[0]} - ${priceRange[1]}
+          </p>
+          <Slider
+            range
+            min={0}
+            max={1000}
+            value={priceRange}
+            onChange={(value) => setPriceRange(value)}
+            className="w-full"
+          />
+        </div>
+      </div>
+    </div>
+    <div className="bg-white p-6 rounded-lg shadow-md">
+      {loading ? (
+        <p>Đang tải danh sách khóa học...</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {filteredCourses.length > 0 ? (
+            filteredCourses.map((course) => (
+              <div
+                key={course._id}
+                onClick={() => handleCourseClick(course._id)}
+                className="bg-white shadow-md rounded-lg overflow-hidden"
+              >
+                <img
+                  src={course.image}
+                  alt={course.title}
+                  className="w-full h-48 object-cover"
+                />
+                <div className="p-4">
+                  <h4 className="text-lg font-semibold text-teal-600">
+                    {course.title}
+                  </h4>
+                  <p className="text-sm text-gray-500 mt-1 italic">
+                    {course.category}
+                  </p>
+                  <p className="text-sm text-gray-600 mt-2">
+                    Tutor: {course.tutor?.fullname}
+                  </p>
+                  <p className="text-gray-600 mt-2">{course.description}</p>
+                  <div className="mt-4 flex items-center justify-between">
+                    <span className="text-teal-700 font-bold">
+                      ${course.price}
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddToCart(course._id);
+                      }}
+                      className="bg-teal-500 text-white px-4 py-2 rounded hover:bg-teal-600"
+                    >
+                      Thêm vào giỏ
+                    </button>
                   </div>
-                ))
-              ) : (
-                <p>There are no courses currently available.</p>
-              )}
-            </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p>There are no courses currently available.</p>
           )}
         </div>
-      </main>
+      )}
     </div>
+  </main>
+</div>
+
   );
 };
 
