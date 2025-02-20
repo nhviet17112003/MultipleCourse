@@ -253,12 +253,12 @@ const CourseDetailForTutor = () => {
               </ul>
 
               {exams.questions.length > 3 && (
-                <button
-                  className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg"
+                <span
+                  className="mt-4 text-blue-500 underline cursor-pointer"
                   onClick={() => setShowAllQuestions(!showAllQuestions)}
                 >
-                  {showAllQuestions ? "Thu gọn" : "Xem thêm"}
-                </button>
+                  {showAllQuestions ? "Less than" : "More than"}
+                </span>
               )}
             </li>
             <button

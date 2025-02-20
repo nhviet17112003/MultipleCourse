@@ -6,9 +6,39 @@ const MyCourses = () => {
   const [progressData, setProgressData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [modalContent, setModalContent] = useState(null); // Unified Modal Content
+  const [modalContent, setModalContent] = useState(null);
   const navigate = useNavigate();
+  const [certificates, setCertificates] = useState([]);
+  const [image, setImage] = useState(null);
 
+  useEffect(() => {
+    const fetchCertificates = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:3000/api/certificates/get-all-certificates",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            },
+          }
+        );
+
+        const data = await response.json();
+
+        if (response.ok) {
+          setCertificates(data.certificates);
+        } else {
+          setError("Failed to fetch certificates.");
+        }
+      } catch (error) {
+        setError("Failed to fetch certificates.");
+      }
+    };
+
+    fetchCertificates();
+  }, []);
   useEffect(() => {
     const fetchOrdersAndProgress = async () => {
       try {
@@ -146,7 +176,7 @@ const MyCourses = () => {
             order.order_items.map((item) => (
               <div
                 key={item._id}
-                className="bg-white shadow-lg rounded-2xl overflow-hidden transition duration-300 hover:shadow-2xl cursor-pointer"
+                className="bg-white shadow-lg rounded-2xl overflow-hidden transition duration-300 hover:shadow-2xl cursor-pointer relative"
                 onClick={() => handleCourseClick(item.course._id)}
               >
                 <img
@@ -154,38 +184,49 @@ const MyCourses = () => {
                   alt={item.course.title}
                   className="w-full h-48 object-cover"
                 />
-                <div className="p-4">
+                <div className="p-4 flex items-center">
                   <h2 className="text-xl font-semibold text-gray-800 truncate">
                     {item.course.title}
                   </h2>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEnroll(item.course._id);
-                    }}
-                    className={`mt-4 w-full py-2 rounded-xl transition duration-300 ${
-                      isEnrolled(item.course._id)
-                        ? "bg-gray-400 text-white cursor-not-allowed"
-                        : "bg-blue-500 text-white hover:bg-blue-600"
-                    }`}
-                    disabled={isEnrolled(item.course._id)}
-                  >
-                    {isEnrolled(item.course._id) ? "Enrolled" : "Enroll"}
-                  </button>
-                  <div className="mt-4">
-                    <div className="w-full bg-gray-200 rounded-full h-3">
-                      <div
-                        className="bg-green-500 h-3 rounded-full transition-all duration-500"
-                        style={{
-                          width: `${getProgressForCourse(item.course._id)}%`,
-                        }}
-                      ></div>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1 text-center">
-                      Progress:{" "}
-                      {getProgressForCourse(item.course._id).toFixed(0)}%
-                    </p>
+                </div>
+                {certificates.find(
+                  (certificate) =>
+                    certificate.course._id === item.course._id &&
+                    certificate.isPassed
+                ) && (
+                  <img
+                    src={require("../../assets/passed44.png")}
+                    alt="Passed"
+                    className="absolute top-0 right-0 w-21 h-20"
+                  />
+                )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEnroll(item.course._id);
+                  }}
+                  className={`mt-4 w-full py-2 rounded-xl transition duration-300 ${
+                    isEnrolled(item.course._id)
+                      ? "bg-gray-400 text-white cursor-not-allowed"
+                      : "bg-blue-500 text-white hover:bg-blue-600"
+                  }`}
+                  disabled={isEnrolled(item.course._id)}
+                >
+                  {isEnrolled(item.course._id) ? "Enrolled" : "Enroll"}
+                </button>
+                <div className="mt-4">
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div
+                      className="bg-green-500 h-3 rounded-full transition-all duration-500"
+                      style={{
+                        width: `${getProgressForCourse(item.course._id)}%`,
+                      }}
+                    ></div>
                   </div>
+                  <p className="text-sm text-gray-600 mt-1 text-center">
+                    Progress: {getProgressForCourse(item.course._id).toFixed(0)}
+                    %
+                  </p>
                 </div>
               </div>
             ))
