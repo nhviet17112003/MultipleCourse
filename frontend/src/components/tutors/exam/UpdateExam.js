@@ -49,15 +49,32 @@ const UpdateExam = () => {
     setExam((prevExam) => {
       const updatedQuestions = [...prevExam.questions];
       if (answerIndex !== undefined) {
-        updatedQuestions[questionIndex].answers[answerIndex][name] =
-          type === "checkbox" ? checked : value;
+        if (name === "isCorrect" && type === "checkbox") {
+          const currentQuestionType =
+            updatedQuestions[questionIndex].questionType;
+          if (currentQuestionType === "One Choice") {
+            updatedQuestions[questionIndex].answers = updatedQuestions[
+              questionIndex
+            ].answers.map((answer, index) => {
+              if (index === answerIndex) {
+                return { ...answer, isCorrect: checked };
+              }
+              return { ...answer, isCorrect: false };
+            });
+          } else {
+            updatedQuestions[questionIndex].answers[answerIndex][name] =
+              checked;
+          }
+        } else {
+          updatedQuestions[questionIndex].answers[answerIndex][name] =
+            type === "checkbox" ? checked : value;
+        }
       } else {
         updatedQuestions[questionIndex][name] = value;
       }
       return { ...prevExam, questions: updatedQuestions };
     });
   };
-
   const handleDeleteQuestion = (index) => {
     setExam((prevExam) => {
       const updatedQuestions = prevExam.questions.filter((_, i) => i !== index);
@@ -126,6 +143,16 @@ const UpdateExam = () => {
     console.log("Adding answer to question:", qIndex);
     setExam((prevExam) => {
       const updatedQuestions = [...prevExam.questions];
+      const currentQuestionType = updatedQuestions[qIndex].questionType;
+      if (currentQuestionType === "One Choice") {
+        const existingCorrectAnswer = updatedQuestions[qIndex].answers.find(
+          (answer) => answer.isCorrect
+        );
+        if (existingCorrectAnswer) {
+          alert("One Choice question can only have one correct answer.");
+          return { ...prevExam };
+        }
+      }
       updatedQuestions[qIndex].answers.push({ answer: "", isCorrect: false });
       return { ...prevExam, questions: updatedQuestions };
     });
@@ -205,6 +232,21 @@ const UpdateExam = () => {
                 onChange={(e) => handleChange(e, qIndex)}
                 className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400"
               />
+            </div>
+
+            <div className="mt-3">
+              <label className="block text-gray-700 font-regular mb-2">
+                Question Type:
+              </label>
+              <select
+                name="questionType"
+                value={question.questionType}
+                onChange={(e) => handleChange(e, qIndex)}
+                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400"
+              >
+                <option value="One Choice">One Choice</option>
+                <option value="Multiple Choice">Multiple Choice</option>
+              </select>
             </div>
 
             <div className="mt-3">
