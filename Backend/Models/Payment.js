@@ -11,9 +11,9 @@ const PaymentSchema = new Schema({
     ref: "User",
     required: true,
   },
-  order: {
+  wallet: {
     type: Schema.Types.ObjectId,
-    ref: "Orders",
+    ref: "Wallet",
     required: true,
   },
   payment_status: {

@@ -5,7 +5,7 @@ const cors = require("../Loaders/Cors");
 const router = express.Router();
 
 router.post(
-  "/create-order",
+  "/create-order/:cart_id",
   cors.corsWithOptions,
   auth.verifyUser,
   orderController.createOrder

@@ -1,8 +1,13 @@
+const { request } = require("express");
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const WalletSchema = new Schema({
-  tutor: {
+  payment_code: {
+    type: String,
+    default: undefined,
+  },
+  user: {
     type: Schema.Types.ObjectId,
     ref: "Users",
     required: true,
@@ -12,10 +17,22 @@ const WalletSchema = new Schema({
     default: 0,
   },
   total_earning: {
+    //tổng tiền kiếm được
     type: Number,
-    default: 0,
+    default: undefined,
+  },
+  total_spent: {
+    //tiền đã tiêu
+    type: Number,
+    default: undefined,
+  },
+  total_deposit: {
+    //tiền đã nạp
+    type: Number,
+    default: undefined,
   },
   total_withdrawal: {
+    //tiền đã rút
     type: Number,
     default: 0,
   },

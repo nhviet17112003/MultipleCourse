@@ -19,7 +19,6 @@ router.get(
   ExamController.createStudentExam
 );
 
-
 router.post(
   "/submit-exam/:exam_id",
   cors.corsWithOptions,
@@ -49,6 +48,14 @@ router.delete(
   auth.verifyUser,
   auth.verifyTutor,
   ExamController.deleteExam
+);
+
+//Get exam for student
+router.get(
+  "/get-exam-score/:course_id",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  ExamController.getExamForStudent
 );
 
 module.exports = router;

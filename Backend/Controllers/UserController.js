@@ -67,10 +67,20 @@ exports.signUp = async (req, res) => {
 
           if (user.role === "Tutor") {
             const wallet = new Wallet({
-              tutor: user._id,
+              user: user._id,
             });
+            wallet.total_earning = 0;
             await wallet.save();
           }
+          if (user.role === "Student") {
+            const wallet = new Wallet({
+              user: user._id,
+            });
+            wallet.total_spent = 0;
+            wallet.total_deposit = 0;
+            await wallet.save();
+          }
+
           res.status(200).json({ message: "User created", user_id: user._id });
         }
       }
@@ -488,6 +498,17 @@ exports.googleLoginCallback = (req, res, next) => {
         .status(401)
         .json({ success: false, message: "Authentication failed" });
     }
+
+    const existsWallet = Wallet.findOne({ user: user._id });
+    if (!existsWallet) {
+      const wallet = new Wallet({
+        user: user._id,
+        total_spent: 0,
+        total_deposit: 0,
+      });
+      wallet.save();
+    }
+
     var token = auth.getToken({
       _id: user._id,
       email: user.email,
