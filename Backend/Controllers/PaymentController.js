@@ -75,8 +75,8 @@ exports.checkPayment = async (req, res) => {
       wallet.total_deposit += payment.payment_amount;
       wallet.payment_code = undefined;
       await wallet.save();
-      return res.status(200).json({ message: "Payment successful" });
-      // return res.redirect("<<Thêm api của fe vô đây rồi comment dòng ở trên>>");
+      // return res.status(200).json({ message: "Payment successful" });
+      return res.redirect("http://localhost:3001/");
     }
 
     if (status === "CANCELLED") {
@@ -88,8 +88,8 @@ exports.checkPayment = async (req, res) => {
       }
       wallet.payment_code = undefined;
       await wallet.save();
-      return res.status(200).json({ message: "Payment cancelled" });
-      // return res.redirect("<<Thêm api của fe vô đây rồi comment dòng ở trên>>");
+      // return res.status(200).json({ message: "Payment cancelled" });
+      return res.redirect("http://localhost:3001/");
     }
   } catch (error) {
     console.error(error);

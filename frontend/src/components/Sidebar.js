@@ -44,8 +44,11 @@ function Sidebar() {
         icon: <MailOutlined />,
         children: [
           { key: "1", label: <Link to="/my-courses">My Courses</Link> },
-          { key: "2", label: <Link to="/my-certificate">My Certificates</Link> },
-          { key: "3", label: "My Grades" },
+          {
+            key: "2",
+            label: <Link to="/my-certificate">My Certificates</Link>,
+          },
+          { key: "3", label: <Link to="/my-wallet-student">My Wallet</Link> },
         ],
       },
     ];
@@ -103,13 +106,14 @@ function Sidebar() {
         label: "Admin Navigation",
         icon: <SettingOutlined />,
         children: [
-         
-          
           {
             key: "12",
             label: <Link to="/manage-users">Manage Users</Link>,
           },
-          { key: "13", label:<Link to="/course-list-for-admin">My Courses</Link> },
+          {
+            key: "13",
+            label: <Link to="/course-list-for-admin">My Courses</Link>,
+          },
           { key: "14", label: "Reports" },
           { key: "15", label: "System Settings" },
           {
@@ -118,7 +122,9 @@ function Sidebar() {
           },
           {
             key: "17",
-            label: <Link to="/purchase-history-for-admin">Purchase History</Link>,
+            label: (
+              <Link to="/purchase-history-for-admin">Purchase History</Link>
+            ),
           },
           {
             key: "18",
@@ -136,13 +142,13 @@ function Sidebar() {
       },
     ];
   }
-// Danh sách các trang không muốn hiển thị Navbar
-const hideNavbarRoutes = ["/login", "/signup"];
+  // Danh sách các trang không muốn hiển thị Navbar
+  const hideNavbarRoutes = ["/login", "/signup"];
 
-// Kiểm tra nếu đường dẫn hiện tại nằm trong danh sách cần ẩn Navbar
-if (hideNavbarRoutes.includes(location.pathname)) {
-  return null; // Không render Navbar
-}
+  // Kiểm tra nếu đường dẫn hiện tại nằm trong danh sách cần ẩn Navbar
+  if (hideNavbarRoutes.includes(location.pathname)) {
+    return null; // Không render Navbar
+  }
 
   return (
     <div
