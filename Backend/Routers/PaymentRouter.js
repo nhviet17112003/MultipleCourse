@@ -4,13 +4,15 @@ const auth = require("../Loaders/Authenticate");
 const cors = require("../Loaders/Cors");
 const router = express.Router();
 
+//Nạp tiền vào ví
 router.post(
-  "/create-payment/:cart_id",
+  "/create-payment",
   cors.corsWithOptions,
   auth.verifyUser,
   paymentController.createPayment
 );
 
+//Check thông tin nạp tiền
 router.get(
   "/check-payment/:orderCode",
   cors.corsWithOptions,

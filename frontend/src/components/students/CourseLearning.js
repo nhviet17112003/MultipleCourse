@@ -312,7 +312,6 @@ const CourseLearningPage = () => {
         const data = await response.json();
         const certificates = data.certificates;
 
-        // Kiểm tra xem người dùng đã hoàn thành khóa học hay chưa
         const isCourseCompleted = certificates.some((certificate) => {
           return certificate.course._id === courseId && certificate.isPassed;
         });

@@ -56,7 +56,7 @@ exports.createExam = async (req, res) => {
     const newExam = new Exam({ ...req.body, questions });
     await newExam.save();
 
-    res.status(201).json(exam);
+    res.status(201).json(newExam);
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Internal Server Error" });
@@ -306,6 +306,39 @@ exports.deleteExam = async (req, res) => {
 
     const examDeleted = await Exam.findByIdAndDelete(exam_id);
     res.status(200).json({ message: "Exam deleted successfully" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+//Get exam for student
+exports.getExamForStudent = async (req, res) => {
+  try {
+    const course_id = req.params.course_id;
+    const student_id = req.user._id;
+
+    const course = await Course.findById(course_id);
+    if (!course) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    const exam = await Exam.findOne({ course_id: course_id });
+    if (!exam) {
+      return res.status(404).json({ error: "Exam not found" });
+    }
+
+    const studentExamRS = await StudentExamRS.findOne({
+      student: student_id,
+      course: course_id,
+      exam: exam._id,
+    });
+
+    if (studentExamRS) {
+      return res.status(200).json({ Score: studentExamRS.score });
+    } else {
+      return res.status(404).json({ message: "Student exam result not found" });
+    }
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Internal Server Error" });

@@ -1,36 +1,59 @@
 const Order = require("../Models/Orders");
 const Course = require("../Models/Courses");
 const User = require("../Models/Users");
+const Wallet = require("../Models/Wallet");
+const Cart = require("../Models/Cart");
 
 // Create Order
 exports.createOrder = async (req, res) => {
   try {
-    const { courseIds } = req.body; // Array of course IDs
-    const user = await User.findById(req.user._id);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    const cart_id = req.params.cart_id;
+    const cart = await Cart.findById(cart_id);
+    if (!cart) {
+      return res.status(404).json({ message: "Cart not found" });
+    }
+    const student = await User.findById(req.user._id);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+    const studentWallet = await Wallet.findOne({ user: student._id });
+    if (!studentWallet) {
+      return res.status(404).json({ message: "Wallet not found" });
     }
 
-    const courses = await Course.find({ _id: { $in: courseIds } });
-    if (courses.length === 0) {
-      return res.status(404).json({ message: "Courses not found" });
+    if (studentWallet.current_balance < cart.total_price) {
+      return res.status(400).json({ message: "Not enough balance" });
     }
 
-    const orderItems = courses.map((course) => ({
-      course: course._id,
-    }));
+    const order_items = cart.cart_items;
+    const total_price = cart.total_price;
 
-    const totalPrice = courses.reduce((sum, course) => sum + course.price, 0);
+    for (let order_item of order_items) {
+      const course = await Course.findById(order_item.course);
+      if (!course) {
+        return res.status(404).json({ message: "Course not found" });
+      }
+      const tutorWallet = await Wallet.findOne({ user: course.tutor });
+      if (!tutorWallet) {
+        return res.status(404).json({ message: "Wallet not found" });
+      }
+      tutorWallet.total_earning += course.price;
+      tutorWallet.current_balance += course.price;
+      await tutorWallet.save();
+    }
+
+    studentWallet.current_balance -= total_price;
+    studentWallet.total_spend += total_price;
 
     const newOrder = new Order({
-      user: user._id,
-      order_items: orderItems,
-      total_price: totalPrice,
+      user: student._id,
+      order_items,
+      total_price,
     });
 
     await newOrder.save();
-    res.status(201).json(newOrder);
+    await studentWallet.save();
+    res.status(201).json("Order created successfully");
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Internal Server Error" });

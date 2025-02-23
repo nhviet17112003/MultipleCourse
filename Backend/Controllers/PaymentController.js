@@ -8,28 +8,26 @@ const PayOS = require("../Configurations/PayOS");
 exports.createPayment = async (req, res) => {
   try {
     const user_id = req.user._id;
-    const cart_id = req.params.cart_id;
-    const cart = await Cart.findById(cart_id);
-    if (!cart) {
-      return res.status(404).json({ message: "Cart not found" });
+    const amount = req.body.amount;
+
+    const wallet = await Wallet.findOne({ user: user_id });
+    if (!wallet) {
+      return res.status(404).json({ message: "Wallet not found" });
     }
-    const order = await Order.create({
-      user: user_id,
-      total_price: cart.total_price,
-      status: "Pending",
-      order_items: cart.cart_items,
-    });
 
     const orderCode = Date.now();
     const payment_description = `Payment for order ${orderCode}`;
     const newPayment = await Payment.create({
       order_code: orderCode,
       user: user_id,
-      order: order._id,
+      wallet: wallet._id,
       payment_status: "Pending",
       description: payment_description,
-      payment_amount: order.total_price,
+      payment_amount: amount,
     });
+
+    wallet.payment_code = orderCode;
+    await wallet.save();
 
     const body = {
       orderCode: orderCode,
@@ -69,55 +67,28 @@ exports.checkPayment = async (req, res) => {
     if (status === "PAID") {
       payment.payment_status = "Paid";
       await payment.save();
-
-      const order = await Order.findById(payment.order);
-      if (!order) {
-        return res.status(404).json({ message: "Order not found" });
+      const wallet = await Wallet.findOne({ payment_code: orderCode });
+      if (!wallet) {
+        return res.status(404).json({ message: "Wallet not found" });
       }
-      order.status = "Success";
-      await order.save();
-
-      const orderItems = order.order_items;
-      const updatedWallets = new Set();
-
-      for (const item of orderItems) {
-        const courseId = item.course;
-        const course = await Course.findById(courseId);
-        if (!course) {
-          return res.status(404).json({ message: "Course not found" });
-        }
-
-        const tutorId = course.tutor;
-        if (!updatedWallets.has(tutorId)) {
-          const wallet = await Wallet.findOne({ tutor: tutorId });
-          if (!wallet) {
-            return res.status(404).json({ message: "Wallet not found" });
-          }
-
-          wallet.total_earning += course.price;
-          wallet.current_balance += course.price;
-          await wallet.save();
-
-          updatedWallets.add(tutorId);
-        }
-      }
-
-      await Cart.findOneAndDelete({ user: order.user });
-
-      return res.redirect("http://localhost:3001/my-courses");
+      wallet.current_balance += payment.payment_amount;
+      wallet.total_deposit += payment.payment_amount;
+      wallet.payment_code = undefined;
+      await wallet.save();
+      // return res.status(200).json({ message: "Payment successful" });
+      return res.redirect("http://localhost:3001/");
     }
 
     if (status === "CANCELLED") {
       payment.payment_status = "Cancelled";
       await payment.save();
-
-      const order = await Order.findById(payment.order);
-      if (!order) {
-        return res.status(404).json({ message: "Order not found" });
+      const wallet = await Wallet.findOne({ payment_code: orderCode });
+      if (!wallet) {
+        return res.status(404).json({ message: "Wallet not found" });
       }
-      order.status = "Failed";
-      await order.save();
-
+      wallet.payment_code = undefined;
+      await wallet.save();
+      // return res.status(200).json({ message: "Payment cancelled" });
       return res.redirect("http://localhost:3001/");
     }
   } catch (error) {

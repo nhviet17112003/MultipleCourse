@@ -37,6 +37,7 @@ import FinalExam from "./components/students/FinalExam";
 import Certificate from "./components/students/Certificate";
 import RequestList from "./components/admins/RequestList";
 import UpdateExam from "./components/tutors/exam/UpdateExam";
+import WalletStudent from "./components/students/wallet/WalletStudent";
 
 function App() {
   return (
@@ -109,6 +110,10 @@ function App() {
                   />
 
                   <Route path="/my-courses" element={<MyCourses />} />
+                  <Route
+                    path="/my-wallet-student"
+                    element={<WalletStudent />}
+                  />
                   <Route path="/manage-users" element={<ManageUser />} />
 
                   <Route
