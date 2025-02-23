@@ -231,7 +231,7 @@ const Navbar = () => {
             className="w-10 h-10 rounded-full cursor-pointer border-2 border-white"
           />
           {showDropdown && (
-            <div className="absolute right-0 mt-2 w-48 bg-white text-teal-900 rounded-lg shadow-lg z-50 transition-opacity duration-200">
+            <div className="absolute right-0 mt-0.75 w-48 bg-white text-teal-900 rounded-lg shadow-lg z-50 transition-opacity duration-200">
               <div className="px-4 py-2 border-b border-gray-200 text-center">
                 <span className="font-semibold">{fullname}</span>
               </div>
