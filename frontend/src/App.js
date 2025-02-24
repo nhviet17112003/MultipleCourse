@@ -38,9 +38,9 @@ import Certificate from "./components/students/Certificate";
 import RequestList from "./components/admins/RequestList";
 import UpdateExam from "./components/tutors/exam/UpdateExam";
 import WalletStudent from "./components/students/wallet/WalletStudent";
-
+import Introduce from"./components/Introduce"
 function App() {
-  return (
+  return (  
     <div className="bg-white dark:bg-black w-screen h-screen">
       <AuthProvider>
         {" "}
@@ -56,7 +56,7 @@ function App() {
                 {" "}
                 {/* Chiếm phần còn lại */}
                 <Routes>
-                  <Route path="/" element={<HomeScreen />} />
+                  <Route path="/introduce" element={<Introduce />} />
                   <Route path="/login" element={<Login />} />
                   <Route
                     path="/uploadtutorcertificate/:userId"
