@@ -219,7 +219,6 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center space-x-4">
-          {/* Gộp avatar và dropdown vào chung container */}
           <div
             className="relative inline-block"
             onMouseEnter={() => setShowDropdown(true)}
