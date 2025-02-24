@@ -49,7 +49,11 @@ function Sidebar() {
             label: <Link to="/my-certificate">My Certificates</Link>,
           },
           { key: "3", label: <Link to="/deposit">Deposit</Link> },
-          { key: "4", label: <Link to="/wallet">My Wallet</Link> },
+          {
+            key: "4",
+            label: <Link to="/deposit-history">Deposit History</Link>,
+          },
+          { key: "22", label: <Link to="/wallet">My Wallet</Link> },
         ],
       },
     ];
