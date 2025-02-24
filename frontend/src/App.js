@@ -38,9 +38,9 @@ import Certificate from "./components/students/Certificate";
 import RequestList from "./components/admins/RequestList";
 import UpdateExam from "./components/tutors/exam/UpdateExam";
 import WalletStudent from "./components/students/wallet/WalletStudent";
-import Introduce from"./components/Introduce"
+import Introduce from "./components/Introduce";
 function App() {
-  return (  
+  return (
     <div className="bg-white dark:bg-black w-screen h-screen">
       <AuthProvider>
         {" "}
@@ -110,10 +110,7 @@ function App() {
                   />
 
                   <Route path="/my-courses" element={<MyCourses />} />
-                  <Route
-                    path="/my-wallet-student"
-                    element={<WalletStudent />}
-                  />
+                  <Route path="/deposit" element={<WalletStudent />} />
                   <Route path="/manage-users" element={<ManageUser />} />
 
                   <Route

@@ -21,6 +21,36 @@ const CourseLearningPage = () => {
   const [isExamStarted, setIsExamStarted] = useState(false);
   const navigate = useNavigate();
   const [isCompleted, setIsCompleted] = useState(false);
+  const [examScore, setExamScore] = useState(0);
+  const fetchExamScore = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/exams/get-exam-score/${courseId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setExamScore(data.Score);
+      } else if (response.status === 404) {
+        setExamScore(0);
+      } else {
+        setError("Failed to fetch exam score.");
+      }
+    } catch (error) {
+      setError("Failed to fetch exam score.");
+    }
+  };
+
+  useEffect(() => {
+    fetchExamScore();
+  }, [courseId]);
 
   const handleEditComment = async (commentId, newComment) => {
     try {
@@ -42,7 +72,6 @@ const CourseLearningPage = () => {
       );
       const updatedComment = await response.json();
 
-      // Cập nhật lại comment trong danh sách
       setCurrentLesson((prevLesson) => ({
         ...prevLesson,
         comments: prevLesson.comments.map((comment) =>
@@ -359,7 +388,17 @@ const CourseLearningPage = () => {
             </div> */}
             {currentLesson?.type === "exam" &&
             currentLesson.title === "Final Exam" ? (
-              <div className="mt-6 flex justify-center">
+              <div className="mt-6 flex flex-col justify-center">
+                {examScore > 0 && (
+                  <div className="bg-gray-100 p-4 rounded-lg mb-4">
+                    <p className="text-lg font-bold text-gray-600 text-center">
+                      Score:
+                      <span className="text-2xl font-bold text-blue-600">
+                        {examScore}
+                      </span>
+                    </p>
+                  </div>
+                )}
                 {isCompleted ? (
                   <div className="bg-green-100 p-8 rounded-lg shadow-md mb-8 flex flex-col items-center">
                     <svg
@@ -391,10 +430,17 @@ const CourseLearningPage = () => {
                       View your certificate here
                     </a>
                   </div>
+                ) : examScore > 0 && examScore < 8 ? (
+                  <button
+                    onClick={() => navigate(`/final-exam/${courseId}`)}
+                    className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold shadow-md hover:bg-red-700 transition duration-300 ease-in-out transform hover:scale-105 max-w-xs mx-auto"
+                  >
+                    Try Again
+                  </button>
                 ) : (
                   <button
                     onClick={() => navigate(`/final-exam/${courseId}`)}
-                    className="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold shadow-md hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105"
+                    className="bg-blue-600 text-white px-4 py-2 mx-auto rounded-lg font-bold shadow-md hover:bg-red-700 transition duration-300 ease-in-out transform hover:scale-105 max-w-xs"
                   >
                     Start Exam
                   </button>
