@@ -508,3 +508,60 @@ exports.changeCourseStatus = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+//Get top 5 course
+exports.getTop5Course = async (req, res) => {
+  try {
+    const top5Courses = await Course.find({ status: true })
+      .sort({ rating: -1 })
+      .limit(5)
+      .populate("tutor", "fullname")
+      .exec();
+    res.status(200).json(top5Courses);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+//Get top 5 tutor
+exports.getTop5Tutor = async (req, res) => {
+  try {
+    const top5Tutors = await Course.aggregate([
+      {
+        $match: {
+          status: true,
+          ating: { $ne: null },
+        },
+      },
+      {
+        $group: {
+          _id: "$tutor",
+          averageRating: { $avg: "$rating" },
+          totalReviews: { $sum: 1 },
+        },
+      },
+      {
+        $match: { totalReviews: { $gt: 0 } }, // Chỉ lấy gia sư có ít nhất 1 đánh giá
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id", // Thay đổi field tương ứng với field id của bảng course
+          foreignField: "_id", // Thay đổi field tương ứng với field id của bảng user
+          as: "tutor",
+        },
+      },
+      { $unwind: "$tutor" },
+      { $sort: { averageRating: -1 } },
+      { $limit: 5 },
+      {
+        $project: { tutor: { fullname: 1 }, averageRating: 1, totalReviews: 1 },
+      },
+    ]);
+    res.status(200).json(top5Tutors);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
