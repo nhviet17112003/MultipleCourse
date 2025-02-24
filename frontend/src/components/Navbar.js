@@ -7,6 +7,7 @@ import {
   UserOutlined,
   LogoutOutlined,
   SearchOutlined,
+  CartOutlined
 } from "@ant-design/icons";
 import Cookies from "js-cookie";
 
@@ -32,7 +33,7 @@ const Navbar = () => {
       }
     }
 
-    const protectedRoutes = ["/", "/userprofile", "/cart"];
+    const protectedRoutes = ["/userprofile", "/cart"];
     if (protectedRoutes.includes(location.pathname) && !token) {
       navigate("/login"); // Chuyển hướng nếu không có token
     } else {
@@ -232,24 +233,25 @@ const Navbar = () => {
             {showDropdown && (
               <div className="absolute right-0 mt-0 w-48 bg-white text-teal-900 rounded-lg shadow-lg z-50 transition-opacity duration-200">
                 <div className="px-4 py-2 border-b border-gray-200 text-center">
-                  <span className="font-semibold">{fullname}</span>
+                  <span className="font-semibold">Information</span>
                 </div>
                 <button
                   className="block w-full px-4 py-2 text-left hover:bg-teal-100"
                   onClick={goToUserProfile}
                 >
-                  <UserOutlined className="mr-2" /> Profile
+                  {/* <UserOutlined className="mr-2" /> Profile */}Profile
                 </button>
                 <button
                   className="block w-full px-4 py-2 text-left hover:bg-teal-100"
                   onClick={logout}
                 >
-                  <LogoutOutlined className="mr-2" /> Logout
+                  {/* <LogoutOutlined className="mr-2" />  */}Logout
                 </button>
                 <button
                   className="block w-full px-4 py-2 text-left hover:bg-teal-100"
                   onClick={goToCart}
                 >
+                  
                   Cart
                 </button>
                 <Space className="w-full justify-center py-3">

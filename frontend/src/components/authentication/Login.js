@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
+import ReCAPTCHA from "react-google-recaptcha";
+
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -10,9 +12,9 @@ const Login = () => {
   const [error, setError] = useState(""); // Cho thông báo tài khoản/mật khẩu
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-
+  const [captchaValue, setCaptchaValue] = useState(null);
   const navigate = useNavigate();
-
+  const recaptchaRef = useRef(null);
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     const role = localStorage.getItem("role");
@@ -43,6 +45,11 @@ const Login = () => {
 
     return "";
   };
+   // Hàm được gọi khi reCAPTCHA thay đổi (xác nhận thành công)
+   const handleCaptchaChange = (value) => {
+    console.log("Captcha value:", value);
+    setCaptchaValue(value);
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     // Kiểm tra Username
@@ -51,7 +58,11 @@ const Login = () => {
       setError(usernameError);
       return;
     }
-
+  // Kiểm tra captcha trước
+  if (!captchaValue) {
+    setError("Vui lòng xác nhận reCAPTCHA.");
+    return;
+  }
     // Kiểm tra Password
     const passwordError = validatePassword(password);
     if (passwordError) {
@@ -76,7 +87,7 @@ const Login = () => {
     try {
       const response = await axios.post(
         "http://localhost:3000/api/users/login",
-        { username, password }
+        { username, password,captcha: captchaValue }
       );
 
       if (response.status === 200) {
@@ -110,6 +121,13 @@ const Login = () => {
     } catch (err) {
       setError("Tài khoản hoặc mật khẩu không đúng.");
       setSuccessMessage("");
+      setIsLoading(false);
+    } finally {
+      // Reset reCAPTCHA sau mỗi lần submit
+      if (recaptchaRef.current) {
+        recaptchaRef.current.reset();
+      }
+      setCaptchaValue(null);
     }
   };
 
@@ -223,6 +241,15 @@ const Login = () => {
                     >
                       Forgot Password
                     </button>
+                  </div>
+
+                  {/* Thêm reCAPTCHA */}
+                  <div className="mb-4">
+                    <ReCAPTCHA
+                      ref={recaptchaRef}
+                      sitekey="6Lea7t0qAAAAAKNU2SByEsAd5jsfl7cgRjgK4pYe"
+                      onChange={handleCaptchaChange}
+                    />
                   </div>
                   {error && (
                     <div className="text-red-500 text-sm mb-4">{error}</div>
