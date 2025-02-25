@@ -224,7 +224,7 @@ export default function RequestList() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: method !== "DELETE" ? JSON.stringify({ status }) : null,
+          body: method === "CREATE" || "UPDATE" ? JSON.stringify({ status }) : null,
         }
       );
 
