@@ -8,7 +8,7 @@ const Cart = () => {
   const [totalPrice, setTotalPrice] = useState(0);
   const [cartId, setCartId] = useState(null); // Lưu trữ cartId
   const navigate = useNavigate(); // Khởi tạo navigate
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
   useEffect(() => {
     // Lấy giỏ hàng từ API
     const fetchCartItems = async () => {
@@ -100,9 +100,7 @@ const Cart = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("Đơn hàng đã được tạo thành công:", data);
-        toast.success("Thanh toán thành công!");
-        navigate("/");
+        setIsModalOpen(true); // Mở modal khi thanh toán thành công
       } else {
         const errorData = await response.json();
         console.error(
@@ -166,6 +164,24 @@ const Cart = () => {
           </div>
         )}
       </div>
+      {isModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+            <h2 className="text-xl font-semibold mb-4">
+              You have successfully purchased this course!
+            </h2>
+            <button
+              onClick={() => {
+                setIsModalOpen(false);
+                navigate("/my-courses");
+              }}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
