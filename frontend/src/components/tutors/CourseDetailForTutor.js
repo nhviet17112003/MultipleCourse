@@ -3,19 +3,49 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useTheme } from "../context/ThemeContext";
 import UpdateLessonModal from "./lesson/UpdateLessonModal";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 const CourseDetailForTutor = () => {
   const [course, setCourse] = useState(null);
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
-  const [selectedLesson, setSelectedLesson] = useState(null); // Bài học được chọn
-  const [isModalOpen, setIsModalOpen] = useState(false); // Trạng thái modal
+  const [selectedLesson, setSelectedLesson] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { courseId } = useParams();
   const navigate = useNavigate();
   const { theme } = useTheme();
   const [exams, setExams] = useState(null);
   const [showAllQuestions, setShowAllQuestions] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleteLessonOpen, setIsDeleteLessonOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteLesson = async () => {
+    const token = localStorage.getItem("authToken");
+
+    try {
+      await axios.delete(
+        `http://localhost:3000/api/lessons/${selectedLesson._id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setLessons((prevLessons) =>
+        prevLessons.filter((lesson) => lesson._id !== selectedLesson._id)
+      );
+      toast.success("Lesson deleted successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      setIsDeleteLessonOpen(false);
+    } catch (err) {
+      console.error("Failed to delete lesson", err);
+    }
+  };
 
   const handleDeleteExam = async () => {
     const token = localStorage.getItem("authToken");
@@ -314,9 +344,46 @@ const CourseDetailForTutor = () => {
                 >
                   Update Lesson
                 </button>
+
+                <button
+                  onClick={() => {
+                    setSelectedLesson(lesson);
+                    setIsDeleteLessonOpen(true);
+                  }}
+                  className="bg-red-500 text-white px-4 py-2 rounded-lg mt-2 ml-2"
+                >
+                  Delete Lesson
+                </button>
               </li>
             ))}
           </ul>
+
+          {isDeleteLessonOpen && (
+            <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center">
+              <div className="bg-white p-4 rounded-lg shadow-lg flex flex-col items-center">
+                <h2 className="text-lg font-bold mb-2">
+                  Are you sure you want to delete this lesson?
+                </h2>
+                <div className="flex space-x-4">
+                  <button
+                    onClick={handleDeleteLesson}
+                    className="bg-red-500 text-white px-4 py-2 rounded-lg"
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? "Deleting..." : "Delete"}
+                  </button>
+
+                  <button
+                    className="bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition"
+                    onClick={() => setIsDeleteLessonOpen(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {isDeleteModalOpen && (
             <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center">
               <div className="bg-white p-4 rounded-lg shadow-lg flex flex-col items-center">
@@ -340,6 +407,7 @@ const CourseDetailForTutor = () => {
               </div>
             </div>
           )}
+          <ToastContainer position="top-right" autoClose={3000} />
         </div>
       ) : (
         <p className="mt-4 text-gray-500">
