@@ -1,9 +1,8 @@
-import React, { useState, useEffect,useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
 import ReCAPTCHA from "react-google-recaptcha";
-
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -15,6 +14,7 @@ const Login = () => {
   const [captchaValue, setCaptchaValue] = useState(null);
   const navigate = useNavigate();
   const recaptchaRef = useRef(null);
+  const timeoutRef = useRef(null);
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     const role = localStorage.getItem("role");
@@ -26,111 +26,124 @@ const Login = () => {
       } else navigate("/admin");
     }
   }, [navigate]);
-  // Hàm kiểm tra Username
-  const validateUsername = (username) => {
-    if (username.trim().length === 0) {
-      return "Username không được để trống.";
-    }
-    if (username.length < 4) {
-      return "Username phải có ít nhất 4 ký tự.";
-    }
-    return "";
-  };
+  
+// Hàm xử lý thay đổi captcha
+const handleCaptchaChange = (value) => {
+  console.log("Captcha value:", value);
+  setCaptchaValue(value);
 
-  // Hàm kiểm tra Password
-  const validatePassword = (password) => {
-    if (password.length < 3) {
-      return "Mật khẩu phải có ít nhất 6 ký tự.";
+  // Khi người dùng xác nhận thành công, đặt timeout reset sau 60 giây
+  if (timeoutRef.current) {
+    clearTimeout(timeoutRef.current);
+  }
+  timeoutRef.current = setTimeout(() => {
+    if (recaptchaRef.current) {
+      recaptchaRef.current.reset();
+      setCaptchaValue(null);
+      console.log("reCAPTCHA đã được reset do hết hạn timeout.");
     }
+  }, 60000); // reset sau 60 giây
+};
 
-    return "";
-  };
-   // Hàm được gọi khi reCAPTCHA thay đổi (xác nhận thành công)
-   const handleCaptchaChange = (value) => {
-    console.log("Captcha value:", value);
-    setCaptchaValue(value);
-  };
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    // Kiểm tra Username
-    const usernameError = validateUsername(username);
-    if (usernameError) {
-      setError(usernameError);
-      return;
-    }
+// Hàm kiểm tra Username
+const validateUsername = (username) => {
+  if (username.trim().length === 0) {
+    return "Username không được để trống.";
+  }
+  if (username.length < 4) {
+    return "Username phải có ít nhất 4 ký tự.";
+  }
+  return "";
+};
+
+// Hàm kiểm tra Password
+const validatePassword = (password) => {
+  if (password.length < 3) {
+    return "Mật khẩu phải có ít nhất 6 ký tự.";
+  }
+
+  return "";
+};
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  // Dừng timeout nếu có
+  if (timeoutRef.current) {
+    clearTimeout(timeoutRef.current);
+  }
+
+  // Kiểm tra Username
+  const usernameError = validateUsername(username);
+  if (usernameError) {
+    setError(usernameError);
+    return;
+  }
   // Kiểm tra captcha trước
   if (!captchaValue) {
     setError("Vui lòng xác nhận reCAPTCHA.");
     return;
   }
-    // Kiểm tra Password
-    const passwordError = validatePassword(password);
-    if (passwordError) {
-      setError(passwordError);
-      return;
+  // Kiểm tra Password
+  const passwordError = validatePassword(password);
+  if (passwordError) {
+    setError(passwordError);
+    return;
+  }
+  // Reset các thông báo lỗi trước đó
+  setError("");
+  setSuccessMessage("");
+
+  setIsLoading(true);
+  try {
+    const response = await axios.post(
+      "http://localhost:3000/api/users/login",
+      { username, password, captcha: captchaValue }
+    );
+
+    if (response.status === 200) {
+      const { token, role, fullname, status } = response.data;
+
+      if (!status) {
+        setError("Tài khoản đã bị BAN");
+        return;
+      }
+      // Lưu thông tin vào localStorage
+      localStorage.setItem("authToken", token);
+      localStorage.setItem("fullname", fullname);
+      localStorage.setItem("role", role);
+
+      setSuccessMessage("Đăng nhập thành công!");
+      setError("");
+
+      // Điều hướng dựa trên role
+      if (role.toLowerCase() === "tutor") {
+        navigate("/courses-list-tutor");
+      } else {
+        window.location.reload(); // Reload trang nếu không phải tutor
+      }
     }
-    // Reset các thông báo lỗi trước đó
-    setError("");
+  } catch (err) {
+    setError("Tài khoản hoặc mật khẩu không đúng.");
     setSuccessMessage("");
-
-    // Kiểm tra validation phía client
-    if (username.trim().length === 0) {
-      setError("Vui lòng nhập Username.");
-      return;
+  } finally {
+    setIsLoading(false);
+    // Reset reCAPTCHA sau mỗi lần submit
+    if (recaptchaRef.current) {
+      recaptchaRef.current.reset();
     }
+    setCaptchaValue(null);
+  }
+};
 
-    if (password.length < 3) {
-      setError("Mật khẩu phải có ít nhất 6 ký tự.");
-      return;
-    }
-
-    try {
-      const response = await axios.post(
-        "http://localhost:3000/api/users/login",
-        { username, password,captcha: captchaValue }
-      );
-
-      if (response.status === 200) {
-        const { token, role, fullname, status } = response.data;
-
-        if (!status) {
-          setError("Tài khoản đã bị BAN");
-          return;
-        }
-        // Lưu thông tin vào localStorage
-        localStorage.setItem("authToken", token);
-        localStorage.setItem("fullname", fullname);
-
-        if (role.toLowerCase() === "tutor") {
-          localStorage.setItem("role", role);
-
-
-        } else localStorage.setItem("role", role);
-        console.log(role);
-
-        setSuccessMessage("Đăng nhập thành công!");
-        setError("");
-
-        setIsLoading(false);
-
-        // Reload lại trang để cập nhật thông tin
-        setTimeout(() => {
-          window.location.reload();
-        }, 500);
-      }
-    } catch (err) {
-      setError("Tài khoản hoặc mật khẩu không đúng.");
-      setSuccessMessage("");
-      setIsLoading(false);
-    } finally {
-      // Reset reCAPTCHA sau mỗi lần submit
-      if (recaptchaRef.current) {
-        recaptchaRef.current.reset();
-      }
-      setCaptchaValue(null);
+// Clear timeout khi component unmount để tránh memory leak
+useEffect(() => {
+  return () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
     }
   };
-
+}, []);
   const handleSignUpForStudent = () => {
     navigate("/signup", { state: { role: "Student" } });
   };
@@ -138,11 +151,11 @@ const Login = () => {
   const handleSignUpForTutor = () => {
     navigate("/signup", { state: { role: "Tutor" } });
   };
- 
+
   const handleGoogleLogin = () => {
     // Mở trang đăng nhập Google
     window.open("http://localhost:3000/api/users/google/login", "_self");
-  
+
     // Dùng polling để kiểm tra token trong cookie
     const checkToken = setInterval(() => {
       const token = getCookie("token"); // Hàm lấy token từ cookie
@@ -153,7 +166,7 @@ const Login = () => {
       }
     }, 500); // Kiểm tra mỗi 500ms
   };
-  
+
   // Hàm để lấy cookie theo tên
   const getCookie = (name) => {
     const value = `; ${document.cookie}`;
@@ -176,20 +189,19 @@ const Login = () => {
                 {/* 
               login with gg */}
                 <div className="flex justify-center mt-4 mb-4">
-                <button
-                  className="flex items-center px-4 py-2 border rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
-                  onClick={handleGoogleLogin}
-                >
-                  <img
-                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQb3JJON85iCMGiuY2-fwef-kegI10la8ClXg&s"
-                    alt="Google Logo"
-                    className="w-5 h-5 mr-2"
-                  />
-                  Sign in with Google
-                </button>
+                  <button
+                    className="flex items-center px-4 py-2 border rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
+                    onClick={handleGoogleLogin}
+                  >
+                    <img
+                      src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQb3JJON85iCMGiuY2-fwef-kegI10la8ClXg&s"
+                      alt="Google Logo"
+                      className="w-5 h-5 mr-2"
+                    />
+                    Sign in with Google
+                  </button>
                 </div>
-                
-               
+
                 {/* 
               login with gg */}
               </div>
