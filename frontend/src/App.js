@@ -1,11 +1,12 @@
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes,useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import Login from "./components/authentication/Login";
 import UploadTutorCertificate from "./components/tutors/UploadTutorCertificate";
 import Signup from "./components/authentication/Signup";
 import ForgetPassword from "./components/authentication/ForgetPassword";
 import UserProfile from "./components/students/UserProfile";
 import ViewCourseList from "./components/students/ViewCourseList";
-import HomeScreen from "./components/students/HomeScreen";
+import CourseList from "./components/students/CourseList";
 import CourseDetail from "./components/students/CourseDetail";
 import Cart from "./components/students/Cart";
 import UpdateProfile from "./components/students/UpdateProfile";
@@ -38,8 +39,13 @@ import Certificate from "./components/students/Certificate";
 import RequestList from "./components/admins/RequestList";
 import UpdateExam from "./components/tutors/exam/UpdateExam";
 import WalletStudent from "./components/students/wallet/WalletStudent";
+import ActivitiesHistory from "./components/admins/ActivitiesHistory";
+import BuyerHistory from "./components/admins/BuyerHistory";
+import StatisticForTutor from "./components/tutors/StatisticForTutor";
+
 import Introduce from "./components/Introduce";
 import DepositHistory from "./components/students/wallet/DepositHistory";
+import HomeScreen from "./components/HomeScreen";
 function App() {
   return (
     <div className="bg-white dark:bg-black w-screen h-screen">
@@ -57,7 +63,7 @@ function App() {
                 {" "}
                 {/* Chiếm phần còn lại */}
                 <Routes>
-                  <Route path="/introduce" element={<Introduce />} />
+                  <Route path="/" element={<HomeScreen />} />
                   <Route path="/login" element={<Login />} />
                   <Route
                     path="/uploadtutorcertificate/:userId"
@@ -74,7 +80,7 @@ function App() {
                     path="/courses-list-tutor"
                     element={<CourseListForTutor />}
                   />
-                  <Route path="/homescreen" element={<HomeScreen />} />
+                  <Route path="/course-list" element={<CourseList />} />
                   <Route path="/coursedetail/:id" element={<CourseDetail />} />
                   <Route path="/createcourse" element={<CreateCourse />} />
                   <Route path="/cart" element={<Cart />} />
@@ -160,6 +166,24 @@ function App() {
                   <Route
                     path="/manage-request-list"
                     element={<RequestList />}
+                  />
+                    <Route
+                    path="/activities-history-list"
+                    element={<ActivitiesHistory />}
+                  />
+                       <Route
+                    path="/buyer-history-list"
+                    element={<BuyerHistory />}
+                  />
+
+<Route
+                    path="/statistic-tutor"
+                    element={<StatisticForTutor />}
+                  />
+
+<Route
+                    path="/"
+                    element={<HomeScreen />}
                   />
                 </Routes>
               </div>
