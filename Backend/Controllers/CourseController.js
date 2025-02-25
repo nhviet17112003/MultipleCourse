@@ -531,7 +531,7 @@ exports.getTop5Tutor = async (req, res) => {
       {
         $match: {
           status: true,
-          ating: { $ne: null },
+          rating: { $ne: null },
         },
       },
       {

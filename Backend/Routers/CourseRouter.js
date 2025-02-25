@@ -98,4 +98,5 @@ router.get(
 
 //5 tutor có sức ảnh hưởng nhất
 router.get("/top-tutors", cors.corsWithOptions, courseController.getTop5Tutor);
+
 module.exports = router;
