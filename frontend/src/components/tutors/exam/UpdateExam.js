@@ -11,8 +11,23 @@ const UpdateExam = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [errorMessages, setErrorMessages] = useState({});
 
   const token = localStorage.getItem("authToken");
+
+  const handleQuestionTypeChange = (qIndex) => {
+    setExam((prevExam) => {
+      const updatedQuestions = [...prevExam.questions];
+      updatedQuestions[qIndex].answers = updatedQuestions[qIndex].answers.map(
+        (answer) => ({
+          ...answer,
+          isCorrect: false,
+        })
+      );
+      return { ...prevExam, questions: updatedQuestions };
+    });
+  };
+
   useEffect(() => {
     if (exam) {
       const totalMark = exam.questions.reduce(
@@ -92,6 +107,48 @@ const UpdateExam = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const newErrorMessages = {};
+
+    if (!exam.title.trim()) {
+      newErrorMessages.title = "Title cannot be empty!";
+    }
+
+    if (!exam.totalMark || exam.totalMark <= 0) {
+      newErrorMessages.totalMark = "Total Mark must be greater than zero!";
+    }
+
+    if (!exam.duration || exam.duration <= 0) {
+      newErrorMessages.duration = "Duration must be greater than zero!";
+    }
+
+    const isValidQuestions = exam.questions.every((q, index) => {
+      const hasCorrectAnswer = q.answers.some((a) => a.isCorrect);
+      if (!q.marks) {
+        newErrorMessages[`marks_${index}`] = "Marks cannot be empty!";
+      }
+      if (!q.question.trim()) {
+        newErrorMessages[`question_${index}`] = "Question cannot be empty!";
+      }
+      if (!hasCorrectAnswer) {
+        newErrorMessages[`answers_${index}`] =
+          "Each question must have at least one correct answer!";
+      }
+
+      q.answers.forEach((a, aIndex) => {
+        if (!a.answer.trim()) {
+          newErrorMessages[`answer_${index}_${aIndex}`] =
+            "Answer cannot be empty!";
+        }
+      });
+      return hasCorrectAnswer && q.marks && q.question.trim();
+    });
+
+    setErrorMessages(newErrorMessages);
+
+    if (Object.keys(newErrorMessages).length > 0) {
+      return;
+    }
+
     console.log("Submitting exam data:", exam);
     const updatedExam = {
       ...exam,
@@ -101,19 +158,6 @@ const UpdateExam = () => {
         marks: Number(q.marks),
       })),
     };
-
-    const handleAddQuestion = () => {
-      setExam((prevExam) => {
-        const newQuestion = {
-          question: "",
-          marks: 0,
-          answers: [{ answer: "", isCorrect: false }],
-        };
-        return { ...prevExam, questions: [...prevExam.questions, newQuestion] };
-      });
-    };
-
-    console.log("Submitting exam data:", updatedExam);
 
     try {
       await axios.put(
@@ -142,19 +186,19 @@ const UpdateExam = () => {
   const handleAddAnswer = useCallback((qIndex) => {
     console.log("Adding answer to question:", qIndex);
     setExam((prevExam) => {
-      const updatedQuestions = [...prevExam.questions];
-      const currentQuestionType = updatedQuestions[qIndex].questionType;
-      if (currentQuestionType === "One Choice") {
-        const existingCorrectAnswer = updatedQuestions[qIndex].answers.find(
-          (answer) => answer.isCorrect
-        );
-        if (existingCorrectAnswer) {
-          alert("One Choice question can only have one correct answer.");
-          return { ...prevExam };
-        }
-      }
-      updatedQuestions[qIndex].answers.push({ answer: "", isCorrect: false });
-      return { ...prevExam, questions: updatedQuestions };
+      if (!prevExam || !prevExam.questions) return prevExam;
+
+      return {
+        ...prevExam,
+        questions: prevExam.questions.map((q, index) =>
+          index === qIndex
+            ? {
+                ...q,
+                answers: [...q.answers, { answer: "", isCorrect: false }],
+              }
+            : q
+        ),
+      };
     });
   }, []);
 
@@ -179,6 +223,9 @@ const UpdateExam = () => {
             onChange={(e) => setExam({ ...exam, title: e.target.value })}
             className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400"
           />
+          {errorMessages.title && (
+            <p className="text-red-500 text-sm mt-1">{errorMessages.title}</p>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -205,6 +252,11 @@ const UpdateExam = () => {
               onChange={(e) => setExam({ ...exam, duration: e.target.value })}
               className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400"
             />
+            {errorMessages.duration && (
+              <p className="text-red-500 text-sm mt-1">
+                {errorMessages.duration}
+              </p>
+            )}
           </div>
         </div>
 
@@ -223,7 +275,7 @@ const UpdateExam = () => {
 
             <div>
               <label className="block text-gray-700 font-medium mb-2">
-                Question:
+                Question {qIndex + 1}:
               </label>
               <input
                 type="text"
@@ -233,6 +285,16 @@ const UpdateExam = () => {
                 className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400"
               />
             </div>
+            {errorMessages[`question_${qIndex}`] && (
+              <p className="text-red-500 text-sm mt-1">
+                {errorMessages[`question_${qIndex}`]}
+              </p>
+            )}
+            {errorMessages[`marks_${qIndex}`] && (
+              <p className="text-red-500 text-sm mt-1">
+                {errorMessages[`marks_${qIndex}`]}
+              </p>
+            )}
 
             <div className="mt-3">
               <label className="block text-gray-700 font-regular mb-2">
@@ -241,7 +303,10 @@ const UpdateExam = () => {
               <select
                 name="questionType"
                 value={question.questionType}
-                onChange={(e) => handleChange(e, qIndex)}
+                onChange={(e) => {
+                  handleChange(e, qIndex);
+                  handleQuestionTypeChange(qIndex);
+                }}
                 className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400"
               >
                 <option value="One Choice">One Choice</option>
@@ -290,12 +355,25 @@ const UpdateExam = () => {
                 >
                   <FaTrash size={16} />
                 </button>
+                {errorMessages[`answer_${qIndex}_${aIndex}`] && (
+                  <p className="text-red-500 text-sm">
+                    {errorMessages[`answer_${qIndex}_${aIndex}`]}
+                  </p>
+                )}
               </div>
             ))}
+            {errorMessages[`answers_${qIndex}`] && (
+              <p className="text-red-500 text-sm mt-1">
+                {errorMessages[`answers_${qIndex}`]}
+              </p>
+            )}
 
             <button
               type="button"
-              onClick={() => handleAddAnswer(qIndex)}
+              onClick={() => {
+                console.log("Button clicked"); // Debug
+                handleAddAnswer(qIndex);
+              }}
               className="mt-3 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
             >
               Add Answer
