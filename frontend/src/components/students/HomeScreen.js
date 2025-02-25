@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Spin } from "antd";
 import { FaShoppingCart } from "react-icons/fa";
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer, toast } from "react-toastify";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
-import 'react-toastify/dist/ReactToastify.css';
+import "react-toastify/dist/ReactToastify.css";
 const HomeScreen = () => {
   const navigate = useNavigate();
   const [spinning, setSpinning] = useState(false);
@@ -44,8 +44,17 @@ const HomeScreen = () => {
         setLoading(true);
         console.log("Fetching courses...");
 
+        const authToken = localStorage.getItem("authToken");
+
         const coursesResponse = await fetch(
-          "http://localhost:3000/api/courses/active-courses"
+          "http://localhost:3000/api/courses/active-courses",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${authToken}`,
+            },
+          }
         );
         const coursesData = await coursesResponse.json();
 
@@ -55,45 +64,7 @@ const HomeScreen = () => {
           console.error("Error fetching courses:", coursesData.message);
           return;
         }
-
-        console.log("Fetching orders...");
-
-        const authToken = localStorage.getItem("authToken");
-        const ordersResponse = await fetch(
-          "http://localhost:3000/api/orders/my-orders",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${authToken}`,
-            },
-          }
-        );
-
-        const ordersData = await ordersResponse.json();
-        console.log("Orders data received:", ordersData);
-
-        if (!ordersResponse.ok) {
-          console.error("Error fetching orders:", ordersData.message);
-          return;
-        }
-
-        const purchasedCourseIds = new Set(
-          ordersData
-            .filter((order) => order.status === "Success")
-            .flatMap((order) =>
-              order.order_items.map((item) => item.course._id)
-            )
-        );
-
-        console.log("Purchased course IDs:", purchasedCourseIds);
-
-        const filteredCourses = coursesData.filter(
-          (course) => !purchasedCourseIds.has(course._id)
-        );
-
-        console.log("Filtered courses:", filteredCourses);
-        setCourses(filteredCourses);
+        setCourses(coursesData);
 
         const uniqueTutorIds = [
           ...new Set(filteredCourses.map((course) => course.tutorId)),
@@ -185,7 +156,7 @@ const HomeScreen = () => {
       });
     }
   };
- 
+
   const filteredCourses = courses
     .filter((course) => {
       const titleMatch = course.title
@@ -206,120 +177,119 @@ const HomeScreen = () => {
     });
 
   return (
-<div className="min-h-screen bg-gray-100">
-  <Spin spinning={spinning} fullscreen />
+    <div className="min-h-screen bg-gray-100">
+      <Spin spinning={spinning} fullscreen />
 
-  <ToastContainer />
-      
-  <main className="container mx-auto px-4 py-8">
-    <div className="mb-6 bg-white p-6 rounded-lg shadow-md">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex-1">
-          <input
-            type="text"
-            placeholder="🔍 Search by course or tutor name..."
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-          />
-        </div>
-        <div className="w-32">
-          <select
-            value={sortOption}
-            onChange={(e) => setSortOption(e.target.value)}
-            className="w-full p-3 text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-          >
-            <option value="default">Sort by</option>
-            <option value="asc">Price Low to High</option>
-            <option value="desc">Price High to Low</option>
-          </select>
-        </div>
-        <div className="w-32">
-          <select
-            value={ratingFilter}
-            onChange={(e) => setRatingFilter(Number(e.target.value))}
-            className="w-full p-3 text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-          >
-            <option value={0}>All Ratings</option>
-            {[1, 2, 3, 4, 5].map((rating) => (
-              <option key={rating} value={rating}>
-                {Array.from({ length: rating }).map((_, idx) => (
-                  <span key={idx}>★</span>
-                ))}{" "}
-                {rating} Star{rating > 1 ? "s" : ""}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex-1">
-          <p className="text-gray-800 text-center font-semibold mb-2">
-            Price: ${priceRange[0]} - ${priceRange[1]}
-          </p>
-          <Slider
-            range
-            min={0}
-            max={1000}
-            value={priceRange}
-            onChange={(value) => setPriceRange(value)}
-            className="w-full"
-          />
-        </div>
-      </div>
-    </div>
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      {loading ? (
-        <p>Đang tải danh sách khóa học...</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredCourses.length > 0 ? (
-            filteredCourses.map((course) => (
-              <div
-                key={course._id}
-                onClick={() => handleCourseClick(course._id)}
-                className="bg-white shadow-md rounded-lg overflow-hidden"
+      <ToastContainer />
+
+      <main className="container mx-auto px-4 py-8">
+        <div className="mb-6 bg-white p-6 rounded-lg shadow-md">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex-1">
+              <input
+                type="text"
+                placeholder="🔍 Search by course or tutor name..."
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
+            <div className="w-32">
+              <select
+                value={sortOption}
+                onChange={(e) => setSortOption(e.target.value)}
+                className="w-full p-3 text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
               >
-                <img
-                  src={course.image}
-                  alt={course.title}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="p-4">
-                  <h4 className="text-lg font-semibold text-teal-600">
-                    {course.title}
-                  </h4>
-                  <p className="text-sm text-gray-500 mt-1 italic">
-                    {course.category}
-                  </p>
-                  <p className="text-sm text-gray-600 mt-2">
-                    Tutor: {course.tutor?.fullname}
-                  </p>
-                  <p className="text-gray-600 mt-2">{course.description}</p>
-                  <div className="mt-4 flex items-center justify-between">
-                    <span className="text-teal-700 font-bold">
-                      ${course.price}
-                    </span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAddToCart(course._id);
-                      }}
-                      className="bg-teal-500 text-white px-4 py-2 rounded hover:bg-teal-600"
-                    >
-                      Thêm vào giỏ
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))
+                <option value="default">Sort by</option>
+                <option value="asc">Price Low to High</option>
+                <option value="desc">Price High to Low</option>
+              </select>
+            </div>
+            <div className="w-32">
+              <select
+                value={ratingFilter}
+                onChange={(e) => setRatingFilter(Number(e.target.value))}
+                className="w-full p-3 text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+              >
+                <option value={0}>All Ratings</option>
+                {[1, 2, 3, 4, 5].map((rating) => (
+                  <option key={rating} value={rating}>
+                    {Array.from({ length: rating }).map((_, idx) => (
+                      <span key={idx}>★</span>
+                    ))}{" "}
+                    {rating} Star{rating > 1 ? "s" : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex-1">
+              <p className="text-gray-800 text-center font-semibold mb-2">
+                Price: ${priceRange[0]} - ${priceRange[1]}
+              </p>
+              <Slider
+                range
+                min={0}
+                max={1000}
+                value={priceRange}
+                onChange={(value) => setPriceRange(value)}
+                className="w-full"
+              />
+            </div>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          {loading ? (
+            <p>Đang tải danh sách khóa học...</p>
           ) : (
-            <p>There are no courses currently available.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {filteredCourses.length > 0 ? (
+                filteredCourses.map((course) => (
+                  <div
+                    key={course._id}
+                    onClick={() => handleCourseClick(course._id)}
+                    className="bg-white shadow-md rounded-lg overflow-hidden"
+                  >
+                    <img
+                      src={course.image}
+                      alt={course.title}
+                      className="w-full h-48 object-cover"
+                    />
+                    <div className="p-4">
+                      <h4 className="text-lg font-semibold text-teal-600">
+                        {course.title}
+                      </h4>
+                      <p className="text-sm text-gray-500 mt-1 italic">
+                        {course.category}
+                      </p>
+                      <p className="text-sm text-gray-600 mt-2">
+                        Tutor: {course.tutor?.fullname}
+                      </p>
+                      <p className="text-gray-600 mt-2">{course.description}</p>
+                      <div className="mt-4 flex items-center justify-between">
+                        <span className="text-teal-700 font-bold">
+                          ${course.price}
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddToCart(course._id);
+                          }}
+                          className="bg-teal-500 text-white px-4 py-2 rounded hover:bg-teal-600"
+                        >
+                          Thêm vào giỏ
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p>There are no courses currently available.</p>
+              )}
+            </div>
           )}
         </div>
-      )}
+      </main>
     </div>
-  </main>
-</div>
-
   );
 };
 

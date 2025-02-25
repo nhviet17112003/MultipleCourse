@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css'; 
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const Cart = () => {
@@ -86,14 +86,9 @@ const Cart = () => {
   };
 
   const handlePayment = async () => {
-    if (!cartId) {
-      alert("Giỏ hàng không hợp lệ!");
-      return;
-    }
-
     try {
       const response = await fetch(
-        `http://localhost:3000/api/payment/create-payment/${cartId}`,
+        `http://localhost:3000/api/orders/create-order/${cartId}`,
         {
           method: "POST",
           headers: {
@@ -103,40 +98,24 @@ const Cart = () => {
         }
       );
 
-      // Kiểm tra xem phản hồi có phải là một URL không
-      const contentType = response.headers.get("Content-Type");
-      let data = null;
-
-      if (contentType && contentType.includes("application/json")) {
-        data = await response.json(); // Nếu là JSON, xử lý như trước
-      } else {
-        const text = await response.text(); // Nếu không phải JSON, đọc như text
-        console.log("Response không phải JSON:", text);
-
-        // Kiểm tra nếu phản hồi chứa một URL thanh toán
-        if (text && text.startsWith("http")) {
-          // Mở link thanh toán trong tab mới
-          window.open(text, "_blank");
-        } else {
-          alert("Lỗi: Dữ liệu trả về không phải một URL hợp lệ.");
-        }
-        return;
-      }
-
       if (response.ok) {
-        console.log("Thanh toán thành công:", data);
-        // Điều hướng tới trang thanh toán thành công hoặc trang khác nếu cần
-        // navigate("/payment-success");
+        const data = await response.json();
+        console.log("Đơn hàng đã được tạo thành công:", data);
+        toast.success("Thanh toán thành công!");
+        navigate("/");
       } else {
-        console.error("Lỗi khi thanh toán:", data.message || "Không rõ lỗi");
-        alert(data.message || "Có lỗi xảy ra trong quá trình thanh toán.");
+        const errorData = await response.json();
+        console.error(
+          "Lỗi khi tạo đơn hàng:",
+          errorData.message || "Không rõ lỗi"
+        );
+        toast.error("Thanh toán thất bại!");
       }
     } catch (error) {
-      console.error("Lỗi khi gọi API thanh toán:", error);
-      alert("Có lỗi xảy ra khi gọi API thanh toán.");
+      console.error("Lỗi khi tạo đơn hàng:", error);
+      toast.error("Thanh toán thất bại!");
     }
   };
-
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="container mx-auto px-4 py-8">
