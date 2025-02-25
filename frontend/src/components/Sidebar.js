@@ -40,9 +40,10 @@ function Sidebar() {
     items = [
       {
         key: "sub1",
-        label: "Student Navigation",
+        label: "Student Navigation" ,
         icon: <MailOutlined />,
         children: [
+          { key: "24", label: <Link to="/course-list">Courses List</Link> },
           { key: "1", label: <Link to="/my-courses">My Courses</Link> },
           {
             key: "2",
@@ -53,7 +54,12 @@ function Sidebar() {
             key: "4",
             label: <Link to="/deposit-history">Deposit History</Link>,
           },
+
           { key: "22", label: <Link to="/wallet">My Wallet</Link> },
+          {
+            key: "23",
+            label: <Link to="/withdrawal-history">Withdrawal History</Link>,
+          },
         ],
       },
     ];
@@ -141,6 +147,14 @@ function Sidebar() {
           },
           {
             key: "20",
+            label: <Link to="/activities-history-list">Activities History</Link>,
+          },
+          {
+            key: "21",
+            label: <Link to="/buyer-history-list">Buyer History</Link>,
+          },
+          {
+            key: "22",
             label: <Link to="/statistic-for-admin">Statistics</Link>,
           },
         ],
