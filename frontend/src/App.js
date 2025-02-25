@@ -38,6 +38,9 @@ import Certificate from "./components/students/Certificate";
 import RequestList from "./components/admins/RequestList";
 import UpdateExam from "./components/tutors/exam/UpdateExam";
 import WalletStudent from "./components/students/wallet/WalletStudent";
+import ActivitiesHistory from "./components/admins/ActivitiesHistory";
+import BuyerHistory from "./components/admins/BuyerHistory";
+import StatisticForTutor from "./components/tutors/StatisticForTutor";
 
 function App() {
   return (
@@ -160,6 +163,19 @@ function App() {
                   <Route
                     path="/manage-request-list"
                     element={<RequestList />}
+                  />
+                    <Route
+                    path="/activities-history-list"
+                    element={<ActivitiesHistory />}
+                  />
+                       <Route
+                    path="/buyer-history-list"
+                    element={<BuyerHistory />}
+                  />
+
+<Route
+                    path="/statistic-tutor"
+                    element={<StatisticForTutor />}
                   />
                 </Routes>
               </div>

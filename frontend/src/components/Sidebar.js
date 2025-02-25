@@ -136,6 +136,14 @@ function Sidebar() {
           },
           {
             key: "20",
+            label: <Link to="/activities-history-list">Activities History</Link>,
+          },
+          {
+            key: "21",
+            label: <Link to="/buyer-history-list">Buyer History</Link>,
+          },
+          {
+            key: "22",
             label: <Link to="/statistic-for-admin">Statistics</Link>,
           },
         ],
