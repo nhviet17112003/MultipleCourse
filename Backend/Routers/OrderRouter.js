@@ -66,4 +66,35 @@ router.get(
   orderController.getCourseSalesCountById
 );
 
+router.get(
+  "/total-earning",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  auth.verifyTutor,
+  orderController.getTotalEarningForTutorById
+);
+
+router.get(
+  "/total-earning-from-course",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  auth.verifyTutor,
+  orderController.getTotalIncomeFromEachCourse
+);
+
+router.get(
+  "/all-purchase-course",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  auth.verifyAdmin,
+  orderController.getAllPurchasedCoursesWithUsers
+);
+
+router.get(
+  "/course-member",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  auth.verifyTutor,
+  orderController.getCourseMembersForTutor
+);
 module.exports = router;
