@@ -7,6 +7,7 @@ import {
   UserOutlined,
   LogoutOutlined,
   SearchOutlined,
+  CartOutlined,
 } from "@ant-design/icons";
 import Cookies from "js-cookie";
 
@@ -22,6 +23,30 @@ const Navbar = () => {
   const [filteredCourses, setFilteredCourses] = useState([]); // Mảng khóa học sau khi lọc
   const [showDropdown, setShowDropdown] = useState(false);
   const location = useLocation();
+  const [balance, setBalance] = useState(0);
+  const role = localStorage.getItem("role");
+
+  useEffect(() => {
+    const fetchBalance = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        const response = await axios.get(
+          "http://localhost:3000/api/wallet/show-balance",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        console.log("Phản hồi từ API:", response.data); // Thêm log ở đây
+        setBalance(response.data.current_balance);
+      } catch (error) {
+        console.error("Lỗi khi lấy balance:", error);
+      }
+    };
+    fetchBalance();
+  }, []);
+
   useEffect(() => {
     let token = localStorage.getItem("authToken");
 
@@ -32,7 +57,7 @@ const Navbar = () => {
       }
     }
 
-    const protectedRoutes = ["/", "/userprofile", "/cart"];
+    const protectedRoutes = ["/userprofile", "/cart"];
     if (protectedRoutes.includes(location.pathname) && !token) {
       navigate("/login"); // Chuyển hướng nếu không có token
     } else {
@@ -224,27 +249,46 @@ const Navbar = () => {
             onMouseEnter={() => setShowDropdown(true)}
             onMouseLeave={() => setShowDropdown(false)}
           >
-            <img
-              src={userData?.avatar || avatarUrl}
-              alt="Avatar"
-              className="w-10 h-10 rounded-full cursor-pointer border-2 border-white"
-            />
+            <div className="flex items-center">
+              {role !== "Admin" && (
+                <div className="flex items-center text-gray-700 px-2 mr-2 py-2 ">
+                  <span className="mr-1 text-lg font-medium">
+                    Current Balance:
+                  </span>
+                  <span className="text-blue-700 font-bold text-xl">
+                    {balance ?? "0"}
+                  </span>
+                  <Button
+                    type="primary"
+                    className="ml-2"
+                    onClick={() => navigate("/deposit")}
+                  >
+                    Deposit
+                  </Button>
+                </div>
+              )}
+              <img
+                src={userData?.avatar || avatarUrl}
+                alt="Avatar"
+                className="w-10 h-10 rounded-full cursor-pointer border-2 border-white"
+              />
+            </div>
             {showDropdown && (
               <div className="absolute right-0 mt-0 w-48 bg-white text-teal-900 rounded-lg shadow-lg z-50 transition-opacity duration-200">
                 <div className="px-4 py-2 border-b border-gray-200 text-center">
-                  <span className="font-semibold">{fullname}</span>
+                  <span className="font-semibold">Information</span>
                 </div>
                 <button
                   className="block w-full px-4 py-2 text-left hover:bg-teal-100"
                   onClick={goToUserProfile}
                 >
-                  <UserOutlined className="mr-2" /> Profile
+                  {/* <UserOutlined className="mr-2" /> Profile */}Profile
                 </button>
                 <button
                   className="block w-full px-4 py-2 text-left hover:bg-teal-100"
                   onClick={logout}
                 >
-                  <LogoutOutlined className="mr-2" /> Logout
+                  {/* <LogoutOutlined className="mr-2" />  */}Logout
                 </button>
                 <button
                   className="block w-full px-4 py-2 text-left hover:bg-teal-100"

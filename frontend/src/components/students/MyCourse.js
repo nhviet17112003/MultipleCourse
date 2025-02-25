@@ -62,11 +62,11 @@ const MyCourses = () => {
         const ordersData = await ordersResponse.json();
         const progressData = await progressResponse.json();
 
-        const successOrders = ordersData.filter(
-          (order) => order.status.toLowerCase() === "success"
-        );
+        // const successOrders = ordersData.filter(
+        //   (order) => order.status.toLowerCase() === "success"
+        // );
 
-        setOrders(successOrders);
+        setOrders(ordersData);
         setProgressData(progressData);
       } catch (err) {
         setError("Failed to fetch orders or progress.");

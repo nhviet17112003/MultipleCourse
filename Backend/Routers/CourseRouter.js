@@ -88,4 +88,14 @@ router.put(
   auth.verifyAdmin,
   courseController.changeCourseStatus
 );
+
+//top 5 course được đánh giá cao nhất
+router.get(
+  "/top-courses",
+  cors.corsWithOptions,
+  courseController.getTop5Course
+);
+
+//5 tutor có sức ảnh hưởng nhất
+router.get("/top-tutors", cors.corsWithOptions, courseController.getTop5Tutor);
 module.exports = router;
