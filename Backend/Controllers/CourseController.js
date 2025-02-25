@@ -559,7 +559,11 @@ exports.getTop5Tutor = async (req, res) => {
       { $sort: { averageRating: -1 } }, // Sắp xếp theo rating giảm dần
       { $limit: 5 }, // Chỉ lấy top 5
       {
-        $project: { tutor: { fullname: 1 }, averageRating: 1, totalReviews: 1 },
+        $project: {
+          tutor: { fullname: 1, _id: 1 },
+          averageRating: 1,
+          totalReviews: 1,
+        },
       }, // Chỉ lấy fullname, averageRating, totalReviews
     ]);
 
