@@ -33,7 +33,7 @@ const WalletManageForAdmin = () => {
         }
       );
       setRequests(response.data.pendingRequests);
-      setFilteredRequests(response.data.pendingRequests); // Set filtered requests initially
+      setFilteredRequests(response.data.pendingRequests);
     } catch (err) {
       setError("Có lỗi xảy ra khi tải dữ liệu");
     } finally {
@@ -169,8 +169,8 @@ const WalletManageForAdmin = () => {
       render: (id) => <span>{id}</span>,
     },
     {
-      title: "Tutor Name",
-      dataIndex: "tutor",
+      title: "User Name",
+      dataIndex: "user",
       key: "tutorName",
       render: (text) => (
         <span className="font-semibold">{text ? text.fullname : ""}</span>
@@ -178,13 +178,13 @@ const WalletManageForAdmin = () => {
     },
     {
       title: "Email",
-      dataIndex: "tutor",
+      dataIndex: "user",
       key: "email",
       render: (text) => <span>{text ? text.email : ""}</span>,
     },
     {
-      title: "Tutor Phone",
-      dataIndex: "tutor",
+      title: "User Phone",
+      dataIndex: "user",
       key: "phone",
       render: (text) => <span>{text ? text.phone : ""}</span>,
     },
@@ -302,7 +302,6 @@ const WalletManageForAdmin = () => {
       >
         {modalData ? (
           <div className="space-y-6">
-            {/* Withdrawal Information */}
             <div className="text-lg font-semibold text-gray-800 space-y-2">
               <p>
                 <strong>Withdrawal ID:</strong> {modalData.withdrawal_id}
@@ -327,7 +326,6 @@ const WalletManageForAdmin = () => {
               </p>
             </div>
 
-            {/* Bank Account Information */}
             {modalData.bankAccount && modalData.bankAccount.length > 0 ? (
               <div className="bg-gray-100 p-4 rounded-lg shadow-md">
                 <h3 className="text-xl font-semibold text-gray-800 mb-4">
@@ -354,7 +352,6 @@ const WalletManageForAdmin = () => {
               </p>
             )}
 
-            {/* Action Buttons */}
             <div className="mt-6 flex justify-end space-x-3">
               {modalData.status === "Pending" ? (
                 <>

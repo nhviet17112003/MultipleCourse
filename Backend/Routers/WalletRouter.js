@@ -8,7 +8,6 @@ router.get(
   "/show-balance",
   cors.corsWithOptions,
   auth.verifyUser,
-  auth.verifyTutor,
   walletController.showBalance
 );
 
@@ -16,7 +15,6 @@ router.post(
   "/withdrawal-request",
   cors.corsWithOptions,
   auth.verifyUser,
-  auth.verifyTutor,
   walletController.withdrawRequest
 );
 
@@ -24,7 +22,6 @@ router.get(
   "/requests-history",
   cors.corsWithOptions,
   auth.verifyUser,
-  auth.verifyTutor,
   walletController.withdrawHistory
 );
 
@@ -50,5 +47,11 @@ router.put(
   auth.verifyUser,
   auth.verifyAdmin,
   walletController.rejectWithdrawRequest
+);
+router.get(
+  "/deposit-history",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  walletController.depositHistory
 );
 module.exports = router;

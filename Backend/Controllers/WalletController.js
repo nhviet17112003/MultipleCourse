@@ -1,20 +1,23 @@
 const Wallet = require("../Models/Wallet");
+const Payment = require("../Models/Payment");
 const AdminActivityHistory = require("../Models/AdminActivityHistory");
 const User = require("../Models/Users");
 const mongoose = require("mongoose");
-// Show số tiền
+
+// Show số dư tài khoản của user
 exports.showBalance = async (req, res) => {
   try {
-    const wallet = await Wallet.findOne({ tutor: req.user._id }).select(
+    const wallet = await Wallet.findOne({ user: req.user._id }).select(
       "current_balance"
     );
+
     if (!wallet) {
       return res.status(404).json({ message: "Wallet not found" });
-    } else {
-      res.status(200).json({ current_balance: wallet.current_balance });
     }
-  } catch (err) {
-    console.log(err);
+
+    res.status(200).json({ current_balance: wallet.current_balance });
+  } catch (error) {
+    console.error("Error fetching balance:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -28,8 +31,8 @@ exports.withdrawRequest = async (req, res) => {
       return res.status(400).json({ message: "Invalid withdrawal amount." });
     }
 
-    // Tìm Wallet của tutor
-    const wallet = await Wallet.findOne({ tutor: req.user._id });
+    // Tìm Wallet của user
+    const wallet = await Wallet.findOne({ user: req.user._id });
 
     if (!wallet) {
       return res.status(404).json({ message: "Wallet not found." });
@@ -71,7 +74,7 @@ exports.withdrawRequest = async (req, res) => {
 // Lịch sử rút tiền
 exports.withdrawHistory = async (req, res) => {
   try {
-    const wallet = await Wallet.findOne({ tutor: req.user._id }).select(
+    const wallet = await Wallet.findOne({ user: req.user._id }).select(
       "withdrawals"
     );
 
@@ -85,26 +88,27 @@ exports.withdrawHistory = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 // Show lệnh rút (Admin)
 exports.showAllWithdrawRequests = async (req, res) => {
   try {
     // Tìm tất cả Wallet có yêu cầu rút tiền
     const wallets = await Wallet.find()
-      .populate("tutor", "fullname email phone bankAccount") // Populate thông tin ngân hàng từ User
+      .populate("user", "fullname email phone bankAccount") // Populate thông tin ngân hàng từ User
       .select("withdrawals");
 
     // Format kết quả
     const pendingRequests = wallets.flatMap((wallet) =>
       wallet.withdrawals.map((withdrawal) => ({
         withdrawal_id: withdrawal._id,
-        tutor: {
-          fullname: wallet.tutor.fullname,
-          email: wallet.tutor.email,
-          phone: wallet.tutor.phone,
+        user: {
+          fullname: wallet.user.fullname,
+          email: wallet.user.email,
+          phone: wallet.user.phone,
         },
         amount: withdrawal.amount,
         date: withdrawal.date,
-        bank_account: wallet.tutor.bankAccount, // Thông tin ngân hàng lấy từ User
+        bank_account: wallet.user.bankAccount, // Thông tin ngân hàng lấy từ User
         status: withdrawal.status,
       }))
     );
@@ -115,6 +119,7 @@ exports.showAllWithdrawRequests = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 // Xác nhận chuyển tiền và trừ tiền vào ví (Admin)
 exports.confirmWithdrawRequest = async (req, res) => {
   try {
@@ -129,9 +134,9 @@ exports.confirmWithdrawRequest = async (req, res) => {
       return res.status(404).json({ message: "Wallet not found" });
     }
 
-    const tutor = await User.findById(wallet.tutor);
-    if (!tutor) {
-      return res.status(404).json({ message: "Tutor not found" });
+    const user = await User.findById(wallet.user);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
     // Tìm lệnh rút trong wallet
@@ -147,9 +152,9 @@ exports.confirmWithdrawRequest = async (req, res) => {
         .json({ message: "Withdrawal request already completed" });
     }
 
-    // Cập nhật trạng thái lệnh rút và trừ tiền từ ví của tutor
+    // Cập nhật trạng thái lệnh rút và trừ tiền từ ví của user
     withdrawal.status = "Approved";
-    wallet.current_balance -= withdrawal.amount; // Trừ tiền vào ví của tutor
+    wallet.current_balance -= withdrawal.amount; // Trừ tiền vào ví của user
     // Chỉ cộng vào `total_withdrawal` khi lệnh rút được duyệt
     wallet.total_withdrawal =
       (wallet.total_withdrawal || 0) + withdrawal.amount;
@@ -157,7 +162,7 @@ exports.confirmWithdrawRequest = async (req, res) => {
     // Lưu lại lịch sử hoạt động của admin
     const adminActivity = new AdminActivityHistory({
       admin: req.user._id,
-      description: `Approved withdrawal request of ${withdrawal.amount} VND for tutor ${tutor.fullname}`,
+      description: `Approved withdrawal request of ${withdrawal.amount} VND for user ${user.fullname}`,
     });
 
     await wallet.save();
@@ -185,9 +190,9 @@ exports.rejectWithdrawRequest = async (req, res) => {
       return res.status(404).json({ message: "Wallet not found" });
     }
 
-    const tutor = await User.findById(wallet.tutor);
-    if (!tutor) {
-      return res.status(404).json({ message: "Tutor not found" });
+    const user = await User.findById(wallet.user);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
     // Tìm lệnh rút trong wallet
@@ -207,7 +212,7 @@ exports.rejectWithdrawRequest = async (req, res) => {
     withdrawal.status = "Rejected";
     const adminActivity = new AdminActivityHistory({
       admin: req.user._id,
-      description: `Rejected withdrawal request of ${withdrawal.amount} VND for tutor ${tutor.fullname}`,
+      description: `Rejected withdrawal request of ${withdrawal.amount} VND for user ${user.fullname}`,
     });
 
     await wallet.save();
@@ -218,6 +223,29 @@ exports.rejectWithdrawRequest = async (req, res) => {
       .json({ message: "Withdrawal request rejected successfully." });
   } catch (err) {
     console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Show lịch sử nạp tiền vào ví
+exports.depositHistory = async (req, res) => {
+  try {
+    // Tìm ví của user
+    const wallet = await Wallet.findOne({ user: req.user._id });
+
+    if (!wallet) {
+      return res.status(404).json({ message: "Wallet not found" });
+    }
+
+    // Lấy danh sách giao dịch nạp tiền (payment_status: "Paid")
+    const deposits = await Payment.find({
+      wallet: wallet._id,
+      payment_status: "Paid",
+    }).select("order_code payment_amount payment_date description");
+
+    res.status(200).json({ deposits });
+  } catch (err) {
+    console.error("Error fetching deposit history:", err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
