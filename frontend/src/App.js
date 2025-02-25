@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes,useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import Login from "./components/authentication/Login";
 import UploadTutorCertificate from "./components/tutors/UploadTutorCertificate";
 import Signup from "./components/authentication/Signup";
@@ -57,7 +58,7 @@ function App() {
                 {" "}
                 {/* Chiếm phần còn lại */}
                 <Routes>
-                  <Route path="/introduce" element={<Introduce />} />
+                  <Route path="/" element={<HomeScreen />} />
                   <Route path="/login" element={<Login />} />
                   <Route
                     path="/uploadtutorcertificate/:userId"
