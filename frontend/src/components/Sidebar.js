@@ -54,6 +54,10 @@ function Sidebar() {
             label: <Link to="/deposit-history">Deposit History</Link>,
           },
           { key: "22", label: <Link to="/wallet">My Wallet</Link> },
+          {
+            key: "23",
+            label: <Link to="/withdrawal-history">Withdrawal History</Link>,
+          },
         ],
       },
     ];

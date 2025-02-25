@@ -1,9 +1,8 @@
-import React, { useState, useEffect,useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
 import ReCAPTCHA from "react-google-recaptcha";
-
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -45,8 +44,8 @@ const Login = () => {
 
     return "";
   };
-   // Hàm được gọi khi reCAPTCHA thay đổi (xác nhận thành công)
-   const handleCaptchaChange = (value) => {
+  // Hàm được gọi khi reCAPTCHA thay đổi (xác nhận thành công)
+  const handleCaptchaChange = (value) => {
     console.log("Captcha value:", value);
     setCaptchaValue(value);
   };
@@ -58,11 +57,11 @@ const Login = () => {
       setError(usernameError);
       return;
     }
-  // Kiểm tra captcha trước
-  if (!captchaValue) {
-    setError("Vui lòng xác nhận reCAPTCHA.");
-    return;
-  }
+    // Kiểm tra captcha trước
+    if (!captchaValue) {
+      setError("Vui lòng xác nhận reCAPTCHA.");
+      return;
+    }
     // Kiểm tra Password
     const passwordError = validatePassword(password);
     if (passwordError) {
@@ -87,7 +86,7 @@ const Login = () => {
     try {
       const response = await axios.post(
         "http://localhost:3000/api/users/login",
-        { username, password,captcha: captchaValue }
+        { username, password, captcha: captchaValue }
       );
 
       if (response.status === 200) {
@@ -103,8 +102,6 @@ const Login = () => {
 
         if (role.toLowerCase() === "tutor") {
           localStorage.setItem("role", role);
-
-
         } else localStorage.setItem("role", role);
         console.log(role);
 
@@ -138,11 +135,11 @@ const Login = () => {
   const handleSignUpForTutor = () => {
     navigate("/signup", { state: { role: "Tutor" } });
   };
- 
+
   const handleGoogleLogin = () => {
     // Mở trang đăng nhập Google
     window.open("http://localhost:3000/api/users/google/login", "_self");
-  
+
     // Dùng polling để kiểm tra token trong cookie
     const checkToken = setInterval(() => {
       const token = getCookie("token"); // Hàm lấy token từ cookie
@@ -153,7 +150,7 @@ const Login = () => {
       }
     }, 500); // Kiểm tra mỗi 500ms
   };
-  
+
   // Hàm để lấy cookie theo tên
   const getCookie = (name) => {
     const value = `; ${document.cookie}`;
@@ -176,20 +173,19 @@ const Login = () => {
                 {/* 
               login with gg */}
                 <div className="flex justify-center mt-4 mb-4">
-                <button
-                  className="flex items-center px-4 py-2 border rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
-                  onClick={handleGoogleLogin}
-                >
-                  <img
-                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQb3JJON85iCMGiuY2-fwef-kegI10la8ClXg&s"
-                    alt="Google Logo"
-                    className="w-5 h-5 mr-2"
-                  />
-                  Sign in with Google
-                </button>
+                  <button
+                    className="flex items-center px-4 py-2 border rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
+                    onClick={handleGoogleLogin}
+                  >
+                    <img
+                      src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQb3JJON85iCMGiuY2-fwef-kegI10la8ClXg&s"
+                      alt="Google Logo"
+                      className="w-5 h-5 mr-2"
+                    />
+                    Sign in with Google
+                  </button>
                 </div>
-                
-               
+
                 {/* 
               login with gg */}
               </div>
