@@ -1,6 +1,7 @@
 const Course = require("../Models/Courses");
 const Lesson = require("../Models/Lessons");
 const Request = require("../Models/Requests");
+const Order = require("../Models/Orders");
 const AdminActivityHistory = require("../Models/AdminActivityHistory");
 const multer = require("multer");
 const admin = require("firebase-admin");
@@ -568,6 +569,43 @@ exports.getTop5Tutor = async (req, res) => {
     ]);
 
     res.status(200).json(top5Tutors);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+//top 5 courses bán chạy
+exports.getTop5BestSeller = async (req, res) => {
+  try {
+    const top5BestSeller = await Order.aggregate([
+      { $unwind: "$order_items" },
+      {
+        $group: {
+          _id: "$order_items.course",
+          totalSold: { $sum: 1 }, // Đếm số lượng bán
+        },
+      },
+      { $sort: { totalSold: -1 } }, // Sắp xếp theo số lượng bán giảm dần
+      { $limit: 5 }, // Chỉ lấy top 5
+      {
+        $lookup: {
+          from: "courses",
+          localField: "_id",
+          foreignField: "_id",
+          as: "course",
+        },
+      },
+      { $unwind: "$course" }, //chuyển từ mảng thành object
+      { $match: { "course.status": true } }, // Lọc chỉ lấy khóa học có status = true
+      {
+        $project: {
+          "course.comments": 0,
+        },
+      },
+    ]);
+
+    res.status(200).json(top5BestSeller);
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Internal Server Error" });
