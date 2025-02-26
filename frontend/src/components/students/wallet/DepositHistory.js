@@ -161,12 +161,10 @@ const DepositHistory = () => {
         </table>
       </div>
 
-      {/* 🔢 Hiển thị tổng tiền */}
       <div className="mt-4 text-xl font-bold text-right text-gray-700">
-        Tổng tiền: <span className="text-blue-600">{totalPaymentAmount}</span>
+        Total: <span className="text-blue-600">{totalPaymentAmount}</span>
       </div>
 
-      {/* 🔀 Phân trang */}
       <div className="flex justify-center mt-4 space-x-2">
         {Array.from({ length: totalPages }, (_, i) => (
           <button

@@ -54,8 +54,8 @@ const WalletStudent = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-100">
-      <div className="bg-white p-6 rounded-lg shadow-md w-96">
+    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-100  h-screen">
+      <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-2xl">
         <h2 className="text-2xl font-bold mb-4 text-center text-blue-500">
           Deposit money into wallet
         </h2>
@@ -65,12 +65,50 @@ const WalletStudent = () => {
             value={amount}
             onChange={(e) => setAmount(Number(e.target.value))}
             className="w-full p-2 border border-gray-300 rounded-md mb-4"
-            placeholder="Nhập số tiền cần nạp"
+            placeholder="Enter amount.."
           />
+          <div className="flex mb-4">
+            <button
+              onClick={() => setAmount(50000)}
+              className="bg-gray-100 text-gray-600 p-2 rounded-md hover:bg-gray-200 transition duration-300 ease-in-out mr-2"
+            >
+              50.000
+            </button>
+            <button
+              onClick={() => setAmount(100000)}
+              className="bg-gray-100 text-gray-600 p-2 rounded-md hover:bg-gray-200 transition duration-300 ease-in-out mr-2"
+            >
+              100.000
+            </button>
+            <button
+              onClick={() => setAmount(200000)}
+              className="bg-gray-100 text-gray-600 p-2 rounded-md hover:bg-gray-200 transition duration-300 ease-in-out mr-2"
+            >
+              200.000
+            </button>
+            <button
+              onClick={() => setAmount(300000)}
+              className="bg-gray-100 text-gray-600 p-2 rounded-md hover:bg-gray-200 transition duration-300 ease-in-out mr-2"
+            >
+              300.000
+            </button>
+            <button
+              onClick={() => setAmount(500000)}
+              className="bg-gray-100 text-gray-600 p-2 rounded-md hover:bg-gray-200 transition duration-300 ease-in-out mr-2"
+            >
+              500.000
+            </button>
+            <button
+              onClick={() => setAmount(1000000)}
+              className="bg-gray-100 text-gray-600 p-2 rounded-md hover:bg-gray-200 transition duration-300 ease-in-out"
+            >
+              1.000.000
+            </button>
+          </div>
           <button
             onClick={handlePayment}
             disabled={loading}
-            className="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition duration-300 ease-in-out"
+            className=" bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition duration-300 ease-in-out"
           >
             {loading ? (
               <div className="flex items-center justify-center">

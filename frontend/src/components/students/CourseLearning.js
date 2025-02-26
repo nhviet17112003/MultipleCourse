@@ -533,7 +533,6 @@ const CourseLearningPage = () => {
                         Comments
                       </h3>
 
-                      {/* Form để viết comment */}
                       <div className="space-y-4">
                         <textarea
                           className="w-full p-4 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out"
@@ -558,7 +557,9 @@ const CourseLearningPage = () => {
                       currentLesson.comments.length > 0 ? (
                         currentLesson.comments.map((comment) => (
                           <div key={comment._id} className="p-4 border-b">
-                            <p className="text-sm">{comment.author}</p>
+                            <p className="text-sm  font-semibold">
+                              {comment.author}
+                            </p>
                             <p className="text-gray-700">{comment.comment}</p>
                             <div className="text-sm text-gray-500">
                               {new Date(comment.date).toLocaleString()}

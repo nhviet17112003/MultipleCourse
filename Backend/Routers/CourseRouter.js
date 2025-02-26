@@ -100,11 +100,12 @@ router.get(
 router.get("/top-tutors", cors.corsWithOptions, courseController.getTop5Tutor);
 
 
-//5 course bán chạy nhất
+//course bán chạy nhất
 router.get(
   "/best-seller",
   cors.corsWithOptions,
-  courseController.getTop5BestSeller
+  courseController.getTop1BestSeller
 );
 
 module.exports = router;
+

@@ -10,9 +10,12 @@ const PurchaseHistoryForAdmin = () => {
     const fetchOrders = async () => {
       const token = localStorage.getItem("authToken");
       try {
-        const response = await axios.get("http://localhost:3000/api/orders/all-orders", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await axios.get(
+          "http://localhost:3000/api/orders/all-orders",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         setOrders(response.data);
       } catch (err) {
         setError("Lỗi khi tải danh sách đơn hàng.");
@@ -44,16 +47,33 @@ const PurchaseHistoryForAdmin = () => {
         <tbody>
           {orders.map((order) => (
             <tr key={order._id} className="text-center">
-              <td className="border border-gray-300 p-2">{order.user?.name || "N/A"}</td>
-              <td className="border border-gray-300 p-2">{order.user?.email || "N/A"}</td>
               <td className="border border-gray-300 p-2">
-                {order.order_items.map((item) => item.course?.title).join(", ") || "N/A"}
+                {order.user?.fullname || "N/A"}
               </td>
-              <td className="border border-gray-300 p-2">{order.total_price.toLocaleString()} VNĐ</td>
-              <td className="border border-gray-300 p-2">{new Date(order.order_date).toLocaleDateString()}</td>
-              <td className={`border border-gray-300 p-2 font-bold 
-                  ${order.status === "Success" ? "text-green-600" : 
-                    order.status === "Failed" ? "text-red-600" : "text-yellow-600"}`}>
+              <td className="border border-gray-300 p-2">
+                {order.user?.email || "N/A"}
+              </td>
+              <td className="border border-gray-300 p-2">
+                {order.order_items
+                  .map((item) => item.course?.title)
+                  .join(", ") || "N/A"}
+              </td>
+              <td className="border border-gray-300 p-2">
+                {order.total_price.toLocaleString()} VNĐ
+              </td>
+              <td className="border border-gray-300 p-2">
+                {new Date(order.order_date).toLocaleDateString()}
+              </td>
+              <td
+                className={`border border-gray-300 p-2 font-bold 
+                  ${
+                    order.status === "Success"
+                      ? "text-green-600"
+                      : order.status === "Failed"
+                      ? "text-red-600"
+                      : "text-yellow-600"
+                  }`}
+              >
                 {order.status}
               </td>
             </tr>

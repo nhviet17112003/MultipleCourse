@@ -129,9 +129,7 @@ exports.getAllLessons = async (req, res) => {
 exports.getLessonById = async (req, res) => {
   try {
     const lesson_id = req.params.lesson_id;
-    const lesson = await Lesson.findById(lesson_id)
-      .populate("tutor", "fullname")
-      .exec();
+    const lesson = await Lesson.findById(lesson_id);
     if (!lesson) {
       return res.status(404).json({ message: "Lesson not found" });
     }
@@ -285,6 +283,50 @@ exports.updateLesson = async (req, res) => {
       await lesson.save();
       res.status(200).json({ message: "Lesson updated successfully", lesson });
     });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.deleteLesson = async (req, res) => {
+  try {
+    const lesson_id = req.params.lesson_id;
+    const lesson = await Lesson.findById(lesson_id);
+    if (!lesson) {
+      return res.status(404).json({ message: "Lesson not found" });
+    }
+
+    const course_id = lesson.course_id;
+    const course = await Course.findOne({
+      _id: course_id,
+      tutor: req.user._id,
+    });
+    if (!course) {
+      return res
+        .status(404)
+        .json({ message: "You are not tutor of this course" });
+    }
+
+    const bucket = admin.storage().bucket();
+    const videoPath = lesson.video_url.split("firebasestorage.app/")[1];
+    const documentPath = lesson.document_url.split("firebasestorage.app/")[1];
+
+    await bucket
+      .file(videoPath)
+      .delete()
+      .catch((err) => {
+        console.log("Error deleting old video:", err);
+      });
+    await bucket
+      .file(documentPath)
+      .delete()
+      .catch((err) => {
+        console.log("Error deleting old document:", err);
+      });
+    await lesson.deleteOne();
+
+    res.json({ message: "Lesson deleted successfully" });
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Internal Server Error" });
