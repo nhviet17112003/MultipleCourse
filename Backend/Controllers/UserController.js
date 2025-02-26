@@ -488,8 +488,8 @@ exports.googleLogin = (req, res) => {
 };
 
 //Google login callback
-exports.googleLoginCallback = (req, res, next) => {
-  passport.authenticate("google", (err, user, info) => {
+exports.googleLoginCallback = async (req, res, next) => {
+  passport.authenticate("google", async (err, user, info) => {
     if (err) {
       return next(err);
     }
@@ -499,14 +499,14 @@ exports.googleLoginCallback = (req, res, next) => {
         .json({ success: false, message: "Authentication failed" });
     }
 
-    const existsWallet = Wallet.findOne({ user: user._id });
+    const existsWallet = await Wallet.findOne({ user: user._id });
     if (!existsWallet) {
       const wallet = new Wallet({
         user: user._id,
         total_spent: 0,
         total_deposit: 0,
       });
-      wallet.save();
+      await wallet.save();
     }
 
     var token = auth.getToken({
