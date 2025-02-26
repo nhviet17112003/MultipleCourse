@@ -119,6 +119,9 @@ const Login = () => {
         // Điều hướng dựa trên role
         if (role.toLowerCase() === "tutor") {
           navigate("/courses-list-tutor");
+        }
+          else if (role.toLowerCase() === "student") {
+            navigate("/");
         } else {
           window.location.reload(); // Reload trang nếu không phải tutor
         }
