@@ -42,7 +42,7 @@ const handleCaptchaChange = (value) => {
       setCaptchaValue(null);
       console.log("reCAPTCHA đã được reset do hết hạn timeout.");
     }
-  }, 20000); // reset sau 60 giây
+  }, 60000); // reset sau 60 giây
 };
 
 // Hàm kiểm tra Username
@@ -259,7 +259,7 @@ useEffect(() => {
                   <div className="mb-4">
                     <ReCAPTCHA
                       ref={recaptchaRef}
-                      sitekey="6Lea7t0qAAAAAKNU2SByEsAd5jsfl7cgRjgK4pYe"
+                      sitekey="6LfoC-IqAAAAAMr2bpxkSbRdBQytK_WEa4HPPhHt"
                       onChange={handleCaptchaChange}
                     />
                   </div>
