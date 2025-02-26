@@ -43,8 +43,8 @@ function Sidebar() {
         label: "Student Navigation" ,
         icon: <MailOutlined />,
         children: [
-          { key: "24", label: <Link to="/course-list">Courses List</Link> },
-          { key: "1", label: <Link to="/my-courses">My Courses</Link> },
+          { key: "1", label: <Link to="/course-list">Courses List</Link> },
+          { key: "24", label: <Link to="/my-courses">My Courses</Link> },
           {
             key: "2",
             label: <Link to="/my-certificate">My Certificates</Link>,

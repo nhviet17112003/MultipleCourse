@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, useLocation } from "react-router-dom";
 import Login from "./components/authentication/Login";
 import UploadTutorCertificate from "./components/tutors/UploadTutorCertificate";
 import Signup from "./components/authentication/Signup";
@@ -45,31 +45,44 @@ import StatisticForTutor from "./components/tutors/StatisticForTutor";
 import Introduce from "./components/Introduce";
 import DepositHistory from "./components/students/wallet/DepositHistory";
 import HomeScreen from "./components/HomeScreen";
-function App() {
+import Footer from "./components/Footer";
+
+function Layout() {
+  const location = useLocation();
+
+
+  // Danh sách các trang không hiển thị Sidebar
+  const noSidebarPages = ["/login", "/signup", "/forgetpassword", "/"];
+
+  // Kiểm tra nếu đang ở một trong các trang trên thì không hiển thị Sidebar
+  const hideSidebar = noSidebarPages.includes(location.pathname);
+
   return (
-    <div className="bg-white dark:bg-black w-screen h-screen">
-      <AuthProvider>
-        {" "}
-        {/* Bọc ứng dụng trong AuthProvider */}
-        <ThemeProvider>
-          {" "}
-          {/* Bọc ứng dụng trong ThemeProvider */}
-          <Router>
-            <Navbar />
-            <div className="flex">
-              <Sidebar className="w-1/4" /> {/* Sidebar chiếm 1/4 chiều rộng */}
-              <div className="flex-1">
-                {" "}
-                {/* Chiếm phần còn lại */}
-                <Routes>
-                  <Route path="/introduce" element={<Introduce />} />
-                  <Route path="/login" element={<Login />} />
+    <div className="bg-white dark:bg-black w-screen min-h-screen flex flex-col">
+      <Navbar />
+      
+      <div className="flex">
+        {!hideSidebar && <Sidebar className="w-1/4" />}
+        <div className="flex-1">
+          <Routes>
+         
+
+            <Route path="/" element={<HomeScreen />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/forgetpassword" element={<ForgetPassword />} />
+            <Route path="/" element={<HomeScreen />} />
+
+
+            {/* Các route khác */}
+            <Route path="/introduce" element={<Introduce />} />
+                  {/* <Route path="/login" element={<Login />} /> */}
                   <Route
                     path="/uploadtutorcertificate/:userId"
                     element={<UploadTutorCertificate />}
                   />
-                  <Route path="/signup" element={<Signup />} />
-                  <Route path="/forgetpassword" element={<ForgetPassword />} />
+                  {/* <Route path="/signup" element={<Signup />} />
+                  <Route path="/forgetpassword" element={<ForgetPassword />} /> */}
                   <Route path="/userprofile" element={<UserProfile />} />
                   <Route
                     path="/updateprofile/:id"
@@ -179,14 +192,32 @@ function App() {
                     path="/statistic-tutor"
                     element={<StatisticForTutor />}
                   />
+          </Routes>
+          
+        </div>
+        
+      </div>
 
-<Route
-                    path="/"
-                    element={<HomeScreen />}
-                  />
-                </Routes>
-              </div>
-            </div>
+    
+      <Footer />
+    </div>
+    
+  );
+}
+function App() {
+ 
+  return (
+    <div className="bg-white dark:bg-black w-screen h-screen">
+      <AuthProvider>
+        {" "}
+        {/* Bọc ứng dụng trong AuthProvider */}
+        <ThemeProvider>
+          {" "}
+          {/* Bọc ứng dụng trong ThemeProvider */}
+          <Router>
+          <Layout />
+          
+           
           </Router>
         </ThemeProvider>
       </AuthProvider>
@@ -195,3 +226,5 @@ function App() {
 }
 
 export default App;
+
+

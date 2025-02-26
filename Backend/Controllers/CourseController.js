@@ -1,6 +1,7 @@
 const Course = require("../Models/Courses");
 const Lesson = require("../Models/Lessons");
 const Request = require("../Models/Requests");
+const Order = require("../Models/Orders");
 const AdminActivityHistory = require("../Models/AdminActivityHistory");
 const multer = require("multer");
 const admin = require("firebase-admin");
@@ -529,37 +530,82 @@ exports.getTop5Tutor = async (req, res) => {
   try {
     const top5Tutors = await Course.aggregate([
       {
-        $match: {
-          status: true,
-          ating: { $ne: null },
-        },
+        $match: { status: true, "comments.0": { $exists: true } }, // Chỉ lấy khóa học có ít nhất 1 comment
+      },
+      {
+        $unwind: "$comments", // Tách từng comment thành một document riêng
+      },
+      {
+        $match: { "comments.rating": { $gte: 1, $lte: 5 } }, // Lọc các comment có rating hợp lệ
       },
       {
         $group: {
           _id: "$tutor",
-          averageRating: { $avg: "$rating" },
-          totalReviews: { $sum: 1 },
+          averageRating: { $avg: "$comments.rating" }, // Tính trung bình rating của từng tutor
+          totalReviews: { $sum: 1 }, // Đếm số lượng đánh giá
         },
       },
       {
-        $match: { totalReviews: { $gt: 0 } }, // Chỉ lấy gia sư có ít nhất 1 đánh giá
+        $match: { totalReviews: { $gt: 0 } }, // Chỉ lấy tutor có ít nhất 1 đánh giá
       },
       {
         $lookup: {
           from: "users",
-          localField: "_id", // Thay đổi field tương ứng với field id của bảng course
-          foreignField: "_id", // Thay đổi field tương ứng với field id của bảng user
+          localField: "_id",
+          foreignField: "_id",
           as: "tutor",
         },
       },
       { $unwind: "$tutor" },
-      { $sort: { averageRating: -1 } },
-      { $limit: 5 },
+      { $sort: { averageRating: -1 } }, // Sắp xếp theo rating giảm dần
+      { $limit: 5 }, // Chỉ lấy top 5
       {
-        $project: { tutor: { fullname: 1 }, averageRating: 1, totalReviews: 1 },
+        $project: {
+          tutor: { fullname: 1, _id: 1 },
+          averageRating: 1,
+          totalReviews: 1,
+        },
+      }, // Chỉ lấy fullname, averageRating, totalReviews
+    ]);
+
+    res.status(200).json(top5Tutors);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+//top 1 courses bán chạy
+exports.getTop5BestSeller = async (req, res) => {
+  try {
+    const top5BestSeller = await Order.aggregate([
+      { $unwind: "$order_items" },
+      {
+        $group: {
+          _id: "$order_items.course",
+          totalSold: { $sum: 1 }, // Đếm số lượng bán
+        },
+      },
+      { $sort: { totalSold: -1 } }, // Sắp xếp theo số lượng bán giảm dần
+      { $limit: 1 }, // Chỉ lấy top 5
+      {
+        $lookup: {
+          from: "courses",
+          localField: "_id",
+          foreignField: "_id",
+          as: "course",
+        },
+      },
+      { $unwind: "$course" }, //chuyển từ mảng thành object
+      { $match: { "course.status": true } }, // Lọc chỉ lấy khóa học có status = true
+      {
+        $project: {
+          "course.comments": 0,
+        },
       },
     ]);
-    res.status(200).json(top5Tutors);
+
+    res.status(200).json(top5BestSeller);
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Internal Server Error" });
