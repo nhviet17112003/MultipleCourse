@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState  ,useRef} from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -11,7 +11,7 @@ const UserProfile = () => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
+ const recaptchaRef = useRef(null);
   // Fetch user data
   const fetchUserProfile = async () => {
     const token = localStorage.getItem("authToken");
@@ -156,6 +156,11 @@ const UserProfile = () => {
   
       // Xóa cookie Token
       deleteCookie("Token");
+  
+      // Reset reCAPTCHA khi đăng xuất
+      if (recaptchaRef.current) {
+        recaptchaRef.current.reset();
+      }
   
       // Chuyển về trang login
       navigate("/login");
