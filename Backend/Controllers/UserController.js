@@ -109,16 +109,19 @@ exports.login = async (req, res) => {
         return res.status(400).json({ message: "Incorrect password" });
       }
 
+      
       // Tạo token
       const token = auth.getToken({ _id: user._id });
 
       // Trả về token và fullname trong phản hồi
       res.status(200).json({
         message: "Login successful",
+        user_id: user._id,
         token: token,
         fullname: user.fullname, // Thêm fullname vào đây
         role: user.role,
         status: user.status,
+        tutor_certificates: user.tutor_certificates
       });
     });
   } catch (err) {

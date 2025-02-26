@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState , useRef} from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import axios from "axios";
 import { useTheme } from "./context/ThemeContext";
@@ -10,7 +10,7 @@ import {
   CartOutlined,
 } from "@ant-design/icons";
 import Cookies from "js-cookie";
-
+import ReCAPTCHA from "react-google-recaptcha";
 const Navbar = () => {
   const navigate = useNavigate();
   const [fullname, setFullname] = useState("Người dùng");
@@ -25,7 +25,7 @@ const Navbar = () => {
   const location = useLocation();
   const [balance, setBalance] = useState(0);
   const role = localStorage.getItem("role");
-
+  const recaptchaRef = useRef(null);
   const isHome = location.pathname === "/";
 
 
@@ -153,16 +153,21 @@ const Navbar = () => {
           }
         );
       }
-
+  
       // Xóa token và thông tin trong localStorage
       localStorage.removeItem("authToken");
       localStorage.removeItem("fullname");
       localStorage.removeItem("role");
       localStorage.removeItem("avatar");
-
+  
       // Xóa cookie Token
       deleteCookie("Token");
-
+  
+      // Reset reCAPTCHA khi đăng xuất
+      if (recaptchaRef.current) {
+        recaptchaRef.current.reset();
+      }
+  
       // Chuyển về trang login
       navigate("/login");
       window.location.reload();
@@ -205,7 +210,7 @@ const Navbar = () => {
   }, []);
 
   // Danh sách các trang không muốn hiển thị Navbar
-  const hideNavbarRoutes = ["/login", "/signup"];
+  const hideNavbarRoutes = ["/login", "/signup","/uploadtutorcertificate"];
 
   // Kiểm tra nếu đường dẫn hiện tại nằm trong danh sách cần ẩn Navbar
   if (hideNavbarRoutes.includes(location.pathname)) {

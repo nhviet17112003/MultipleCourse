@@ -165,7 +165,7 @@ function Sidebar() {
     ];
   }
   // Danh sách các trang không muốn hiển thị Navbar
-  const hideNavbarRoutes = ["/login", "/signup"];
+  const hideNavbarRoutes = ["/login", "/signup","/uploadtutorcertificate"];
 
   // Kiểm tra nếu đường dẫn hiện tại nằm trong danh sách cần ẩn Navbar
   if (hideNavbarRoutes.includes(location.pathname)) {
