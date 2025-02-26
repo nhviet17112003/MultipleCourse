@@ -255,7 +255,7 @@ const CourseList = () => {
                       className="w-full h-48 object-cover"
                     />
                     <div className="p-4">
-                      <h4 className="text-lg font-semibold text-teal-600">
+                      <h4 className="text-lg font-semibold text-cyan-600">
                         {course.title}
                       </h4>
                       <p className="text-sm text-gray-500 mt-1 italic">
@@ -264,9 +264,9 @@ const CourseList = () => {
                       <p className="text-sm text-gray-600 mt-2">
                         Tutor: {course.tutor?.fullname}
                       </p>
-                      <p className="text-gray-600 mt-2">{course.description}</p>
+                      {/* <p className="text-gray-600 mt-2">{course.description}</p> */}
                       <div className="mt-4 flex items-center justify-between">
-                        <span className="text-teal-700 font-bold">
+                        <span className="text-cyan-700 font-bold">
                           ${course.price}
                         </span>
                         <button
@@ -274,7 +274,7 @@ const CourseList = () => {
                             e.stopPropagation();
                             handleAddToCart(course._id);
                           }}
-                          className="bg-teal-500 text-white px-4 py-2 rounded hover:bg-teal-600"
+                          className="bg-cyan-500 text-white px-4 py-2 rounded hover:bg-cyan-600"
                         >
                           Thêm vào giỏ
                         </button>
