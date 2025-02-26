@@ -26,7 +26,7 @@ const Login = () => {
       } else navigate("/admin");
     }
   }, [navigate]);
-
+console.log("captchaValue", captchaValue);
   // Hàm xử lý thay đổi captcha
   const handleCaptchaChange = (value) => {
     console.log("Captcha value:", value);
@@ -131,11 +131,15 @@ const Login = () => {
       setSuccessMessage("");
     } finally {
       setIsLoading(false);
-      // Reset reCAPTCHA sau mỗi lần submit
-      if (recaptchaRef.current) {
-        recaptchaRef.current.reset();
-      }
-      setCaptchaValue(null);
+
+      // trong lam laij
+
+      
+      // // Reset reCAPTCHA sau mỗi lần submit
+      // if (recaptchaRef.current) {
+      //   recaptchaRef.current.reset();
+      // }
+      // setCaptchaValue(null);
     }
   };
 
