@@ -59,7 +59,7 @@ const Navbar = () => {
 
     const protectedRoutes = ["/userprofile", "/cart"];
     if (protectedRoutes.includes(location.pathname) && !token) {
-      navigate("/login"); // Chuyển hướng nếu không có token
+      navigate("/login");
     } else {
       const savedFullname = localStorage.getItem("fullname");
       const savedAvatar = localStorage.getItem("avatar");
@@ -173,7 +173,7 @@ const Navbar = () => {
 
     if (!token) {
       setError("You are not logged in. Please log in again.");
-      navigate("/login"); // Redirect to login page
+      navigate("/login");
       return;
     }
 
@@ -186,7 +186,8 @@ const Navbar = () => {
           },
         }
       );
-      setUserData(response.data); // Save user data
+      setUserData(response.data);
+      localStorage.setItem("role", response.data.role);
       console.log("User data:", response.data);
     } catch (err) {
       setError("Your session has expired. Please log in again.");
