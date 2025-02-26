@@ -38,7 +38,7 @@ const Navbar = () => {
             },
           }
         );
-        console.log("Phản hồi từ API:", response.data); // Thêm log ở đây
+        console.log("Phản hồi từ API:", response.data);
         setBalance(response.data.current_balance);
       } catch (error) {
         console.error("Lỗi khi lấy balance:", error);

@@ -6,7 +6,7 @@ import { ToastContainer, toast } from "react-toastify";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import "react-toastify/dist/ReactToastify.css";
-const HomeScreen = () => {
+const CourseList = () => {
   const navigate = useNavigate();
   const [spinning, setSpinning] = useState(false);
   const [percent, setPercent] = useState(0);
@@ -22,21 +22,21 @@ const HomeScreen = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  useEffect(() => {
-    setSpinning(true);
-    let ptg = -10;
-    const interval = setInterval(() => {
-      ptg += 5;
-      setPercent(ptg);
-      if (ptg > 120) {
-        clearInterval(interval);
-        setSpinning(false);
-        setPercent(0);
-      }
-    }, 100);
+  // useEffect(() => {
+  //   setSpinning(true);
+  //   let ptg = -10;
+  //   const interval = setInterval(() => {
+  //     ptg += 5;
+  //     setPercent(ptg);
+  //     if (ptg > 120) {
+  //       clearInterval(interval);
+  //       setSpinning(false);
+  //       setPercent(0);
+  //     }
+  //   }, 100);
 
-    return () => clearInterval(interval);
-  }, []);
+  //   return () => clearInterval(interval);
+  // }, []);
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -293,4 +293,4 @@ const HomeScreen = () => {
   );
 };
 
-export default HomeScreen;
+export default CourseList;

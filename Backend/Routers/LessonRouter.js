@@ -33,5 +33,12 @@ router.put(
   auth.verifyTutor,
   lessonController.updateLesson
 );
+router.delete(
+  "/:lesson_id",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  auth.verifyTutor,
+  lessonController.deleteLesson
+);
 
 module.exports = router;
