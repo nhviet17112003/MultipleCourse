@@ -61,7 +61,8 @@ exports.checkPayment = async (req, res) => {
     }
 
     if (payment.payment_status !== "Pending") {
-      return res.status(400).json({ message: "Payment already processed" });
+      // return res.status(400).json({ message: "Payment already processed" });
+      return res.redirect("http://localhost:3001/course-list");
     }
 
     if (status === "PAID") {
@@ -76,7 +77,7 @@ exports.checkPayment = async (req, res) => {
       wallet.payment_code = undefined;
       await wallet.save();
       // return res.status(200).json({ message: "Payment successful" });
-      return res.redirect("http://localhost:3001/");
+      return res.redirect("http://localhost:3001/course-list");
     }
 
     if (status === "CANCELLED") {
@@ -89,7 +90,7 @@ exports.checkPayment = async (req, res) => {
       wallet.payment_code = undefined;
       await wallet.save();
       // return res.status(200).json({ message: "Payment cancelled" });
-      return res.redirect("http://localhost:3001/");
+      return res.redirect("http://localhost:3001/course-list");
     }
   } catch (error) {
     console.error(error);

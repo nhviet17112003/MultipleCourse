@@ -14,6 +14,7 @@ function Sidebar() {
   const [role, setRole] = useState("Student"); // Default to "Student"
   const [token, setToken] = useState(null);
   const location = useLocation();
+
   useEffect(() => {
     // Lấy thông tin từ localStorage khi component được mount hoặc token/role thay đổi
     const authToken = localStorage.getItem("authToken");
@@ -27,7 +28,7 @@ function Sidebar() {
       setToken(null);
       setRole("Student"); // Reset lại role khi không có token
     }
-  }, [token, role]);
+  }, [location]);
 
   const onClick = (e) => {
     console.log("click ", e);
@@ -35,16 +36,17 @@ function Sidebar() {
   };
 
   // Hiển thị các mục menu dựa trên role
+
   let items = [];
   if (role === "Student") {
     items = [
       {
         key: "sub1",
-        label: "Student Navigation" ,
+        label: "Student Navigation",
         icon: <MailOutlined />,
         children: [
-          { key: "24", label: <Link to="/course-list">Courses List</Link> },
-          { key: "1", label: <Link to="/my-courses">My Courses</Link> },
+          { key: "1", label: <Link to="/course-list">Courses List</Link> },
+          { key: "24", label: <Link to="/my-courses">My Courses</Link> },
           {
             key: "2",
             label: <Link to="/my-certificate">My Certificates</Link>,
@@ -72,7 +74,6 @@ function Sidebar() {
         children: [
           { key: "5", label: <Link to="courses-list-tutor">Course List</Link> },
           { key: "6", label: <Link to="/createcourse">Create Course</Link> },
-          { key: "7", label: <Link to="/updatecourse">Update Course</Link> },
         ],
       },
       {
@@ -123,7 +124,7 @@ function Sidebar() {
           },
           {
             key: "13",
-            label: <Link to="/course-list-for-admin">My Courses</Link>,
+            label: <Link to="/course-list-for-admin">Manage Courses</Link>,
           },
           { key: "14", label: "Reports" },
           { key: "15", label: "System Settings" },
@@ -147,7 +148,9 @@ function Sidebar() {
           },
           {
             key: "20",
-            label: <Link to="/activities-history-list">Activities History</Link>,
+            label: (
+              <Link to="/activities-history-list">Activities History</Link>
+            ),
           },
           {
             key: "21",
@@ -162,7 +165,7 @@ function Sidebar() {
     ];
   }
   // Danh sách các trang không muốn hiển thị Navbar
-  const hideNavbarRoutes = ["/login", "/signup"];
+  const hideNavbarRoutes = ["/login", "/signup","/uploadtutorcertificate"];
 
   // Kiểm tra nếu đường dẫn hiện tại nằm trong danh sách cần ẩn Navbar
   if (hideNavbarRoutes.includes(location.pathname)) {

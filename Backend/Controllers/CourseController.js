@@ -576,7 +576,9 @@ exports.getTop5Tutor = async (req, res) => {
 };
 
 //top 1 courses bán chạy
+
 exports.getTop1BestSeller = async (req, res) => {
+
   try {
     const top5BestSeller = await Order.aggregate([
       { $unwind: "$order_items" },
@@ -587,7 +589,9 @@ exports.getTop1BestSeller = async (req, res) => {
         },
       },
       { $sort: { totalSold: -1 } }, // Sắp xếp theo số lượng bán giảm dần
+
       { $limit: 1 }, // Chỉ lấy top 1
+
       {
         $lookup: {
           from: "courses",

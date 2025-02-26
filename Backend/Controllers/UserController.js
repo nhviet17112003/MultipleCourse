@@ -109,16 +109,19 @@ exports.login = async (req, res) => {
         return res.status(400).json({ message: "Incorrect password" });
       }
 
+      
       // Tạo token
       const token = auth.getToken({ _id: user._id });
 
       // Trả về token và fullname trong phản hồi
       res.status(200).json({
         message: "Login successful",
+        user_id: user._id,
         token: token,
         fullname: user.fullname, // Thêm fullname vào đây
         role: user.role,
         status: user.status,
+        tutor_certificates: user.tutor_certificates
       });
     });
   } catch (err) {
@@ -488,8 +491,8 @@ exports.googleLogin = (req, res) => {
 };
 
 //Google login callback
-exports.googleLoginCallback = (req, res, next) => {
-  passport.authenticate("google", (err, user, info) => {
+exports.googleLoginCallback = async (req, res, next) => {
+  passport.authenticate("google", async (err, user, info) => {
     if (err) {
       return next(err);
     }
@@ -499,14 +502,14 @@ exports.googleLoginCallback = (req, res, next) => {
         .json({ success: false, message: "Authentication failed" });
     }
 
-    const existsWallet = Wallet.findOne({ user: user._id });
+    const existsWallet = await Wallet.findOne({ user: user._id });
     if (!existsWallet) {
       const wallet = new Wallet({
         user: user._id,
         total_spent: 0,
         total_deposit: 0,
       });
-      wallet.save();
+      await wallet.save();
     }
 
     var token = auth.getToken({

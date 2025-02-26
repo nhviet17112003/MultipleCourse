@@ -52,6 +52,7 @@ const CourseDetailForTutor = () => {
 
     try {
       await axios.delete(
+        
         `http://localhost:3000/api/exams/delete-exam/${exams._id}`,
         {
           headers: {

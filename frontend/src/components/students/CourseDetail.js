@@ -12,6 +12,13 @@ const DetailCourse = () => {
   const [fullname, setFullname] = useState(""); // Thêm phần tên người dùng
   const [isAuthenticated, setIsAuthenticated] = useState(false); // Xác định người dùng đã đăng nhập hay chưa
 const [cartCount, setCartCount] = useState(0);
+const [newRating, setNewRating] = useState(5); 
+const [hasCommented, setHasCommented] = useState(false);
+
+
+const [comments, setComments] = useState([]); 
+const [newComment, setNewComment] = useState("");
+
   // Kiểm tra đăng nhập và lấy thông tin fullname
   useEffect(() => {
     const token = localStorage.getItem("authToken");
@@ -42,6 +49,11 @@ const [cartCount, setCartCount] = useState(0);
         const data = await response.json();
         if (response.ok) {
           setCourse(data.courseDetail);
+  
+         //comment nhe
+          if (data.courseDetail.comments.some(comment => comment.author === fullname)) {
+            setHasCommented(true);
+          }
         } else {
           console.error("Error fetching course detail:", data.message);
         }
@@ -52,7 +64,8 @@ const [cartCount, setCartCount] = useState(0);
       }
     };
     fetchCourseDetail();
-  }, [id]);
+  }, [id, fullname]);
+  
 
  const handleAddToCart = async (courseId) => {
     const newCartCount = cartCount + 1;
@@ -96,7 +109,64 @@ const [cartCount, setCartCount] = useState(0);
       });
     }
   };
- 
+
+
+
+
+  const handleCommentSubmit = async () => {
+    if (!newComment.trim()) {
+      toast.warn("Bình luận không được để trống!");
+      return;
+    }
+  
+    const commentData = {
+      courseId: id,
+      rating: newRating,
+      comment: newComment,
+    };
+  
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/comments/create-course-comment`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+          body: JSON.stringify(commentData),
+        }
+      );
+  
+      const data = await response.json();
+      if (response.ok) {
+        setCourse((prevCourse) => ({
+          ...prevCourse,
+          comments: [
+            ...prevCourse.comments,
+            {
+              author: fullname,
+              rating: newRating,
+              comment: newComment,
+              date: new Date(),
+            },
+          ],
+        }));
+  
+        setNewComment(""); 
+        setNewRating(5); 
+        setHasCommented(true); 
+        toast.success("Bình luận đã được thêm!");
+      } else {
+        toast.error(`Lỗi: ${data.message}`);
+      }
+    } catch (error) {
+      toast.error("Đã xảy ra lỗi khi gửi bình luận!");
+    }
+  };
+  
+
+
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -123,6 +193,7 @@ const [cartCount, setCartCount] = useState(0);
             <p className="mt-4 text-gray-700 leading-relaxed">{course.description}</p>
             <div className="mt-6 flex justify-between items-center">
               <p className="text-3xl text-teal-800 font-bold">${course.price}</p>
+             
               <p className="text-sm text-gray-500 italic">
                 Ngày tạo: {new Date(course.createAt).toLocaleDateString()}
               </p>
@@ -145,16 +216,97 @@ const [cartCount, setCartCount] = useState(0);
           Không tìm thấy thông tin khóa học.
         </p>
       )}
+
+      
+
+      {/* 🆕 Khu vực bình luận */}
+      <div className="mt-8 bg-white shadow-lg p-6 rounded-lg">
+        
+          <h3 className="text-2xl font-semibold text-teal-600">Bình luận</h3>
+
+
+          {isAuthenticated && !hasCommented && (
+  <div className="mt-6 p-4 bg-gray-100 rounded-lg shadow">
+    <h4 className="text-lg font-semibold text-teal-700">Viết bình luận của bạn</h4>
+
+    <textarea
+      className="w-full mt-2 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+      rows="3"
+      placeholder="Nhập bình luận..."
+      value={newComment}
+      onChange={(e) => setNewComment(e.target.value)}
+    ></textarea>
+
+    <div className="mt-3 flex items-center space-x-2">
+      <span className="text-gray-700 font-medium">Đánh giá:</span>
+      {[...Array(5)].map((_, i) => (
+        <button key={i} onClick={() => setNewRating(i + 1)}>
+          <span className={`text-2xl ${i < newRating ? "text-yellow-400" : "text-gray-300"}`}>★</span>
+        </button>
+      ))}
+    </div>
+
+    <button
+      onClick={handleCommentSubmit}
+      className="mt-4 bg-teal-600 text-white py-2 px-6 rounded-lg hover:bg-teal-700 transition duration-300"
+    >
+      Gửi bình luận
+    </button>
+  </div>
+)}
+
+{hasCommented && (
+  <p className="text-gray-600 mt-4 italic">Bạn đã bình luận về khóa học này.</p>
+)}
+
+
+
+{course?.comments?.length > 0 ? (
+  <ul className="mt-6 space-y-6">
+    {course.comments.map((comment, index) => (
+      <li key={index} className="flex space-x-4 p-4 bg-gray-50 rounded-lg shadow-md">
+        {/* avt */}
+        <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-white font-bold">
+          {comment.author?.charAt(0).toUpperCase()}
+        </div>
+        
+        {/* cmt */}
+        <div className="flex-1">
+          <p className="font-semibold text-teal-700">{comment.author || "Người dùng ẩn danh"}</p>
+          
+          {/* rati */}
+          <div className="flex items-center mt-1">
+            {[...Array(5)].map((_, i) => (
+              <span key={i} className={`text-xl ${i < comment.rating ? "text-yellow-400" : "text-gray-300"}`}>
+                ★
+              </span>
+            ))}
+          </div>
+
+          <p className="text-gray-700 mt-2">{comment.comment}</p>
+          <p className="text-gray-500 text-sm mt-1">{new Date(comment.date).toLocaleDateString()}</p>
+        </div>
+      </li>
+    ))}
+  </ul>
+) : (
+  <p className="text-gray-500 mt-2">Chưa có bình luận nào.</p>
+)}
+
+
+
+
+        </div>
   
       {/* Nút quay lại */}
-      <div className="mt-6 text-center">
+      {/* <div className="mt-6 text-center">
         <button
           onClick={() => navigate(-1)} // Quay lại trang trước
           className="bg-gray-600 text-white py-2 px-6 rounded-lg hover:bg-gray-700 transition duration-300"
         >
           Quay lại
         </button>
-      </div>
+      </div> */}
     </div>
   </div>
     );
