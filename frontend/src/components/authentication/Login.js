@@ -79,7 +79,7 @@ const handleSubmit = async (e) => {
     setError(usernameError);
     return;
   }
-  // Kiểm tra captcha trước
+  // // Kiểm tra captcha trước
   if (!captchaValue) {
     setError("Vui lòng xác nhận reCAPTCHA.");
     return;
@@ -98,7 +98,7 @@ const handleSubmit = async (e) => {
   try {
     const response = await axios.post(
       "http://localhost:3000/api/users/login",
-      { username, password, captcha: captchaValue }
+      { username, password}
     );
 
     if (response.status === 200) {
