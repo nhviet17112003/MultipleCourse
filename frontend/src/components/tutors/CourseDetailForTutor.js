@@ -47,18 +47,22 @@ const CourseDetailForTutor = () => {
     }
   };
 
-  const handleDeleteExam = async () => {
+  const handleDeleteExam = async (examID) => {
     const token = localStorage.getItem("authToken");
 
     try {
       await axios.delete(
-        `http://localhost:3000/api/exams/delete-exam/${exams._id}`,
+       
+        `http://localhost:3000/api/exams/delete-exam/${examID}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
+        
       );
+
+      
       window.location.reload();
     } catch (err) {
       console.error("Failed to delete exam", err);
@@ -82,6 +86,7 @@ const CourseDetailForTutor = () => {
     setSelectedLesson(null);
     setIsModalOpen(false);
   };
+
 
   const handleUpdateLesson = async (formData) => {
     const token = localStorage.getItem("authToken");
@@ -165,6 +170,7 @@ const CourseDetailForTutor = () => {
     };
 
     fetchCourseDetail();
+
   }, [courseId, navigate]);
 
   if (loading) {
@@ -298,7 +304,7 @@ const CourseDetailForTutor = () => {
               Update Exam
             </button>
             <button
-              onClick={() => setIsDeleteModalOpen(true)}
+              onClick={() => handleDeleteExam(exams._id)}
               className="bg-red-500 text-white px-4 py-2 rounded-lg mt-2 ml-2"
             >
               Delete Exam
