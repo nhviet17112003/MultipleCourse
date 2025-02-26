@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Route, Routes, useLocation } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes,useNavigate, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import Login from "./components/authentication/Login";
 import UploadTutorCertificate from "./components/tutors/UploadTutorCertificate";
 import Signup from "./components/authentication/Signup";
