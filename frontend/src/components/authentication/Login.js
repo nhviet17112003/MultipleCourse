@@ -68,6 +68,11 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
   
+    if (!captchaValue) {
+      setError("Vui lòng xác nhận reCAPTCHA.");
+      return;
+    }
+  
     // Dừng timeout nếu có
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -99,16 +104,14 @@ const Login = () => {
       );
   
       if (response.status === 200) {
-        const { user_id,token, role, fullname, status, tutor_certificates } = response.data;
+        const { user_id, token, role, fullname, status, tutor_certificates } = response.data;
   
         if (!status) {
           setError("Tài khoản đã bị BAN");
           return;
         }
   
-        
         // Lưu thông tin vào localStorage
- 
         localStorage.setItem("authToken", token);
         localStorage.setItem("fullname", fullname);
         localStorage.setItem("role", role);
@@ -118,10 +121,11 @@ const Login = () => {
   
         // Điều hướng dựa trên role
         if (role.toLowerCase() === "tutor") {
-          if(tutor_certificates.length ===0){
+          if (tutor_certificates.length === 0) {
             navigate(`/uploadtutorcertificate/${user_id}`);
+          } else {
+            navigate("/courses-list-tutor");
           }
-          else{ navigate("/courses-list-tutor");}        
         } else {
           window.location.reload(); // Reload trang nếu không phải tutor
         }
@@ -132,8 +136,8 @@ const Login = () => {
     } finally {
       setIsLoading(false);
     }
-    
   };
+  
 
   // Clear timeout khi component unmount để tránh memory leak
   useEffect(() => {
