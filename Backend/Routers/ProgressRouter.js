@@ -36,4 +36,12 @@ router.put(
   progressController.updateLessonProgress
 );
 
+//Get all progress of a course
+router.get(
+  "/students/:course_id",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  auth.verifyAdminOrTutor,
+  progressController.getProgressByCourse
+);
 module.exports = router;
