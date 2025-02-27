@@ -245,33 +245,31 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center space-x-4">
+          {(role === "Tutor" || role === "Student") && (
+            <div className="flex items-center text-gray-700 px-2 mr-2 py-2">
+              <span className="mr-1 text-lg font-medium">Current Balance:</span>
+              <span className="text-blue-700 font-bold text-xl">
+                {balance ?? "0"}
+              </span>
+
+              {role === "Student" && (
+                <Button
+                  type="primary"
+                  className="ml-2"
+                  onClick={() => navigate("/deposit")}
+                >
+                  Deposit
+                </Button>
+              )}
+            </div>
+          )}
+
           <div
             className="relative inline-block"
             onMouseEnter={() => setShowDropdown(true)}
             onMouseLeave={() => setShowDropdown(false)}
           >
             <div className="flex items-center">
-              {(role === "Tutor" || role === "Student") && (
-                <div className="flex items-center text-gray-700 px-2 mr-2 py-2">
-                  <span className="mr-1 text-lg font-medium">
-                    Current Balance:
-                  </span>
-                  <span className="text-blue-700 font-bold text-xl">
-                    {balance ?? "0"}
-                  </span>
-
-                  {role === "Student" && (
-                    <Button
-                      type="primary"
-                      className="ml-2"
-                      onClick={() => navigate("/deposit")}
-                    >
-                      Deposit
-                    </Button>
-                  )}
-                </div>
-              )}
-
               <img
                 src={userData?.avatar || avatarUrl}
                 alt="Avatar"

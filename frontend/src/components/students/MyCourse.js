@@ -15,7 +15,7 @@ const MyCourses = () => {
     const fetchCertificates = async () => {
       try {
         const response = await fetch(
-          "http://localhost:3000/api/certificates/get-all-certificates",
+          `http://localhost:3000/api/certificates/get-all-certificates`,
           {
             method: "GET",
             headers: {
@@ -25,15 +25,20 @@ const MyCourses = () => {
           }
         );
 
-        const data = await response.json();
-
-        if (response.ok) {
-          setCertificates(data.certificates);
-        } else {
-          setError("Failed to fetch certificates.");
+        if (response.status === 404) {
+          return;
         }
+
+        if (!response.ok) {
+          return;
+        }
+
+        const data = await response.json();
+        setCertificates(data.certificates);
       } catch (error) {
-        setError("Failed to fetch certificates.");
+        if (error.message !== "Failed to fetch") {
+          // setError("Failed to fetch certificates.");
+        }
       }
     };
 
@@ -60,14 +65,15 @@ const MyCourses = () => {
         ]);
 
         const ordersData = await ordersResponse.json();
-        const progressData = await progressResponse.json();
+        const progressDataResponse = await progressResponse.json();
 
-        // const successOrders = ordersData.filter(
-        //   (order) => order.status.toLowerCase() === "success"
-        // );
+        if (progressDataResponse && progressDataResponse.length > 0) {
+          setProgressData(progressDataResponse);
+        } else {
+          setProgressData([]);
+        }
 
         setOrders(ordersData);
-        setProgressData(progressData);
       } catch (err) {
         setError("Failed to fetch orders or progress.");
       } finally {
@@ -87,14 +93,16 @@ const MyCourses = () => {
       return;
     }
 
-    const courseProgress = progressData.find(
-      (progress) => progress.course_id === courseId
-    );
+    if (Array.isArray(progressData)) {
+      const courseProgress = progressData.find(
+        (progress) => progress.course_id === courseId
+      );
 
-    if (courseProgress) {
-      navigate(`/courses/${courseId}?progressId=${courseProgress._id}`);
-    } else {
-      navigate(`/courses/${courseId}`);
+      if (courseProgress) {
+        navigate(`/courses/${courseId}?progressId=${courseProgress._id}`);
+      } else {
+        navigate(`/courses/${courseId}`);
+      }
     }
   };
 
@@ -134,24 +142,32 @@ const MyCourses = () => {
   };
 
   const getProgressForCourse = (courseId) => {
-    const courseProgress = progressData.find(
-      (progress) => progress.course_id === courseId
-    );
+    if (Array.isArray(progressData)) {
+      const courseProgress = progressData.find(
+        (progress) => progress.course_id === courseId
+      );
 
-    if (courseProgress && courseProgress.lesson.length > 0) {
-      const totalLessons = courseProgress.lesson.length;
-      const completedLessons = courseProgress.lesson.filter(
-        (lesson) => lesson.status === "Completed"
-      ).length;
+      if (courseProgress && courseProgress.lesson.length > 0) {
+        const totalLessons = courseProgress.lesson.length;
+        const completedLessons = courseProgress.lesson.filter(
+          (lesson) => lesson.status === "Completed"
+        ).length;
 
-      return (completedLessons / totalLessons) * 100;
+        const progress = (completedLessons / totalLessons) * 100;
+        return progress;
+      }
     }
 
+    console.log("No progress found for course");
     return 0;
   };
-
   const isEnrolled = (courseId) => {
-    return progressData.some((progress) => progress.course_id === courseId);
+    if (Array.isArray(progressData)) {
+      return progressData.some((progress) => progress.course_id === courseId);
+    } else {
+      console.error("progressData is not an array");
+      return false;
+    }
   };
 
   if (loading)
@@ -200,34 +216,32 @@ const MyCourses = () => {
                     className="absolute top-0 right-0 w-21 h-20"
                   />
                 )}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleEnroll(item.course._id);
-                  }}
-                  className={`mt-4 w-full py-2 rounded-xl transition duration-300 ${
-                    isEnrolled(item.course._id)
-                      ? "bg-gray-400 text-white cursor-not-allowed"
-                      : "bg-blue-500 text-white hover:bg-blue-600"
-                  }`}
-                  disabled={isEnrolled(item.course._id)}
-                >
-                  {isEnrolled(item.course._id) ? "Enrolled" : "Enroll"}
-                </button>
-                <div className="mt-4">
-                  <div className="w-full bg-gray-200 rounded-full h-3">
-                    <div
-                      className="bg-green-500 h-3 rounded-full transition-all duration-500"
-                      style={{
-                        width: `${getProgressForCourse(item.course._id)}%`,
-                      }}
-                    ></div>
+                {isEnrolled(item.course._id) ? (
+                  <div className="mt-4">
+                    <div className="w-full bg-gray-200 rounded-full h-3">
+                      <div
+                        className="bg-green-500 h-3 rounded-full transition-all duration-500"
+                        style={{
+                          width: `${getProgressForCourse(item.course._id)}%`,
+                        }}
+                      ></div>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1 text-center">
+                      Progress:{" "}
+                      {getProgressForCourse(item.course._id).toFixed(0)}%
+                    </p>
                   </div>
-                  <p className="text-sm text-gray-600 mt-1 text-center">
-                    Progress: {getProgressForCourse(item.course._id).toFixed(0)}
-                    %
-                  </p>
-                </div>
+                ) : (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEnroll(item.course._id);
+                    }}
+                    className="mt-4 w-full py-2 rounded-xl transition duration-300 bg-blue-500 text-white hover:bg-blue-600"
+                  >
+                    Enroll
+                  </button>
+                )}
               </div>
             ))
           )}
