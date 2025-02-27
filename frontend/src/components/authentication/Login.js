@@ -67,58 +67,59 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     if (!captchaValue) {
       setError("Vui lòng xác nhận reCAPTCHA.");
       return;
     }
-  
+
     // Dừng timeout nếu có
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
-  
+
     // Kiểm tra Username
     const usernameError = validateUsername(username);
     if (usernameError) {
       setError(usernameError);
       return;
     }
-  
+
     // Kiểm tra Password
     const passwordError = validatePassword(password);
     if (passwordError) {
       setError(passwordError);
       return;
     }
-  
+
     // Reset các thông báo lỗi trước đó
     setError("");
     setSuccessMessage("");
-  
+
     setIsLoading(true);
     try {
       const response = await axios.post(
         "http://localhost:3000/api/users/login",
         { username, password }
       );
-  
+
       if (response.status === 200) {
-        const { user_id, token, role, fullname, status, tutor_certificates } = response.data;
-  
+        const { user_id, token, role, fullname, status, tutor_certificates } =
+          response.data;
+
         if (!status) {
           setError("Tài khoản đã bị BAN");
           return;
         }
-  
+
         // Lưu thông tin vào localStorage
         localStorage.setItem("authToken", token);
         localStorage.setItem("fullname", fullname);
         localStorage.setItem("role", role);
-  
+
         setSuccessMessage("Đăng nhập thành công!");
         setError("");
-  
+
         // Điều hướng dựa trên role
         if (role.toLowerCase() === "tutor") {
           if (tutor_certificates.length === 0) {
@@ -137,7 +138,6 @@ const Login = () => {
       setIsLoading(false);
     }
   };
-  
 
   // Clear timeout khi component unmount để tránh memory leak
   useEffect(() => {

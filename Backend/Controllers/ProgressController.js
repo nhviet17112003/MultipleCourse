@@ -78,13 +78,15 @@ exports.updateLessonProgress = async (req, res) => {
 // Get all progress
 exports.getAllProgress = async (req, res) => {
   try {
-    const progress = await Progress.findOne({ student_id: req.user._id });
-    if (!progress) {
-      return res.status(404).json({ message: "Progress not found" });
+    const progress = await Progress.find({ student_id: req.user._id });
+
+    if (!progress || progress.length === 0) {
+      return res.status(404).json({ message: "No progress found" });
     }
+
     res.status(200).json(progress);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
