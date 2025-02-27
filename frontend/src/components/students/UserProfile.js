@@ -1,4 +1,4 @@
-import React, { useEffect, useState  ,useRef} from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -11,7 +11,7 @@ const UserProfile = () => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
- const recaptchaRef = useRef(null);
+  const recaptchaRef = useRef(null);
   // Fetch user data
   const fetchUserProfile = async () => {
     const token = localStorage.getItem("authToken");
@@ -131,8 +131,7 @@ const UserProfile = () => {
   const deleteCookie = (name) => {
     document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost; secure; SameSite=None;`;
   };
-  
-  
+
   const logout = async () => {
     try {
       const token = localStorage.getItem("authToken");
@@ -147,21 +146,21 @@ const UserProfile = () => {
           }
         );
       }
-  
+
       // Xóa token và thông tin trong localStorage
       localStorage.removeItem("authToken");
       localStorage.removeItem("fullname");
       localStorage.removeItem("role");
       localStorage.removeItem("avatar");
-  
+
       // Xóa cookie Token
       deleteCookie("Token");
-  
+
       // Reset reCAPTCHA khi đăng xuất
       if (recaptchaRef.current) {
         recaptchaRef.current.reset();
       }
-  
+
       // Chuyển về trang login
       navigate("/login");
       window.location.reload();
@@ -199,6 +198,11 @@ const UserProfile = () => {
             </p>
             <p className="text-gray-500">
               {userData.email || "email@example.com"}
+            </p>
+            <p className="text-gray-500">
+              {userData.birthday
+                ? new Date(userData.birthday).toLocaleDateString()
+                : "DD/MM/YYYY"}
             </p>
           </div>
         </div>
@@ -321,13 +325,7 @@ const UserProfile = () => {
         </div>
       )}
     </div>
-
   );
 };
 
 export default UserProfile;
-
-
-
-
-
