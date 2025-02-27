@@ -68,6 +68,11 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!captchaValue) {
+      setError("Vui lòng xác nhận reCAPTCHA.");
+      return;
+    }
+
     // Dừng timeout nếu có
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -99,7 +104,8 @@ const Login = () => {
       );
 
       if (response.status === 200) {
-        const { token, role, fullname, status } = response.data;
+        const { user_id, token, role, fullname, status, tutor_certificates } =
+          response.data;
 
         if (!status) {
           setError("Tài khoản đã bị BAN");
@@ -116,7 +122,11 @@ const Login = () => {
 
         // Điều hướng dựa trên role
         if (role.toLowerCase() === "tutor") {
-          navigate("/courses-list-tutor");
+          if (tutor_certificates.length === 0) {
+            navigate(`/uploadtutorcertificate/${user_id}`);
+          } else {
+            navigate("/courses-list-tutor");
+          }
         } else {
           window.location.reload(); // Reload trang nếu không phải tutor
         }

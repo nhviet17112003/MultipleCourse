@@ -45,8 +45,8 @@ function Sidebar() {
         label: "Student Navigation",
         icon: <MailOutlined />,
         children: [
-          { key: "24", label: <Link to="/course-list">Courses List</Link> },
-          { key: "1", label: <Link to="/my-courses">My Courses</Link> },
+          { key: "1", label: <Link to="/course-list">Courses List</Link> },
+          { key: "24", label: <Link to="/my-courses">My Courses</Link> },
           {
             key: "2",
             label: <Link to="/my-certificate">My Certificates</Link>,
@@ -164,14 +164,13 @@ function Sidebar() {
       },
     ];
   }
-  // Danh sách các trang không muốn hiển thị Navbar
-  const hideNavbarRoutes = ["/login", "/signup"];
+// Danh sách các trang không muốn hiển thị Navbar
+const hideNavbarRoutes = ["/login", "/signup", "/uploadtutorcertificate"];
 
-  // Kiểm tra nếu đường dẫn hiện tại nằm trong danh sách cần ẩn Navbar
-  if (hideNavbarRoutes.includes(location.pathname)) {
-    return null; // Không render Navbar
-  }
-
+// Kiểm tra nếu đường dẫn bắt đầu bằng một trong các route trong danh sách
+if (hideNavbarRoutes.some(route => location.pathname.startsWith(route))) {
+  return null; // Không render Navbar
+}
   return (
     <div
       className={

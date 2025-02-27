@@ -115,10 +115,12 @@ exports.login = async (req, res) => {
       // Trả về token và fullname trong phản hồi
       res.status(200).json({
         message: "Login successful",
+        user_id: user._id,
         token: token,
         fullname: user.fullname, // Thêm fullname vào đây
         role: user.role,
         status: user.status,
+        tutor_certificates: user.tutor_certificates,
       });
     });
   } catch (err) {
