@@ -28,9 +28,12 @@ const Navbar = () => {
   const [balance, setBalance] = useState(0);
   const role = localStorage.getItem("role");
 
+
+
   const recaptchaRef = useRef(null);
 
   const isHome = location.pathname === "/";
+
 
   useEffect(() => {
     const fetchBalance = async () => {
@@ -167,21 +170,21 @@ const Navbar = () => {
           }
         );
       }
-  
+
       // Xóa token và thông tin trong localStorage
       localStorage.removeItem("authToken");
       localStorage.removeItem("fullname");
       localStorage.removeItem("role");
       localStorage.removeItem("avatar");
-  
+
       // Xóa cookie Token
       deleteCookie("Token");
-  
+
       // Reset reCAPTCHA khi đăng xuất
       if (recaptchaRef.current) {
         recaptchaRef.current.reset();
       }
-  
+
       // Chuyển về trang login
       navigate("/login");
       window.location.reload();
@@ -224,13 +227,13 @@ const Navbar = () => {
     fetchUserProfile();
   }, []);
 
-// Danh sách các trang không muốn hiển thị Navbar
-const hideNavbarRoutes = ["/login", "/signup", "/uploadtutorcertificate"];
+  // Danh sách các trang không muốn hiển thị Navbar
+  const hideNavbarRoutes = ["/login", "/signup", "/uploadtutorcertificate"];
 
-// Kiểm tra nếu đường dẫn bắt đầu bằng một trong các route trong danh sách
-if (hideNavbarRoutes.some(route => location.pathname.startsWith(route))) {
-  return null; // Không render Navbar
-}
+  // Kiểm tra nếu đường dẫn bắt đầu bằng một trong các route trong danh sách
+  if (hideNavbarRoutes.some((route) => location.pathname.startsWith(route))) {
+    return null; // Không render Navbar
+  }
 
   return (
     <nav

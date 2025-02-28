@@ -32,7 +32,9 @@ const UserProfile = () => {
           },
         }
       );
+      console.log("Avatar từ API:", response.data.avatar); 
       setUserData(response.data); // Save user data
+      localStorage.setItem("avatar", response.data.avatar); 
     } catch (err) {
       setError("Your session has expired. Please log in again.");
       localStorage.removeItem("authToken"); // Remove token
@@ -58,12 +60,12 @@ const UserProfile = () => {
   const handleAvatarChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
+  
     const formData = new FormData();
     formData.append("avatar", file);
-
+  
     const token = localStorage.getItem("authToken");
-
+  
     try {
       setLoading(true);
       const response = await axios.post(
@@ -76,9 +78,12 @@ const UserProfile = () => {
           },
         }
       );
-
+  
       if (response.data && response.data.avatar) {
         setUserData({ ...userData, avatar: response.data.avatar });
+  
+        // Reload lại trang sau khi cập nhật avatar thành công
+        window.location.reload();
       } else {
         setError("Failed to upload the avatar.");
       }
@@ -88,7 +93,6 @@ const UserProfile = () => {
       setLoading(false);
     }
   };
-
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
       setError("New password and confirmation do not match.");
