@@ -1,5 +1,6 @@
 const Exam = require("../Models/Exams");
 const StudentExamRS = require("../Models/StudentExamResults");
+const Progress = require("../Models/Progress");
 const Course = require("../Models/Courses");
 
 exports.createExam = async (req, res) => {
@@ -132,6 +133,15 @@ exports.submitExam = async (req, res) => {
       return res.status(404).json({ error: "Exam not found" });
     }
 
+    const progress = await Progress.findOne({
+      student_id,
+      course_id,
+    });
+
+    if (!progress) {
+      return res.status(404).json({ error: "Progress not found" });
+    }
+
     //Calculate total marks
     let totalScore = 0;
     let questionRS = [];
@@ -208,6 +218,16 @@ exports.submitExam = async (req, res) => {
     if (existsStudentExamRS) {
       existsStudentExamRS.score = totalScore;
       existsStudentExamRS.questions = questionRS;
+
+      if (totalScore >= exam.totalMark * 0.8) {
+        progress.final_exam.status = "Completed";
+        progress.final_exam.score = totalScore;
+      } else {
+        progress.final_exam.status = "In Progress";
+        progress.final_exam.score = totalScore;
+      }
+
+      await progress.save();
       await existsStudentExamRS.save();
       return res.status(200).json({
         message: "Exam updated successfully",
@@ -222,6 +242,16 @@ exports.submitExam = async (req, res) => {
         totalMark: exam.totalMark,
         questions: questionRS,
       });
+
+      if (totalScore >= exam.totalMark * 0.8) {
+        progress.final_exam.status = "Completed";
+        progress.final_exam.score = totalScore;
+      } else {
+        progress.final_exam.status = "In Progress";
+        progress.final_exam.score = totalScore;
+      }
+
+      await progress.save();
       await newStudentExamRS.save();
       return res.status(201).json({
         message: "Exam submitted successfully",

@@ -53,7 +53,7 @@ function Layout() {
 
 
   // Danh sách các trang không hiển thị Sidebar
-  const noSidebarPages = ["/login", "/signup", "/forgetpassword", "/"];
+  const noSidebarPages = ["/login", "/signup", "/forgetpassword", "/","/uploadtutorcertificate/:userId"];
 
   // Kiểm tra nếu đang ở một trong các trang trên thì không hiển thị Sidebar
   const hideSidebar = noSidebarPages.includes(location.pathname);

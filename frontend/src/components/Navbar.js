@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+
+import React, { useEffect, useState , useRef} from "react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+
 import axios from "axios";
 import { useTheme } from "./context/ThemeContext";
 import { Space, Switch, Input, Button, Dropdown, Menu } from "antd";
@@ -10,7 +12,7 @@ import {
   CartOutlined,
 } from "@ant-design/icons";
 import Cookies from "js-cookie";
-
+import ReCAPTCHA from "react-google-recaptcha";
 const Navbar = () => {
   const navigate = useNavigate();
   const [fullname, setFullname] = useState("Người dùng");
@@ -25,6 +27,9 @@ const Navbar = () => {
   const location = useLocation();
   const [balance, setBalance] = useState(0);
   const role = localStorage.getItem("role");
+
+  const recaptchaRef = useRef(null);
+
   const isHome = location.pathname === "/";
 
   useEffect(() => {
@@ -162,16 +167,21 @@ const Navbar = () => {
           }
         );
       }
-
+  
       // Xóa token và thông tin trong localStorage
       localStorage.removeItem("authToken");
       localStorage.removeItem("fullname");
       localStorage.removeItem("role");
       localStorage.removeItem("avatar");
-
+  
       // Xóa cookie Token
       deleteCookie("Token");
-
+  
+      // Reset reCAPTCHA khi đăng xuất
+      if (recaptchaRef.current) {
+        recaptchaRef.current.reset();
+      }
+  
       // Chuyển về trang login
       navigate("/login");
       window.location.reload();
@@ -214,16 +224,17 @@ const Navbar = () => {
     fetchUserProfile();
   }, []);
 
-  // Danh sách các trang không muốn hiển thị Navbar
-  const hideNavbarRoutes = ["/login", "/signup"];
+// Danh sách các trang không muốn hiển thị Navbar
+const hideNavbarRoutes = ["/login", "/signup", "/uploadtutorcertificate"];
 
-  // Kiểm tra nếu đường dẫn hiện tại nằm trong danh sách cần ẩn Navbar
-  if (hideNavbarRoutes.includes(location.pathname)) {
-    return null; // Không render Navbar
-  }
+// Kiểm tra nếu đường dẫn bắt đầu bằng một trong các route trong danh sách
+if (hideNavbarRoutes.some(route => location.pathname.startsWith(route))) {
+  return null; // Không render Navbar
+}
 
   return (
     <nav
+
     className={`top-0 left-0 w-full z-50 transition-all duration-300 shadow-lg ${
       isHome ? "fixed bg-transparent text-white" : "bg-white dark:bg-gray-900 shadow-md"
     }`}
@@ -281,6 +292,7 @@ const Navbar = () => {
               >
                 Top Up
               </Button>
+
             )}
           </div>
         ) : null}

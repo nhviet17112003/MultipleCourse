@@ -38,7 +38,6 @@ const CourseList = () => {
 
   //   return () => clearInterval(interval);
   // }, []);
-
   useEffect(() => {
     const fetchCourses = async () => {
       try {
@@ -65,8 +64,31 @@ const CourseList = () => {
           console.error("Error fetching courses:", coursesData.message);
           return;
         }
-        setCourses(coursesData);
+        const ordersResponse = await fetch(
+          "http://localhost:3000/api/orders/my-orders",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${authToken}`,
+            },
+          }
+        );
+        const ordersData = await ordersResponse.json();
+        if (!ordersResponse.ok) {
+          console.error("Error fetching orders:", ordersData.message);
+          return;
+        }
+        const purchasedCourseIds = new Set(
+          ordersData.flatMap((order) =>
+            order.order_items.map((item) => item.course._id)
+          )
+        );
+        const filteredCourses = coursesData.filter(
+          (course) => !purchasedCourseIds.has(course._id)
+        );
 
+        setCourses(filteredCourses);
         const uniqueTutorIds = [
           ...new Set(filteredCourses.map((course) => course.tutorId)),
         ];

@@ -26,7 +26,7 @@ const Login = () => {
       } else navigate("/admin");
     }
   }, [navigate]);
-console.log("captchaValue", captchaValue);
+  console.log("captchaValue", captchaValue);
   // Hàm xử lý thay đổi captcha
   const handleCaptchaChange = (value) => {
     console.log("Captcha value:", value);
@@ -68,6 +68,11 @@ console.log("captchaValue", captchaValue);
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!captchaValue) {
+      setError("Vui lòng xác nhận reCAPTCHA.");
+      return;
+    }
+
     // Dừng timeout nếu có
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -79,17 +84,14 @@ console.log("captchaValue", captchaValue);
       setError(usernameError);
       return;
     }
-    // Kiểm tra captcha trước
-    if (!captchaValue) {
-      setError("Vui lòng xác nhận reCAPTCHA.");
-      return;
-    }
+
     // Kiểm tra Password
     const passwordError = validatePassword(password);
     if (passwordError) {
       setError(passwordError);
       return;
     }
+
     // Reset các thông báo lỗi trước đó
     setError("");
     setSuccessMessage("");
@@ -98,16 +100,18 @@ console.log("captchaValue", captchaValue);
     try {
       const response = await axios.post(
         "http://localhost:3000/api/users/login",
-        { username, password, captcha: captchaValue }
+        { username, password }
       );
 
       if (response.status === 200) {
-        const { token, role, fullname, status } = response.data;
+        const { user_id, token, role, fullname, status, tutor_certificates } =
+          response.data;
 
         if (!status) {
           setError("Tài khoản đã bị BAN");
           return;
         }
+
         // Lưu thông tin vào localStorage
         localStorage.setItem("authToken", token);
         localStorage.setItem("fullname", fullname);
@@ -118,10 +122,11 @@ console.log("captchaValue", captchaValue);
 
         // Điều hướng dựa trên role
         if (role.toLowerCase() === "tutor") {
-          navigate("/courses-list-tutor");
-        }
-          else if (role.toLowerCase() === "student") {
-            navigate("/");
+          if (tutor_certificates.length === 0) {
+            navigate(`/uploadtutorcertificate/${user_id}`);
+          } else {
+            navigate("/courses-list-tutor");
+          }
         } else {
           window.location.reload(); // Reload trang nếu không phải tutor
         }
@@ -131,15 +136,6 @@ console.log("captchaValue", captchaValue);
       setSuccessMessage("");
     } finally {
       setIsLoading(false);
-
-      // trong lam laij
-
-
-      // // Reset reCAPTCHA sau mỗi lần submit
-      // if (recaptchaRef.current) {
-      //   recaptchaRef.current.reset();
-      // }
-      // setCaptchaValue(null);
     }
   };
 
@@ -266,7 +262,7 @@ console.log("captchaValue", captchaValue);
                   <div className="mb-4">
                     <ReCAPTCHA
                       ref={recaptchaRef}
-                      sitekey="6Lea7t0qAAAAAKNU2SByEsAd5jsfl7cgRjgK4pYe"
+                      sitekey="6LfoC-IqAAAAAMr2bpxkSbRdBQytK_WEa4HPPhHt"
                       onChange={handleCaptchaChange}
                     />
                   </div>
