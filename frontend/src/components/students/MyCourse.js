@@ -148,7 +148,7 @@ const MyCourses = () => {
       );
 
       if (courseProgress && courseProgress.lesson.length > 0) {
-        const totalLessons = courseProgress.lesson.length;
+        const totalLessons = courseProgress.lesson.length + 1;
         const completedLessons = courseProgress.lesson.filter(
           (lesson) => lesson.status === "Completed"
         ).length;
