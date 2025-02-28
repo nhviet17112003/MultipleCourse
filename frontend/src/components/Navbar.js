@@ -1,4 +1,4 @@
-import React, { useEffect, useState , useRef} from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import axios from "axios";
 import { useTheme } from "./context/ThemeContext";
@@ -27,8 +27,6 @@ const Navbar = () => {
   const role = localStorage.getItem("role");
   const recaptchaRef = useRef(null);
   const isHome = location.pathname === "/";
-
-
 
   useEffect(() => {
     const fetchBalance = async () => {
@@ -153,21 +151,21 @@ const Navbar = () => {
           }
         );
       }
-  
+
       // Xóa token và thông tin trong localStorage
       localStorage.removeItem("authToken");
       localStorage.removeItem("fullname");
       localStorage.removeItem("role");
       localStorage.removeItem("avatar");
-  
+
       // Xóa cookie Token
       deleteCookie("Token");
-  
+
       // Reset reCAPTCHA khi đăng xuất
       if (recaptchaRef.current) {
         recaptchaRef.current.reset();
       }
-  
+
       // Chuyển về trang login
       navigate("/login");
       window.location.reload();
@@ -209,19 +207,21 @@ const Navbar = () => {
     fetchUserProfile();
   }, []);
 
-// Danh sách các trang không muốn hiển thị Navbar
-const hideNavbarRoutes = ["/login", "/signup", "/uploadtutorcertificate"];
+  // Danh sách các trang không muốn hiển thị Navbar
+  const hideNavbarRoutes = ["/login", "/signup", "/uploadtutorcertificate"];
 
-// Kiểm tra nếu đường dẫn bắt đầu bằng một trong các route trong danh sách
-if (hideNavbarRoutes.some(route => location.pathname.startsWith(route))) {
-  return null; // Không render Navbar
-}
+  // Kiểm tra nếu đường dẫn bắt đầu bằng một trong các route trong danh sách
+  if (hideNavbarRoutes.some((route) => location.pathname.startsWith(route))) {
+    return null; // Không render Navbar
+  }
 
   return (
     <nav
       className={` top-0 left-0 w-full z-10  transition-all duration-300 ${
         // theme === "dark" ? "bg-gray-800" : "bg-teal-500",
-        isHome ? "fixed bg-transparent text-white" : "bg-white dark:bg-black shadow-md"
+        isHome
+          ? "fixed bg-transparent text-white"
+          : "bg-white dark:bg-black shadow-md"
       }`}
     >
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
@@ -282,9 +282,13 @@ if (hideNavbarRoutes.some(route => location.pathname.startsWith(route))) {
           >
             <div className="flex items-center">
               <img
-                src={userData?.avatar || avatarUrl}
+                src={
+                  userData?.avatar ||
+                  avatarUrl ||
+                  "https://via.placeholder.com/40"
+                }
                 alt="Avatar"
-                className="w-10 h-10 rounded-full cursor-pointer border-2 border-white"
+                className="w-10 h-10 rounded-full cursor-pointer"
               />
             </div>
             {showDropdown && (
