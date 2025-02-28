@@ -79,14 +79,12 @@ exports.updateLessonProgress = async (req, res) => {
 exports.getAllProgress = async (req, res) => {
   try {
     const progress = await Progress.find({ student_id: req.user._id });
-
-    if (!progress || progress.length === 0) {
-      return res.status(404).json({ message: "No progress found" });
+    if (!progress) {
+      return res.status(404).json({ message: "Progress not found" });
     }
-
     res.status(200).json(progress);
   } catch (error) {
-    console.error(error);
+    console.log(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -163,12 +161,17 @@ exports.getProgressByCourse = async (req, res) => {
         });
       } else {
         let lesson = progress.lesson;
-        let totalLesson = lesson.length;
+        let totalLesson = lesson.length + 1; // +1 for final exam
         let completedLesson = 0;
         for (let j = 0; j < lesson.length; j++) {
           if (lesson[j].status === "Completed") {
             completedLesson++;
           }
+        }
+
+        let final_exam = progress.final_exam;
+        if (final_exam.status === "Completed") {
+          completedLesson++;
         }
         let percent = (completedLesson / totalLesson) * 100;
         students.push({
