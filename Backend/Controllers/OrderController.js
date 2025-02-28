@@ -52,6 +52,7 @@ exports.createOrder = async (req, res) => {
       total_price,
     });
 
+    await cart.deleteOne();
     await newOrder.save();
     await studentWallet.save();
     res.status(201).json("Order created successfully");

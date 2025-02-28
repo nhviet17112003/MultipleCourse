@@ -78,7 +78,7 @@ exports.updateLessonProgress = async (req, res) => {
 // Get all progress
 exports.getAllProgress = async (req, res) => {
   try {
-    const progress = await Progress.findOne({ student_id: req.user._id });
+    const progress = await Progress.find({ student_id: req.user._id });
     if (!progress) {
       return res.status(404).json({ message: "Progress not found" });
     }
