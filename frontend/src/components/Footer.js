@@ -3,8 +3,18 @@ import { Facebook, Instagram, Twitter, Mail, PhoneCall, MapPin } from "lucide-re
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-gray-300 py-10 mt-16">
-      <div className="container mx-auto px-6 lg:px-20 grid grid-cols-1 md:grid-cols-3 gap-8">
+    <footer 
+      className="relative text-gray-300 py-16 mt-16"
+      style={{
+        backgroundImage: "url('/apple-2562204_1280.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      {/* Overlay để chữ dễ đọc hơn */}
+      <div className="absolute inset-0 bg-black bg-opacity-60"></div>
+
+      <div className="relative container mx-auto px-6 lg:px-20 grid grid-cols-1 md:grid-cols-3 gap-8">
         
         {/* Column 1 - About Multicourse */}
         <div>
@@ -52,7 +62,7 @@ export default function Footer() {
       </div>
 
       {/* Divider */}
-      <div className="border-t border-gray-700 mt-8 pt-6 text-center text-sm text-gray-500">
+      <div className="relative border-t border-gray-700 mt-8 pt-6 text-center text-sm text-gray-500">
         <p>© {new Date().getFullYear()} Multicourse. All rights reserved.</p>
         <p>
           <a href="#" className="hover:text-cyan-400 transition">Terms of Service</a> • 

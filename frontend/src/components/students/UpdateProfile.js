@@ -11,7 +11,7 @@ const UpdateProfile = () => {
     address: "",
     birthday: "",
   });
-
+  const [isEditingBirthday, setIsEditingBirthday] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
@@ -33,12 +33,13 @@ const UpdateProfile = () => {
         });
 
         const { fullname, phone, gender, address, birthday } = response.data;
+        const formattedBirthday = birthday ? birthday.split("T")[0] : "";
         setFormData({
           fullname: fullname || "",
           phone: phone || "",
           gender: gender || "",
           address: address || "",
-          birthday: birthday || "",
+          birthday: formattedBirthday,
         });
       } catch (error) {
         setErrorMessage("Unable to retrieve user information.");
@@ -165,9 +166,10 @@ const UpdateProfile = () => {
               type="date"
               name="birthday"
               value={formData.birthday}
+              readOnly={!isEditingBirthday}
+              onClick={() => setIsEditingBirthday(true)}
               onChange={handleInputChange}
-             className="mt-2 p-3 pr-10 w-full border border-green-500 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm"
-              required
+              className="mt-2 p-3 w-full border border-green-500 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm cursor-pointer"
             />
           </div>
         </div>
