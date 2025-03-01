@@ -42,10 +42,18 @@ async function uploadFileToStorage(file, folderPath) {
 //Sign up
 exports.signUp = async (req, res) => {
   try {
-    const user = await Users.findOne({ email: req.body.email.toLowerCase() });
-    if (user) {
+    const existEmail = await Users.findOne({
+      email: req.body.email.toLowerCase(),
+    });
+    if (existEmail) {
       return res.status(400).json({ message: "Email already exists" });
     }
+
+    const existUsername = await Users.findOne({ username: req.body.username });
+    if (existUsername) {
+      return res.status(400).json({ message: "Username already exists" });
+    }
+
     Users.register(
       new Users({
         email: req.body.email.toLowerCase(),
