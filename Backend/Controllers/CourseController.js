@@ -5,7 +5,8 @@ const Order = require("../Models/Orders");
 const AdminActivityHistory = require("../Models/AdminActivityHistory");
 const multer = require("multer");
 const admin = require("firebase-admin");
-const { request } = require("express");
+const nodemailer = require("nodemailer");
+const config = require("../Configurations/Config");
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -142,6 +143,7 @@ exports.requetsCreateCourse = async (req, res) => {
 exports.processCreateCourse = async (req, res) => {
   try {
     const status = req.body.status;
+    const message = req.body.message;
     const request = await Request.findById(req.params.request_id);
     if (!request) {
       return res.status(404).json({ message: "Request not found" });
@@ -172,6 +174,76 @@ exports.processCreateCourse = async (req, res) => {
       await course.save();
       await request.save();
       await newAdminActivity.save();
+
+      // Gửi email thông báo cho tutor
+      const tutor = await User.findById(course.tutor);
+      if (!tutor) {
+        return res.status(404).json({ message: "Tutor not found" });
+      }
+
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: config.email || "datnptce171966@fpt.edu.vn",
+          pass: config.password || "dmua zsks gsdl brlb",
+        },
+      });
+
+      let mailOptions;
+
+      if (status === "Approved") {
+        mailOptions = {
+          to: tutor.email,
+          from: config.email,
+          subject: `Your course "${course.title}" has been approved and is now live`,
+          html: `
+      <p>Dear ${tutor.fullname},</p>
+
+      <p>We are pleased to inform you that your course, "<strong>${course.title}</strong>," has been successfully approved by the Admin.</p>
+
+      <p>Your course is now visible on the platform, and students can view and enroll in it.</p>
+
+      <p>You can check your course on the platform and track student enrollments. If you have any questions, feel free to contact us.</p>
+
+      <p>Thank you for contributing high-quality content to our platform!</p>
+
+      <p>Best regards,</p>
+      <p>Multi Course Team</p>
+    `,
+        };
+      } else if (status === "Rejected") {
+        mailOptions = {
+          to: tutor.email,
+          from: config.email,
+          subject: `Your course "${course.title}" has not been approved`,
+          html: `
+      <p>Dear ${tutor.fullname},</p>
+
+      <p>We regret to inform you that your course, "<strong>${
+        course.title
+      }</strong>," has not been approved due to the following reasons:</p>
+
+      <p><strong>Reason:</strong> ${message || "Not specified"}</p>
+
+      <p>You may revise your course according to the feedback and resubmit it for review. If you need further clarification, please do not hesitate to contact us.</p>
+
+      <p>Thank you for your effort in creating content for our platform.</p>
+
+      <p>Best regards,</p>
+      <p>Multi Course Team</p>
+    `,
+        };
+      }
+
+      // Gửi email thông báo
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.log("Error sending email: ", error);
+        } else {
+          console.log("Email sent: ", info.response);
+        }
+      });
+
       res
         .status(200)
         .json({ message: "Course has been created", course: course });
@@ -328,6 +400,77 @@ exports.processUpdateCourse = async (req, res) => {
       await course.save();
       await request.save();
       await newAdminActivity.save();
+
+      // Gửi email thông báo cho tutor
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: config.email || "datnptce171966@fpt.edu.vn",
+          pass: config.password || "dmua zsks gsdl brlb",
+        },
+      });
+
+      let mailOptions;
+
+      if (status === "Approved") {
+        mailOptions = {
+          to: tutor.email,
+          from: config.email,
+          subject: `Your course "${course.title}" update request has been approved`,
+          html: `
+      <p>Dear ${tutor.fullname},</p>
+
+      <p>We are pleased to inform you that your request to update the course "<strong>${course.title}</strong>" has been successfully approved.</p>
+
+      <p>The updated details of your course are now live on our platform. Students will see the new information, including:</p>
+      <ul>
+        <li><strong>Title:</strong> ${newTitle}</li>
+        <li><strong>Description:</strong> ${description}</li>
+        <li><strong>Price:</strong> $${price}</li>
+        <li><strong>Category:</strong> ${category}</li>
+      </ul>
+
+      <p>You can check your course and make any further updates as needed.</p>
+
+      <p>Thank you for continuously improving your content and providing quality education!</p>
+
+      <p>Best regards,</p>
+      <p>Multi Course Team</p>
+    `,
+        };
+      } else if (status === "Rejected") {
+        mailOptions = {
+          to: tutor.email,
+          from: config.email,
+          subject: `Your course "${request.course}" update request has been rejected`,
+          html: `
+      <p>Dear ${tutor.fullname},</p>
+
+      <p>We regret to inform you that your request to update the course "<strong>${
+        request.course
+      }</strong>" has been rejected.</p>
+
+      <p><strong>Reason:</strong> ${message || "Not specified"}</p>
+
+      <p>Please review the provided feedback, make the necessary changes, and resubmit your update request.</p>
+
+      <p>If you need further assistance, feel free to contact our support team.</p>
+
+      <p>Best regards,</p>
+      <p>Multi Course Team</p>
+    `,
+        };
+      }
+
+      // Gửi email thông báo
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.log("Error sending email: ", error);
+        } else {
+          console.log("Email sent: ", info.response);
+        }
+      });
+
       res.status(200).json(course);
     }
   } catch (err) {
@@ -426,6 +569,71 @@ exports.processDeleteCourse = async (req, res) => {
       newAdminActivity.description = `Approved the request to delete course with ID: ${request.course}`;
       await request.save();
       await newAdminActivity.save();
+
+      // Gửi email thông báo cho tutor
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: config.email || "datnptce171966@fpt.edu.vn",
+          pass: config.password || "dmua zsks gsdl brlb",
+        },
+      });
+
+      let mailOptions;
+
+      if (status === "Approved") {
+        mailOptions = {
+          to: tutor.email,
+          from: config.email,
+          subject: `Your course "${course.title}" has been deleted`,
+          html: `
+      <p>Dear ${tutor.fullname},</p>
+
+      <p>We would like to inform you that your request to delete the course "<strong>${course.title}</strong>" has been <strong>approved</strong> and the course has been successfully removed from our platform.</p>
+
+      <p>All related materials, including lessons and documents, have been deleted as well.</p>
+
+      <p>If you have any further concerns or need assistance, please do not hesitate to contact our support team.</p>
+
+      <p>Thank you for being a valued member of our platform.</p>
+
+      <p>Best regards,</p>
+      <p>Multi Course Team</p>
+    `,
+        };
+      } else if (status === "Rejected") {
+        mailOptions = {
+          to: tutor.email,
+          from: config.email,
+          subject: `Your request to delete course "${request.course}" has been rejected`,
+          html: `
+      <p>Dear ${tutor.fullname},</p>
+
+      <p>We regret to inform you that your request to delete the course "<strong>${
+        request.course
+      }</strong>" has been <strong>rejected</strong>.</p>
+
+      <p><strong>Reason:</strong> ${message || "Not specified"}</p>
+
+      <p>If you need further clarification or assistance, please feel free to reach out to our support team.</p>
+
+      <p>Thank you for your understanding.</p>
+
+      <p>Best regards,</p>
+      <p>Multi Course Team</p>
+    `,
+        };
+      }
+
+      // Gửi email thông báo
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.log("Error sending email: ", error);
+        } else {
+          console.log("Email sent: ", info.response);
+        }
+      });
+
       res.status(200).json({ message: "Course has been deleted" });
     }
   } catch (err) {
@@ -578,7 +786,6 @@ exports.getTop5Tutor = async (req, res) => {
 //top 1 courses bán chạy
 
 exports.getTop1BestSeller = async (req, res) => {
-
   try {
     const top5BestSeller = await Order.aggregate([
       { $unwind: "$order_items" },

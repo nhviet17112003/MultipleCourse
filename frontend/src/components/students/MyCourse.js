@@ -147,18 +147,17 @@ const MyCourses = () => {
         (progress) => progress.course_id === courseId
       );
 
-      if (courseProgress) {
+      if (courseProgress && courseProgress.lesson.length > 0) {
         const totalLessons = courseProgress.lesson.length + 1;
         const completedLessons = courseProgress.lesson.filter(
           (lesson) => lesson.status === "Completed"
         ).length;
 
-        const isFinalExamCompleted =
-          courseProgress.final_exam?.status === "Completed";
-        const completedCount =
-          completedLessons + (isFinalExamCompleted ? 1 : 0);
+        if (courseProgress.final_exam.status === "Completed") {
+          return 100;
+        }
 
-        const progress = (completedCount / totalLessons) * 100;
+        const progress = (completedLessons / totalLessons) * 100;
         return progress;
       }
     }
@@ -166,23 +165,17 @@ const MyCourses = () => {
     console.log("No progress found for course");
     return 0;
   };
-
   const isEnrolled = (courseId) => {
-    console.log("Checking enrollment for courseId:", courseId);
-    console.log("progressData:", progressData);
-
     if (Array.isArray(progressData)) {
       const result = progressData.some(
         (progress) => progress.course_id === courseId
       );
-      console.log("Enrollment status:", result);
       return result;
     } else {
       console.error("progressData is not an array:", progressData);
       return false;
     }
   };
-
   if (loading)
     return (
       <div className="flex justify-center items-center h-screen text-xl">

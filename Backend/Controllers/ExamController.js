@@ -1,5 +1,6 @@
 const Exam = require("../Models/Exams");
 const StudentExamRS = require("../Models/StudentExamResults");
+const Progress = require("../Models/Progress");
 const Course = require("../Models/Courses");
 const Progress = require("../Models/Progress");
 exports.createExam = async (req, res) => {

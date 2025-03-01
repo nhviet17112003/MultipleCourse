@@ -21,6 +21,7 @@ const CourseList = () => {
   const [ratingFilter, setRatingFilter] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  
 
   // useEffect(() => {
   //   setSpinning(true);
@@ -37,7 +38,6 @@ const CourseList = () => {
 
   //   return () => clearInterval(interval);
   // }, []);
-
   useEffect(() => {
     const fetchCourses = async () => {
       try {
