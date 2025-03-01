@@ -55,10 +55,10 @@ const Login = () => {
   // Hàm kiểm tra Username
   const validateUsername = (username) => {
     if (username.trim().length === 0) {
-      return "Username không được để trống.";
+      return "Username cannot be blank.";
     }
     if (username.length < 4) {
-      return "Username phải có ít nhất 4 ký tự.";
+      return "Username must be at least 4 characters.";
     }
     return "";
   };
@@ -66,7 +66,7 @@ const Login = () => {
   // Hàm kiểm tra Password
   const validatePassword = (password) => {
     if (password.length < 3) {
-      return "Mật khẩu phải có ít nhất 6 ký tự.";
+      return "Password must be at least 6 characters.";
     }
 
     return "";
@@ -76,7 +76,7 @@ const Login = () => {
     e.preventDefault();
 
     if (!captchaValue) {
-      setError("Vui lòng xác nhận reCAPTCHA.");
+      setError("Please confirm reCAPTCHA.");
       return;
     }
 
@@ -143,7 +143,7 @@ const Login = () => {
         }
       }
     } catch (err) {
-      setError("Tài khoản hoặc mật khẩu không đúng.");
+      setError("Incorrect account or password.");
       setSuccessMessage("");
     } finally {
       setIsSubmitting(false);
