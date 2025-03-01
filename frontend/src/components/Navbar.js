@@ -84,7 +84,7 @@ const Navbar = () => {
     // Nếu không có token, thông báo lỗi hoặc điều hướng về trang login
     if (!token) {
       setError("Bạn cần đăng nhập để xem khóa học.");
-      return;
+      return; 
     }
 
     // Gửi yêu cầu API với token

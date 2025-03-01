@@ -15,6 +15,8 @@ const Login = () => {
   const navigate = useNavigate();
   const recaptchaRef = useRef(null);
   const timeoutRef = useRef(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     const role = localStorage.getItem("role");
@@ -32,17 +34,22 @@ const Login = () => {
     console.log("Captcha value:", value);
     setCaptchaValue(value);
 
-    // Khi người dùng xác nhận thành công, đặt timeout reset sau 60 giây
+    // Hủy timeout cũ nếu có
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
+
+    // Đặt timeout reset reCAPTCHA nếu chưa xác nhận
     timeoutRef.current = setTimeout(() => {
-      if (recaptchaRef.current) {
-        recaptchaRef.current.reset();
-        setCaptchaValue(null);
-        console.log("reCAPTCHA đã được reset do hết hạn timeout.");
+      if (captchaValue) {
+        // Kiểm tra nếu chưa đăng nhập
+        if (recaptchaRef.current) {
+          recaptchaRef.current.reset();
+          setCaptchaValue(null);
+          console.log("reCAPTCHA đã được reset do hết hạn timeout.");
+        }
       }
-    }, 60000); // reset sau 60 giây
+    }, 60000); // 1 phút
   };
 
   // Hàm kiểm tra Username
@@ -76,6 +83,10 @@ const Login = () => {
     // Dừng timeout nếu có
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
+    } // Kiểm tra nếu reCAPTCHA đã bị reset
+    if (recaptchaRef.current && !recaptchaRef.current.getValue()) {
+      setError("reCAPTCHA đã hết hạn, vui lòng thử lại.");
+      return;
     }
 
     // Kiểm tra Username
@@ -108,7 +119,7 @@ const Login = () => {
           response.data;
 
         if (!status) {
-          setError("Tài khoản đã bị BAN");
+          setError("Account has been BANNED");
           return;
         }
 
@@ -116,8 +127,8 @@ const Login = () => {
         localStorage.setItem("authToken", token);
         localStorage.setItem("fullname", fullname);
         localStorage.setItem("role", role);
-
-        setSuccessMessage("Đăng nhập thành công!");
+        setIsSubmitting(true);
+        setSuccessMessage("login successfully!");
         setError("");
 
         // Điều hướng dựa trên role
@@ -135,6 +146,7 @@ const Login = () => {
       setError("Tài khoản hoặc mật khẩu không đúng.");
       setSuccessMessage("");
     } finally {
+      setIsSubmitting(false);
       setIsLoading(false);
     }
   };
@@ -144,6 +156,8 @@ const Login = () => {
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
+        console.log("Timeout đã được xóa khi component unmount.");
+          timeoutRef.current = null; 
       }
     };
   }, []);

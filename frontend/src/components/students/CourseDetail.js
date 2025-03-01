@@ -86,7 +86,7 @@ const [newComment, setNewComment] = useState("");
 
       const data = await response.json();
       if (response.ok) {
-        toast.success("Thêm vào giỏ hàng thành công!", {
+        toast.success("Add product to cart successfully!", {
           position: "top-right",
           autoClose: 3000, // Đóng sau 3 giây
           hideProgressBar: false,
