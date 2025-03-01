@@ -163,12 +163,17 @@ exports.getProgressByCourse = async (req, res) => {
         });
       } else {
         let lesson = progress.lesson;
-        let totalLesson = lesson.length;
+        let totalLesson = lesson.length + 1; // +1 for final exam
         let completedLesson = 0;
         for (let j = 0; j < lesson.length; j++) {
           if (lesson[j].status === "Completed") {
             completedLesson++;
           }
+        }
+
+        let final_exam = progress.final_exam;
+        if (final_exam.status === "Completed") {
+          completedLesson++;
         }
         let percent = (completedLesson / totalLesson) * 100;
         students.push({

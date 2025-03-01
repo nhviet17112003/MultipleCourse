@@ -34,6 +34,17 @@ const ProgressSchema = new Schema({
       },
     },
   ],
+  final_exam: {
+    status: {
+      type: String,
+      default: "Not Started",
+      enum: ["In Progress", "Completed", "Not Started"],
+    },
+    score: {
+      type: Number,
+      default: 0,
+    },
+  },
 });
 
 module.exports = mongoose.model("Progress", ProgressSchema);

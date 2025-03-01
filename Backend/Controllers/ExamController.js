@@ -1,7 +1,7 @@
 const Exam = require("../Models/Exams");
 const StudentExamRS = require("../Models/StudentExamResults");
 const Course = require("../Models/Courses");
-
+const Progress = require("../Models/Progress");
 exports.createExam = async (req, res) => {
   try {
     const course_id = req.body.course_id;
@@ -132,6 +132,15 @@ exports.submitExam = async (req, res) => {
       return res.status(404).json({ error: "Exam not found" });
     }
 
+    const progress = await Progress.findOne({
+      student_id,
+      course_id,
+    });
+
+    if (!progress) {
+      return res.status(404).json({ error: "Progress not found" });
+    }
+
     //Calculate total marks
     let totalScore = 0;
     let questionRS = [];
@@ -208,6 +217,16 @@ exports.submitExam = async (req, res) => {
     if (existsStudentExamRS) {
       existsStudentExamRS.score = totalScore;
       existsStudentExamRS.questions = questionRS;
+
+      if (totalScore >= exam.totalMark * 0.8) {
+        progress.final_exam.status = "Completed";
+        progress.final_exam.score = totalScore;
+      } else {
+        progress.final_exam.status = "In Progress";
+        progress.final_exam.score = totalScore;
+      }
+
+      await progress.save();
       await existsStudentExamRS.save();
       return res.status(200).json({
         message: "Exam updated successfully",
@@ -222,12 +241,44 @@ exports.submitExam = async (req, res) => {
         totalMark: exam.totalMark,
         questions: questionRS,
       });
+
+      if (totalScore >= exam.totalMark * 0.8) {
+        progress.final_exam.status = "Completed";
+        progress.final_exam.score = totalScore;
+      } else {
+        progress.final_exam.status = "In Progress";
+        progress.final_exam.score = totalScore;
+      }
+
+      await progress.save();
       await newStudentExamRS.save();
       return res.status(201).json({
         message: "Exam submitted successfully",
         studentExamRS: newStudentExamRS,
       });
     }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+//Get exam for tutor
+exports.getExam = async (req, res) => {
+  try {
+    const course_id = req.params.course_id;
+
+    const course = await Course.findById(course_id);
+    if (!course) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    const exam = await Exam.findOne({ course_id: course_id });
+    if (!exam) {
+      return res.status(404).json({ error: "Exam not found" });
+    }
+
+    res.status(200).json(exam);
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Internal Server Error" });
