@@ -185,7 +185,7 @@ exports.processCreateCourse = async (req, res) => {
         service: "gmail",
         auth: {
           user: config.email || "datnptce171966@fpt.edu.vn",
-          pass: config.password || "dmua zsks gsdl brlb",
+          pass: config.password || "ivqm xtbu vfvu wdyk",
         },
       });
 
