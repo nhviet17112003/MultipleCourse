@@ -33,24 +33,25 @@ const Login = () => {
   const handleCaptchaChange = (value) => {
     console.log("Captcha value:", value);
     setCaptchaValue(value);
-
+  
     // Hủy timeout cũ nếu có
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
     }
-
-    // Đặt timeout reset reCAPTCHA nếu chưa xác nhận
-    timeoutRef.current = setTimeout(() => {
-      if (captchaValue) {
-        // Kiểm tra nếu chưa đăng nhập
+  
+    // Nếu không có giá trị mới, đặt lại timeout
+    if (value) {
+      timeoutRef.current = setTimeout(() => {
         if (recaptchaRef.current) {
           recaptchaRef.current.reset();
           setCaptchaValue(null);
-          console.log("reCAPTCHA đã được reset do hết hạn timeout.");
+          console.log("reCAPTCHA đã reset do hết hạn timeout.");
         }
-      }
-    }, 60000); // 1 phút
+      }, 60000);
+    }
   };
+  
 
   // Hàm kiểm tra Username
   const validateUsername = (username) => {
@@ -88,7 +89,11 @@ const Login = () => {
       setError("reCAPTCHA đã hết hạn, vui lòng thử lại.");
       return;
     }
-
+    // Dừng timeout khi submit
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
     // Kiểm tra Username
     const usernameError = validateUsername(username);
     if (usernameError) {
@@ -156,11 +161,11 @@ const Login = () => {
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
         console.log("Timeout đã được xóa khi component unmount.");
-          timeoutRef.current = null; 
       }
     };
-  }, []);
+  }, [captchaValue]);
   const handleSignUpForStudent = () => {
     navigate("/signup", { state: { role: "Student" } });
   };

@@ -107,11 +107,11 @@ const Cart = () => {
           "Lỗi khi tạo đơn hàng:",
           errorData.message || "Không rõ lỗi"
         );
-        toast.error("Thanh toán thất bại!");
+        toast.error("Payment failed!");
       }
     } catch (error) {
       console.error("Lỗi khi tạo đơn hàng:", error);
-      toast.error("Thanh toán thất bại!");
+      toast.error("Payment failed!");
     }
   };
   return (
@@ -122,11 +122,11 @@ const Cart = () => {
           onClick={() => navigate("/")} // Quay lại HomeScreen
           className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
         >
-          Quay lại
+          Back
         </button>
 
         {cartItems.length === 0 ? (
-          <p>Giỏ hàng của bạn đang trống.</p>
+          <p>Your cart is empty.</p>
         ) : (
           <div className="bg-white p-6 rounded-lg shadow-md">
             <ul>
@@ -147,18 +147,18 @@ const Cart = () => {
                     onClick={() => handleRemoveItem(item.course._id)} // Sử dụng item.course._id
                     className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
                   >
-                    Xóa
+                    Delete
                   </button>
                 </li>
               ))}
             </ul>
             <div className="flex justify-between mt-6">
-              <p className="text-xl font-bold">Tổng tiền: {totalPrice} VND</p>
+              <p className="text-xl font-bold">TOTAL: {totalPrice} VND</p>
               <button
                 onClick={handlePayment}
                 className="bg-teal-500 text-white px-6 py-2 rounded hover:bg-teal-600"
               >
-                Thanh toán
+                Pay
               </button>
             </div>
           </div>
