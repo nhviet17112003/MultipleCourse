@@ -147,7 +147,7 @@ const Signup = () => {
         }
       );
 
-      setSuccessMessage("Sign up successfully. Redirecting to login page...");
+      // setSuccessMessage("Sign up successfully. Redirecting to login page...");
       setShowSuccessPopup(true); // Hiển thị popup
       setTimeout(() => {
         setShowSuccessPopup(false);
