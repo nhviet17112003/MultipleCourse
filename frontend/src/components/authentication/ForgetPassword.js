@@ -15,11 +15,14 @@ const ForgetPassword = () => {
   const navigate = useNavigate(); // Khởi tạo useNavigate
 
   const handleSendEmail = async () => {
+    console.log("Bắt đầu gửi yêu cầu gửi OTP với email:", email);
     try {
       const response = await axios.post(
         "http://localhost:3000/api/users/forgot-password",
         { email }
       );
+
+      console.log("Phản hồi từ server khi gửi OTP:", response.data);
 
       if (response.status === 200) {
         setStep(2); // Chuyển sang bước nhập OTP
@@ -27,11 +30,11 @@ const ForgetPassword = () => {
         setError("");
       }
     } catch (err) {
+      console.error("Lỗi khi gửi OTP:", err);
       setError("Không thể gửi OTP. Vui lòng kiểm tra email của bạn.");
       setSuccessMessage("");
     }
   };
-
   const handleResetPassword = async () => {
     if (newPassword !== confirmPassword) {
       setError("Mật khẩu mới không khớp.");
@@ -92,7 +95,6 @@ const ForgetPassword = () => {
               type="email"
               id="email"
               className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Nhập email của bạn"
@@ -134,7 +136,7 @@ const ForgetPassword = () => {
             <input
               type="password"
               id="newPassword"
-            className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="Nhập mật khẩu mới"
@@ -159,7 +161,7 @@ const ForgetPassword = () => {
 
             <button
               onClick={handleResetPassword}
-             className="mt-4 w-full bg-green-300 text-white py-3 rounded hover:bg-green-500"
+              className="mt-4 w-full bg-green-300 text-white py-3 rounded hover:bg-green-500"
             >
               Đổi Mật Khẩu
             </button>
@@ -169,7 +171,9 @@ const ForgetPassword = () => {
         {step === 3 && (
           <div className="text-center">
             <FaCheckCircle className="text-teal-500 text-6xl mx-auto mb-4" />
-            <p className="text-lg text-gray-600">Mật khẩu của bạn đã được thay đổi thành công!</p>
+            <p className="text-lg text-gray-600">
+              Mật khẩu của bạn đã được thay đổi thành công!
+            </p>
             <button
               onClick={handleGoToLogin} // Bấm vào nút để quay lại trang đăng nhập
               className="mt-4 w-full bg-green-300 text-white py-3 rounded hover:bg-green-500"

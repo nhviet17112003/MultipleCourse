@@ -88,22 +88,22 @@ useEffect(() => {
     if (error) return <p>{error}</p>;
 
   return (
-    <div className="w-screen min-h-screen flex flex-col bg-white items-center text-black">
+    <div className="w-screen min-h-screen flex flex-col bg-white items-center text-black dark:text-white dark:bg-gray-900 transition-colors duration-300">
 
       {/* Video nền full width, tự động chạy */}
       <video 
-        className="w-full max-w-screen h-[500px] object-cover"
+        className="w-full min-w-screen h-max object-cover"
         // fixed top-0 left-0 z-0
         autoPlay 
         muted 
         loop 
         playsInline
       >
-        <source src="/How To Study.mp4" type="video/mp4" />
+        <source src="/How To Study3.mp4" type="video/mp4" />
       </video>
 
 {/* Nội dung chính */}
-<div className="w-full flex flex-col items-center justify-center text-black px-6 bg-white mt-20">
+<div className="w-full flex flex-col items-center justify-center text-black dark:text-white px-6 bg-white dark:bg-gray-900 mt-20">
 <h1 className="text-5xl font-bold text-center uppercase tracking-wide">
   Welcome to <span className="text-cyan-400">MultiCourse</span>
 </h1>
@@ -150,7 +150,7 @@ useEffect(() => {
 
         <div
   className="min-h-screen min-w-full bg-cover bg-center bg-no-repeat p-16 shadow-md"
-  style={{ backgroundImage: "url('/dictionary-932327_1280.jpg')" }} // Đổi đường dẫn ảnh
+  style={{ backgroundImage: "url('/computer-1873831_1280.png')" }} // Đổi đường dẫn ảnh
 >
 
         <h2 className="text-4xl font-bold text-center text-white uppercase tracking-wide mt-[80px] mb-5 relative">
@@ -170,7 +170,7 @@ useEffect(() => {
                   <div
                     key={course._id}
                     // onClick={() => handleCourseClick(course._id)}
-                    className="bg-white shadow-md overflow-hidden"
+                    className="bg-white shadow-sm rounded-lg overflow-hidden dark:text-white dark:bg-gray-800"
                   >
                     <img
                       src={course.image}
@@ -214,27 +214,27 @@ useEffect(() => {
         </div>
 
 
-        <div className="w-full flex flex-col md:flex-row items-center bg-gray-50 p-10">
+        <div className="w-full flex flex-col md:flex-row items-center bg-gray-50 p-10 dark:text-white dark:bg-gray-900">
   {loading ? (
     <p className="text-center text-lg text-gray-600 animate-pulse">Loading best-selling course...</p>
   ) : bestSeller && bestSeller.course ? ( // Ensure bestSeller and bestSeller.course exist
     <>
-      {/* Course Image */}
-      <div className="w-full md:w-1/2 relative overflow-hidden shadow-lg">
+    
+      <div className="w-full md:w-1/2 relative overflow-hidden rounded-lg shadow-lg">
         <img
           src={bestSeller.course.image || "/default-image.jpg"} // Provide a default image if missing
           alt={bestSeller.course.title}
-          className="w-full h-96 object-cover transform hover:scale-105 transition duration-500"
+          className="w-full rounded-lg relative h-96 object-cover transform hover:scale-105 transition duration-500"
         />
 
-        {/* 🔥 Total Sold Badge with Animation */}
+     
         <div className="absolute top-4 left-4 bg-gradient-to-r from-red-500 to-orange-500 text-white px-6 py-3 text-lg font-bold rounded-lg shadow-lg animate-bounce">
           🔥 {bestSeller.totalSold} SALES
         </div>
       </div>
 
-      {/* Course Information */}
-      <div className="w-full md:w-1/2 flex flex-col justify-center px-10">
+     
+      <div className="w-full md:w-1/2 flex flex-col justify-center px-10 ">
         <h2 className="text-4xl font-bold text-cyan-500 uppercase drop-shadow-md mt-10">
           {bestSeller.course.title}
         </h2>
@@ -275,11 +275,11 @@ useEffect(() => {
     {loading ? (
       <p className="text-center text-lg text-gray-600 animate-pulse">Loading top tutors...</p>
     ) : (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6 dark:text-white dark:bg-gray-900 ">
         {tutors.map((tutor) => (
           <div
             key={tutor._id}
-            className="bg-white shadow-lg p-6 rounded-lg flex flex-col items-center border border-gray-200"
+            className="bg-white shadow-lg p-6 rounded-lg flex flex-col items-center border border-gray-200 dark:text-white dark:bg-gray-800 dark:border-gray-900"
           >
             {/* Hình ảnh mặc định (có thể thay thế nếu có avatar) */}
             <div className="w-24 h-24 flex items-center justify-center bg-gray-300 text-gray-600 font-bold text-2xl rounded-full">
@@ -304,19 +304,19 @@ useEffect(() => {
   </div>
 
   <div
-  className="relative w-full min-h-screen bg-cover bg-center bg-no-repeat p-16 shadow-md mt-12 mb-[300px]"
-  style={{ backgroundImage: "url('/apple-2562204_1280.jpg')" }}
+  className="relative w-full min-h-screen bg-cover bg-center bg-no-repeat p-16 shadow-md mt-12 mb-[250px]"
+  style={{ backgroundImage: "url('/online-6204349_1280.jpg')" }}
 >
   {/* Container video có vị trí tuyệt đối */}
   <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[80%] mt-[400px]">
     <video
-      className="w-full h-[500px] object-cover shadow-lg rounded-lg"
+      className="w-full h-[500px] object-cover shadow-lg"
       autoPlay
       muted
       loop
       playsInline
     >
-      <source src="/3145-166335957_small.mp4" type="video/mp4" />
+      <source src="/How To Study2.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
@@ -333,12 +333,10 @@ useEffect(() => {
 // Component hiển thị từng tính năng
 function FeatureCard({ icon, title, description }) {
     return (
-      <div className="bg-white backdrop-blur-lg p-6 mb-10">
+      <div className="bg-white dark:bg-gray-800 backdrop-blur-lg p-6 mb-10 rounded-lg shadow-md transition-colors duration-300">
         {icon}
         <h3 className="text-2xl font-semibold mt-4">{title}</h3>
-        <p className="mt-2 text-lg">{description}</p>
+        <p className="mt-2 text-lg text-gray-700 dark:text-gray-300">{description}</p>
       </div>
-
-
     );
   }
