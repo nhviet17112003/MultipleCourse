@@ -2,7 +2,7 @@ const Exam = require("../Models/Exams");
 const StudentExamRS = require("../Models/StudentExamResults");
 const Progress = require("../Models/Progress");
 const Course = require("../Models/Courses");
-const Progress = require("../Models/Progress");
+
 exports.createExam = async (req, res) => {
   try {
     const course_id = req.body.course_id;
@@ -258,28 +258,6 @@ exports.submitExam = async (req, res) => {
         studentExamRS: newStudentExamRS,
       });
     }
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-};
-
-//Get exam for tutor
-exports.getExam = async (req, res) => {
-  try {
-    const course_id = req.params.course_id;
-
-    const course = await Course.findById(course_id);
-    if (!course) {
-      return res.status(404).json({ error: "Course not found" });
-    }
-
-    const exam = await Exam.findOne({ course_id: course_id });
-    if (!exam) {
-      return res.status(404).json({ error: "Exam not found" });
-    }
-
-    res.status(200).json(exam);
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Internal Server Error" });
