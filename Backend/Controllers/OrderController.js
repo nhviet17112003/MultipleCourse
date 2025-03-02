@@ -94,13 +94,27 @@ exports.getRevenueForAdmin = async (req, res) => {
 exports.getRevenueEachMonthForAdmin = async (req, res) => {
   try {
     const orders = await Order.find();
-    const revenue = Array.from({ length: 12 }, (_, i) => {
+    const monthNames = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
+    const revenue = monthNames.map((monthName, i) => {
       const month = i + 1;
       const monthlyRevenue = orders.reduce((sum, order) => {
         const orderMonth = order.order_date.getMonth() + 1;
         return orderMonth === month ? sum + order.total_price : sum;
       }, 0);
-      return { month, revenue: monthlyRevenue };
+      return { month: monthName, revenue: monthlyRevenue };
     });
 
     res.status(200).json(revenue);

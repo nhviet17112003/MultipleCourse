@@ -18,7 +18,7 @@ const PurchaseHistoryForAdmin = () => {
         );
         setOrders(response.data);
       } catch (err) {
-        setError("Lỗi khi tải danh sách đơn hàng.");
+        setError("Error loading order list.");
       } finally {
         setLoading(false);
       }
@@ -27,21 +27,20 @@ const PurchaseHistoryForAdmin = () => {
     fetchOrders();
   }, []);
 
-  if (loading) return <p>Đang tải dữ liệu...</p>;
+  if (loading) return <p>Loading data...</p>;
   if (error) return <p className="text-red-500">{error}</p>;
 
   return (
     <div className="max-w-5xl mx-auto p-6 bg-white shadow-lg rounded-lg">
-      <h2 className="text-2xl font-bold mb-4">Lịch sử giao dịch (Admin)</h2>
+      <h2 className="text-2xl font-bold mb-4">Purchase History (Admin)</h2>
       <table className="w-full border-collapse border border-gray-300">
         <thead>
           <tr className="bg-gray-200">
-            <th className="border border-gray-300 p-2">Người mua</th>
+            <th className="border border-gray-300 p-2">Buyer</th>
             <th className="border border-gray-300 p-2">Email</th>
-            <th className="border border-gray-300 p-2">Khóa học</th>
-            <th className="border border-gray-300 p-2">Tổng tiền</th>
-            <th className="border border-gray-300 p-2">Ngày đặt hàng</th>
-            <th className="border border-gray-300 p-2">Trạng thái</th>
+            <th className="border border-gray-300 p-2">Course</th>
+            <th className="border border-gray-300 p-2">Total</th>
+            <th className="border border-gray-300 p-2">Order Date</th>
           </tr>
         </thead>
         <tbody>
@@ -59,22 +58,10 @@ const PurchaseHistoryForAdmin = () => {
                   .join(", ") || "N/A"}
               </td>
               <td className="border border-gray-300 p-2">
-                {order.total_price.toLocaleString()} VNĐ
+                {order.total_price.toLocaleString()} VND
               </td>
               <td className="border border-gray-300 p-2">
                 {new Date(order.order_date).toLocaleDateString()}
-              </td>
-              <td
-                className={`border border-gray-300 p-2 font-bold 
-                  ${
-                    order.status === "Success"
-                      ? "text-green-600"
-                      : order.status === "Failed"
-                      ? "text-red-600"
-                      : "text-yellow-600"
-                  }`}
-              >
-                {order.status}
               </td>
             </tr>
           ))}
