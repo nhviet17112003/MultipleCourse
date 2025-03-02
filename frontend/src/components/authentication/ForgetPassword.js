@@ -85,25 +85,25 @@
       }
     };
 
-    const handleResendOTP = async () => {
-      setOtpExpired(false);
-      setTimer(20);
+    // const handleResendOTP = async () => {
+    //   setOtpExpired(false);
+    //   setTimer(20);
 
-      try {
-        const response = await axios.post(
-          "http://localhost:3000/api/users/resend-otp",
-          { email }
-        );
+    //   try {
+    //     const response = await axios.post(
+    //       "http://localhost:3000/api/users/resend-otp",
+    //       { email }
+    //     );
 
-        if (response.status === 200) {
-          setSuccessMessage("A new OTP has been sent.");
-          setError("");
-        }
-      } catch (err) {
-        setError("Failed to resend OTP. Please try again.");
-        setSuccessMessage("");
-      }
-    };
+    //     if (response.status === 200) {
+    //       setSuccessMessage("A new OTP has been sent.");
+    //       setError("");
+    //     }
+    //   } catch (err) {
+    //     setError("Failed to resend OTP. Please try again.");
+    //     setSuccessMessage("");
+    //   }
+    // };
 
     const handleGoToLogin = () => {
       navigate("/login"); // Điều hướng sang trang đăng nhập
@@ -202,7 +202,7 @@
 
               {otpExpired && (
                 <button
-                  onClick={handleResendOTP}
+                  // onClick={handleResendOTP}
                   className="mt-2 w-full bg-yellow-400 text-white py-3 rounded hover:bg-yellow-500"
                 >
                   Resend OTP
