@@ -224,17 +224,18 @@ export default function RequestList() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: method === "CREATE" || "UPDATE" ? JSON.stringify({ status }) : null,
+          body:
+            method === "CREATE" || "UPDATE" ? JSON.stringify({ status }) : null,
         }
       );
 
       if (!response.ok) throw new Error(`Error: ${response.status}`);
 
       const result = await response.json();
-    //   alert(result.message);
-    // console.log("result", result)
-    alert("Successfully processed request.")
-       
+      //   alert(result.message);
+      // console.log("result", result)
+      alert("Successfully processed request.");
+
       await fetchRequests();
     } catch (err) {
       console.error("Error processing request:", err);

@@ -2,6 +2,7 @@ const Course = require("../Models/Courses");
 const Lesson = require("../Models/Lessons");
 const Request = require("../Models/Requests");
 const Order = require("../Models/Orders");
+const User = require("../Models/Users");
 const AdminActivityHistory = require("../Models/AdminActivityHistory");
 const multer = require("multer");
 const admin = require("firebase-admin");
@@ -126,6 +127,13 @@ exports.requetsCreateCourse = async (req, res) => {
         tutor,
         course: newCourse._id,
         request_type: "Created new course and waiting for approval",
+        content: [
+          { title: "Title", value: title },
+          { title: "Description", value: description },
+          { title: "Price", value: price },
+          { title: "Category", value: category },
+          { title: "Image", value: imageUrl },
+        ],
         status: "Pending",
       });
 
@@ -509,6 +517,12 @@ exports.requestDeleteCourse = async (req, res) => {
       tutor: req.user._id,
       course: course._id,
       request_type: "Deleted course and waiting for approval",
+      content: [
+        { title: "Title", value: course.title },
+        { title: "Description", value: course.description },
+        { title: "Price", value: course.price },
+        { title: "Category", value: course.category },
+      ],
       status: "Pending",
     });
 
