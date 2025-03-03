@@ -13,6 +13,7 @@ import {
 } from "@ant-design/icons";
 import Cookies from "js-cookie";
 import ReCAPTCHA from "react-google-recaptcha";
+
 const Navbar = () => {
   const navigate = useNavigate();
   const [fullname, setFullname] = useState("Người dùng");
@@ -27,14 +28,18 @@ const Navbar = () => {
   const location = useLocation();
   const [balance, setBalance] = useState(0);
   const role = localStorage.getItem("role");
-
-
-
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const recaptchaRef = useRef(null);
-
   const isHome = location.pathname === "/";
 
+  const [reloadNavbar, setReloadNavbar] = useState(true);
 
+const reload = () => {
+  setReloadNavbar(false);
+  setTimeout(() => {
+    setReloadNavbar(true);
+  }, 2000);
+};
   useEffect(() => {
     const fetchBalance = async () => {
       try {
@@ -73,7 +78,7 @@ const Navbar = () => {
       const savedFullname = localStorage.getItem("fullname");
       const savedAvatar = localStorage.getItem("avatar");
       setFullname(savedFullname || "Người dùng");
-      setAvatarUrl(savedAvatar || "https://via.placeholder.com/40");
+      setAvatarUrl(savedAvatar );
     }
   }, [navigate, location.pathname]);
 
@@ -122,36 +127,7 @@ const Navbar = () => {
 
     fetchCourses();
   }, []);
-  // const handleSearchSubmit = () => {
-  //   const trimmedQuery = searchQuery.trim().toLowerCase();
-  
-  //   if (!trimmedQuery) {
-  //     // Nếu không nhập gì, có thể thông báo hoặc không thực hiện điều hướng
-  //     alert("Vui lòng nhập từ khóa để tìm kiếm!");
-  //     return;
-  //   }
-  
-  //   // Lọc khóa học theo tiêu đề
-  //   const filteredCourses = courses.filter((course) =>
-  //     course.title.toLowerCase().includes(trimmedQuery)
-  //   );
-  
-  //   if (filteredCourses.length === 0) {
-  //     alert("Không tìm thấy khóa học nào phù hợp!");
-  //     return;
-  //   }
-  
-  //   // Chuyển đến trang danh sách khóa học với kết quả tìm kiếm
-  //   navigate("/course-list", { state: { courses: filteredCourses } });
-  // };
-  
 
-  // const goToUserProfile = () => {
-  //   navigate("/userprofile");
-  // };
-  // const goToCart = () => {
-  //   navigate("/cart");
-  // };
   const deleteCookie = (name) => {
     document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost; secure; SameSite=None;`;
   };
@@ -184,7 +160,8 @@ const Navbar = () => {
       if (recaptchaRef.current) {
         recaptchaRef.current.reset();
       }
-
+ // Reload Navbar sau 2 giây
+ reload();
       // Chuyển về trang login
       navigate("/login");
       window.location.reload();
@@ -214,7 +191,7 @@ const Navbar = () => {
       );
       setUserData(response.data);
       localStorage.setItem("role", response.data.role);
-      setAvatarUrl(response.data.avatar || "https://via.placeholder.com/40");
+      setAvatarUrl(response.data.avatar );
       console.log("User data:", response.data);
     } catch (err) {
       setError("Your session has expired. Please log in again.");
