@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Table, Button, Spin, Alert, Modal, Select } from "antd";
 import { DownloadOutlined } from "@ant-design/icons";
+import * as XLSX from "xlsx";
 
 const { Option } = Select;
 
@@ -46,7 +47,6 @@ const WalletManageForAdmin = () => {
   }, []);
 
   useEffect(() => {
-    // Filter requests based on selected status filter
     if (statusFilter === "All") {
       setFilteredRequests(requests);
     } else {
@@ -258,6 +258,24 @@ const WalletManageForAdmin = () => {
     },
   ];
 
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(
+      filteredRequests.map(({ withdrawal_id, user, amount, date, status }) => ({
+        Withdrawal_ID: withdrawal_id,
+        Fullname: user?.fullname || "",
+        Email: user?.email || "",
+        Phone: user?.phone || "",
+        Amount: amount,
+        Date: new Date(date).toLocaleString(),
+        Status: status,
+      }))
+    );
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Withdrawals Report");
+    XLSX.writeFile(workbook, "withdrawals_report.xlsx");
+  };
+
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">
@@ -279,7 +297,7 @@ const WalletManageForAdmin = () => {
         type="primary"
         icon={<DownloadOutlined />}
         className="mb-4"
-        onClick={() => console.log("Export functionality coming soon")}
+        onClick={exportToExcel}
       >
         Export report
       </Button>
