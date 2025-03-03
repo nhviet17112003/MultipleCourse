@@ -144,12 +144,13 @@
 // }
 
 import React, { useState, useEffect } from "react";
-
+import { useNavigate } from "react-router-dom";
 export default function RequestList() {
   const [requests, setRequests] = useState([]);
   const token = localStorage.getItem("authToken");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (token) {
@@ -173,10 +174,10 @@ export default function RequestList() {
           },
         }
       );
-
       if (!response.ok) throw new Error(`Error: ${response.status}`);
 
       const data = await response.json();
+      console.log("response", data);
       setRequests(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Error fetching requests:", err);
@@ -253,7 +254,7 @@ export default function RequestList() {
           <thead className="bg-gray-100">
             <tr className="text-left">
               <th className="px-4 py-2 border">Request ID</th>
-              <th className="px-4 py-2 border">Course ID</th>
+              <th className="px-4 py-2 border">Course Title</th>
               <th className="px-4 py-2 border">Request Type</th>
               <th className="px-4 py-2 border">Content</th>
               <th className="px-4 py-2 border">Status</th>
@@ -266,7 +267,9 @@ export default function RequestList() {
                 <tr key={request._id} className="border-t hover:bg-gray-50">
                   <td className="px-4 py-2 border">{request._id}</td>
                   <td className="px-4 py-2 border">
-                    {request.course || "N/A"}
+                    <a href={`/courses-list-tutor/${request.course_id}`}>
+                      {request.course_title}
+                    </a>
                   </td>
                   <td className="px-4 py-2 border">
                     {request.request_type || "N/A"}
