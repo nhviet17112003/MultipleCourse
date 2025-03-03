@@ -54,6 +54,15 @@ useEffect(() => {
   };
 
   const onSubmit = async (data) => {
+    if (!data.title || !data.description || !data.price || !data.category) {
+      toast.error("All fields are required!");
+      return;
+    }
+    if (data.price < 0) {
+      toast.error("Price must be greater than or equal to 0!");
+      return;
+    }
+  
     try {
       setIsSubmitting(true);
       setSpinning(true);
@@ -65,7 +74,7 @@ useEffect(() => {
         ptg += 5;
         setPercent(ptg);
         if (ptg >= 100) {
-          clearInterval(interval); // Stop once the progress reaches 100%
+          clearInterval(interval);
         }
       }, 100);
   
@@ -74,7 +83,7 @@ useEffect(() => {
       formData.append("description", data.description);
       formData.append("price", data.price);
       formData.append("category", data.category);
-      if (data.image[0]) {
+      if (data.image?.[0]) {
         formData.append("image", data.image[0]);
       }
   
@@ -98,20 +107,52 @@ useEffect(() => {
     } finally {
       setIsSubmitting(false);
       setSpinning(false);
-      setPercent(100); // Always set it to 100 once the process is finished
+      setPercent(100);
     }
   };
+
+  const handleFormSubmit = (data) => {
+    console.log("Form data:", data); // Kiểm tra dữ liệu form
+    if (!data.title) {
+      toast.error("Course title is required!");
+      return;
+    }
+    if (!data.description) {
+      toast.error("Course description is required!");
+      return;
+    }
+    if (!data.price || data.price < 0) {
+      toast.error("Please enter a valid price!");
+      return;
+    }
+    if (!data.category) {
+      toast.error("Please select a category!");
+      return;
+    }
+  
+    onSubmit(data);
+  };
+  
+  
   
 
   return (
     
+    
     <div className={`min-h-screen px-4 py-8 ${theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-gray-900"}`}>
+    <ToastContainer position="top-right" autoClose={3000} />
         <Spin spinning={spinning} percent={percent} fullscreen />
-     <form
+     {/* <form
   className={`w-full p-8 rounded-lg shadow-lg 
     ${theme === "dark" ? "border border-gray-600" : "border border-gray-300"}`}
   onSubmit={handleSubmit(onSubmit)}
->
+> */}
+<form
+ className={`w-full p-8 rounded-lg shadow-lg 
+  ${theme === "dark" ? "border border-gray-600" : "border border-gray-300"}`}
+
+onSubmit={handleSubmit(handleFormSubmit)}>
+  
 
 <div className="flex justify-between items-center">        <h1 className="text-4xl font-bold text-left mb-8">
           Create New Course

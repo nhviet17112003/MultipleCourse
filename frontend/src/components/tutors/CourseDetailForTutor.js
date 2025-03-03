@@ -21,6 +21,40 @@ const CourseDetailForTutor = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleteLessonOpen, setIsDeleteLessonOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [students, setStudents] = useState([])
+  const token = localStorage.getItem("authToken");
+  const [error, setError] = useState(null);
+ 
+
+  useEffect(() => {
+        const fetchStudents = async () => {
+          try {
+            const response = await fetch(
+              `http://localhost:3000/api/progress/students/${courseId}`,
+              {
+                method: "GET",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+            
+            if (!response.ok) {
+              throw new Error("Failed to fetch students");
+            }
+    
+            const data = await response.json();
+            setStudents(data);
+          } catch (error) {
+            setError(error.message);
+          } finally {
+            setLoading(false);
+          }
+        };
+    
+        fetchStudents();
+      }, [courseId]);
 
   const handleDeleteLesson = async () => {
     const token = localStorage.getItem("authToken");
@@ -211,6 +245,7 @@ const CourseDetailForTutor = () => {
               })}
             </p>
           </div>
+          
           <div className="flex justify-center items-center mt-4">
             <h2 className="text-[70px] text-center font-semibold">
               {course.title}{" "}
@@ -229,6 +264,58 @@ const CourseDetailForTutor = () => {
           </div>
         </div>
       )}
+
+      {/* student ne */}
+
+<h2 className="text-2xl font-semibold mt-6">Students Enrolled</h2>
+{loading ? (
+  <p>Loading students...</p>
+) : error ? (
+  <p className="text-red-500">{error}</p>
+) : students.length > 0 ? (
+  <div className="overflow-x-auto mt-4">
+    <table className="min-w-full border border-gray-300">
+      <thead>
+        <tr className="bg-gray-100">
+          <th className="px-4 py-2 border">Avatar</th>
+          <th className="px-4 py-2 border">Full Name</th>
+          <th className="px-4 py-2 border">Status</th>
+          <th className="px-4 py-2 border">Progress</th>
+        </tr>
+      </thead>
+      <tbody>
+        {students.map((student) => (
+          <tr key={student.student._id} className="text-center">
+            <td className="border px-4 py-2">
+              <img
+                src={student.student.avatar}
+                alt={student.student.fullname}
+                className="w-12 h-12 rounded-full mx-auto"
+              />
+            </td>
+            <td className="border px-4 py-2">{student.student.fullname}</td>
+            <td className="border px-4 py-2">
+              <span
+                className={`px-2 py-1 rounded ${
+                  student.status === "Enrolled"
+                    ? "bg-green-200 text-green-700"
+                    : "bg-red-200 text-red-700"
+                }`}
+              >
+                {student.status}
+              </span>
+            </td>
+            <td className="border px-4 py-2">{student.percent.toFixed(2)}%</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+) : (
+  <p className="text-gray-500 mt-2">No students enrolled in this course.</p>
+)}
+
+      
 
       {isModalOpen && selectedLesson && (
         <UpdateLessonModal
