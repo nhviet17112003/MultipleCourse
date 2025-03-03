@@ -16,6 +16,7 @@ const Login = () => {
   const recaptchaRef = useRef(null);
   const timeoutRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [avatar,setAvatarUrl] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
@@ -134,7 +135,7 @@ const Login = () => {
         setIsSubmitting(true);
         setSuccessMessage("Login successfully!");
         setError("");
-  
+        setAvatarUrl(avatar); // Cập nhật avatar ngay lập tức
         // Kiểm tra role và điều hướng
         if (role.toLowerCase() === "tutor") {
           if (Array.isArray(tutor_certificates) && tutor_certificates.length === 0) {
