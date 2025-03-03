@@ -70,6 +70,15 @@ const WalletManage = () => {
     "Keppel Bank",
   ];
 
+  const handleAccountHolderChange = (e) => {
+    const value = e.target.value;
+    if (/\d/.test(value)) {
+      toast.error("Invalid account name.");
+      return;
+    }
+    setNewAccountHolder(value);
+  };
+
   const fetchWithdrawHistory = useCallback(async () => {
     try {
       const response = await fetch(
@@ -489,10 +498,11 @@ const WalletManage = () => {
               <input
                 type="text"
                 value={newAccountHolder}
-                onChange={(e) => setNewAccountHolder(e.target.value)}
-                className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="Account Name"
+                onChange={handleAccountHolderChange}
+                placeholder="Account Holder Name"
+                className="w-full p-2 border rounded"
               />
+
               <div className="flex gap-4">
                 <button
                   onClick={handleUpdateBank}
