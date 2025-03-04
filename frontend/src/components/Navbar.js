@@ -217,12 +217,15 @@ const Navbar = () => {
     }
   };
   useEffect(() => {
-    const protectedRoutes = ["/homescreen", "/courses-list-tutor", "/dashboard"];
+    const protectedRoutes = [
+      "/homescreen",
+      "/courses-list-tutor",
+      "/dashboard",
+    ];
     if (protectedRoutes.includes(window.location.pathname)) {
       fetchUserProfile();
     }
   }, []);
-  
 
   // Danh sách các trang không muốn hiển thị Navbar
   const hideNavbarRoutes = ["/login", "/signup", "/uploadtutorcertificate"];
@@ -317,14 +320,14 @@ const Navbar = () => {
                 >
                   Profile
                 </button>
-                {role === "Student" &&(
+                {role === "Student" && (
                   <button
-                  className="block w-full px-4 py-2 text-left hover:bg-teal-100 dark:hover:bg-gray-700"
-                  onClick={() => debouncedNavigate("/cart")}
-                >
-                  Cart
-                </button>)}
-                
+                    className="block w-full px-4 py-2 text-left hover:bg-teal-100 dark:hover:bg-gray-700"
+                    onClick={() => debouncedNavigate("/cart")}
+                  >
+                    Cart
+                  </button>
+                )}
                 <button
                   className="block w-full px-4 py-2 text-left text-red-600 hover:bg-red-100 dark:hover:bg-red-800"
                   onClick={logout}

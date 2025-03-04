@@ -19,14 +19,15 @@ const Login = () => {
   const [avatar, setAvatarUrl] = useState(false);
 
   useEffect(() => {
-     const token = localStorage.getItem("authToken");
+    const token = localStorage.getItem("authToken");
     const role = localStorage.getItem("role");
-  
+
     if (token && role) {
-      navigate(role.toLowerCase() === "tutor" ? "/courses-list-tutor" : "/homescreen");
+      navigate(
+        role.toLowerCase() === "tutor" ? "/courses-list-tutor" : "/homescreen"
+      );
     }
   }, []);
-  
 
   useEffect(() => {
     if (isSubmitting) {
@@ -34,7 +35,9 @@ const Login = () => {
       const role = localStorage.getItem("role");
 
       if (token && role) {
-        navigate(role.toLowerCase() === "tutor" ? "/courses-list-tutor" : "/homescreen");
+        navigate(
+          role.toLowerCase() === "tutor" ? "/courses-list-tutor" : "/homescreen"
+        );
       }
     }
   }, [isSubmitting, navigate]);
@@ -51,6 +54,7 @@ const Login = () => {
   };
 
   // Hàm kiểm tra Password
+  const validatePassword = (password) => {
     if (password.length < 6) {
       return "Password must be at least 6 characters.";
     }
@@ -77,10 +81,14 @@ const Login = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await axios.post("http://localhost:3000/api/users/login", { username, password });
+      const response = await axios.post(
+        "http://localhost:3000/api/users/login",
+        { username, password }
+      );
 
       if (response.status === 200) {
-        const { user_id, token, role, fullname, status, tutor_certificates } = response.data;
+        const { user_id, token, role, fullname, status, tutor_certificates } =
+          response.data;
 
         if (!status) {
           setError("Account has been BANNED");
@@ -94,15 +102,22 @@ const Login = () => {
         localStorage.setItem("role", role);
 
         setSuccessMessage("Login successfully!");
-        console.log("Cert: ",tutor_certificates);
-        
+        console.log("Cert: ", tutor_certificates);
+
         setTimeout(() => {
-          if (role.toLowerCase() === "tutor" && (!tutor_certificates || tutor_certificates.length === 0)) {
-            navigate(`/uploadtutorcertificate/${user_id}`, { replace: true });
+          if (
+            role.toLowerCase() === "tutor" &&
+            (!tutor_certificates || tutor_certificates.length === 0)
+          ) {
+            navigate(`/uploadtutorcertificate/${user_id}`);
+          } else if (role.toLowerCase() === "admin") {
+            navigate("/statistic-for-admin");
+          } else if (role.toLowerCase() === "student") {
+            navigate("/homescreen");
           } else {
-            navigate("/homescreen", { replace: true });
+            navigate("/courses-list-tutor");
           }
-        }, 500);        
+        }, 500);
       }
     } catch (err) {
       setError("Incorrect account or password.");
@@ -115,13 +130,10 @@ const Login = () => {
   const handleSignUpForStudent = () => {
     navigate("/signup", { state: { role: "Student" } });
   };
-  
-  
+
   const handleSignUpForTutor = () => {
     navigate("/signup", { state: { role: "Tutor" } });
   };
-  
-  
 
   const handleGoogleLogin = () => {
     // Mở trang đăng nhập Google
