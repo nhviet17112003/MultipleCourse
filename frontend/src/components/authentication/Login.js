@@ -51,7 +51,6 @@ const Login = () => {
   };
 
   // Hàm kiểm tra Password
-  const validatePassword = (password) => {
     if (password.length < 6) {
       return "Password must be at least 6 characters.";
     }

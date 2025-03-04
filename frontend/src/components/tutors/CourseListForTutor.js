@@ -3,8 +3,9 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import UpdateCourseModal from "./UpdateCourseModal"; // Import modal
 import { useTheme } from "../context/ThemeContext"; // Import context
-import { Button, Spin, Breadcrumb } from "antd";
-import { HomeOutlined, UserOutlined } from "@ant-design/icons";
+import { Button, Spin, Breadcrumb } from 'antd';
+import { HomeOutlined, UserOutlined } from '@ant-design/icons';
+import {ToastContainer, toast} from 'react-toastify';
 
 const CourseListForTutor = () => {
   const [courses, setCourses] = useState([]);
@@ -85,10 +86,10 @@ const CourseListForTutor = () => {
       );
 
       if (response.status === 200) {
-        alert("Course deleted successfully!");
-        setCourses((prevCourses) =>
-          prevCourses.filter((course) => course._id !== courseId)
-        );
+
+        toast.success("Course deleted successfully!");
+        setCourses((prevCourses) => prevCourses.filter(course => course._id !== courseId));
+
       }
     } catch (error) {
       console.error("Error deleting course:", error);
@@ -119,19 +120,24 @@ const CourseListForTutor = () => {
         }
       );
 
-      if (response.status === 200) {
+      if (response.status === 201) {
+     
         setCourses((prevCourses) =>
+          
           prevCourses.map((course) =>
             course._id === updatedCourse._id ? response.data : course
           )
         );
+      
         handleCloseModal();
+        toast.success("Send request to admin successfully!");
       }
     } catch (error) {
       setErrorMessage(
-        error.response?.data?.message ||
-          "An error occurred while updating the course."
+        // error.response?.data?.message || "An error occurred while updating the course."
+        toast.error("Send request to admin fail.")
       );
+      
     }
   };
 
@@ -158,12 +164,13 @@ const CourseListForTutor = () => {
             course._id === courseId ? response.data : course
           )
         );
+        toast.success("Update image successfully!");
       }
     } catch (error) {
-      setErrorMessage(
-        error.response?.data?.message ||
-          "An error occurred while updating the image."
-      );
+      // setErrorMessage(
+      //   error.response?.data?.message || "An error occurred while updating the image."
+      // );
+toast.error("Update image fail.");
     }
   };
 
@@ -263,6 +270,7 @@ const CourseListForTutor = () => {
           onUpdate={handleUpdateCourse}
         />
       )}
+       <ToastContainer theme={theme === "dark" ? "dark" : "light"} />
     </div>
   );
 };

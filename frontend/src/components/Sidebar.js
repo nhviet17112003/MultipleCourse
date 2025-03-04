@@ -83,7 +83,7 @@ function Sidebar() {
         children: [
           {
             key: "8",
-            label: <Link to="tutor/courses-list">Student List</Link>,
+            label: <Link to="/student-list">Student List</Link>,
           },
         ],
       },
