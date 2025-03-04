@@ -107,5 +107,14 @@ router.get(
   courseController.getTop1BestSeller
 );
 
+//Student of courses
+router.get(
+  "/student-of-course/:course_id",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  auth.verifyAdminOrTutor,
+  courseController.getListStudentOfCourses
+);
+
 module.exports = router;
 

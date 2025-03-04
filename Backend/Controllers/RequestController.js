@@ -11,10 +11,6 @@ exports.getAllRequests = async (req, res, next) => {
     }
     const rs = [];
     for (let i = 0; i < requests.length; i++) {
-      const course = await Courses.findById(requests[i].course);
-      if (!course) {
-        return res.status(404).json({ message: "Course not found" });
-      }
       const tutor = await Users.findById(requests[i].tutor);
       if (!tutor) {
         return res.status(404).json({ message: "Tutor not found" });
@@ -23,7 +19,7 @@ exports.getAllRequests = async (req, res, next) => {
         _id: requests[i]._id,
         course_id: requests[i].course,
         tutor_id: requests[i].tutor,
-        course_title: course.title,
+        course_title: requests[i].content[0].value,
         tutor_name: tutor.fullname,
         content: requests[i].content,
         request_type: requests[i].request_type,

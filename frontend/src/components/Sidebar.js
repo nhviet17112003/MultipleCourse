@@ -120,7 +120,7 @@ function Sidebar() {
         children: [
           {
             key: "12",
-            label: <Link to="/manage-users">Manage Users</Link>,
+            label: <Link to="/statistic-for-admin">Statistics</Link>,
           },
           {
             key: "13",
@@ -158,19 +158,19 @@ function Sidebar() {
           },
           {
             key: "22",
-            label: <Link to="/statistic-for-admin">Statistics</Link>,
+            label: <Link to="/manage-users">Manage Users</Link>,
           },
         ],
       },
     ];
   }
-// Danh sách các trang không muốn hiển thị Navbar
-const hideNavbarRoutes = ["/login", "/signup", "/uploadtutorcertificate"];
+  // Danh sách các trang không muốn hiển thị Navbar
+  const hideNavbarRoutes = ["/login", "/signup", "/uploadtutorcertificate"];
 
-// Kiểm tra nếu đường dẫn bắt đầu bằng một trong các route trong danh sách
-if (hideNavbarRoutes.some(route => location.pathname.startsWith(route))) {
-  return null; // Không render Navbar
-}
+  // Kiểm tra nếu đường dẫn bắt đầu bằng một trong các route trong danh sách
+  if (hideNavbarRoutes.some((route) => location.pathname.startsWith(route))) {
+    return null; // Không render Navbar
+  }
   return (
     <div
       className={

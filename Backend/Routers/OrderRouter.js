@@ -97,4 +97,28 @@ router.get(
   auth.verifyTutor,
   orderController.getCourseMembersForTutor
 );
+
+router.get(
+  "/revenue-month-tutor",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  auth.verifyTutor,
+  orderController.getRevenueEachMonthForTutor
+);
+
+router.get(
+  "/revenue-day-tutor",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  auth.verifyTutor,
+  orderController.getRevenueForTodayForTutor
+);
+
+router.get(
+  "/revenue-year-tutor",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  auth.verifyTutor,
+  orderController.getRevenueForThisYearForTutor
+);
 module.exports = router;

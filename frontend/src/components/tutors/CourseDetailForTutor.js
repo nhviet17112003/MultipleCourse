@@ -24,6 +24,7 @@ const CourseDetailForTutor = () => {
   const [students, setStudents] = useState([])
   const token = localStorage.getItem("authToken");
   const [error, setError] = useState(null);
+  const [role, setRole] = useState(null);
  
 
   useEffect(() => {
@@ -55,7 +56,6 @@ const CourseDetailForTutor = () => {
     
         fetchStudents();
       }, [courseId]);
-  const [role, setRole] = useState(null);
 
   const handleDeleteLesson = async () => {
     const token = localStorage.getItem("authToken");

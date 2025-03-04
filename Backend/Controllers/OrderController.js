@@ -404,3 +404,93 @@ exports.getCourseMembersForTutor = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+// Get Revenue by Month for a Specific Tutor
+exports.getRevenueEachMonthForTutor = async (req, res) => {
+  try {
+    const tutorId = req.user._id;
+    const courses = await Course.find({ tutor: tutorId }).select("_id");
+    const courseIds = courses.map((course) => course._id);
+
+    const orders = await Order.find({
+      "order_items.course": { $in: courseIds },
+    });
+
+    const monthNames = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
+
+    const revenue = monthNames.map((monthName, i) => {
+      const month = i + 1;
+      const monthlyRevenue = orders.reduce((sum, order) => {
+        const orderMonth = order.order_date.getMonth() + 1;
+        return orderMonth === month ? sum + order.total_price : sum;
+      }, 0);
+      return { month: monthName, revenue: monthlyRevenue };
+    });
+
+    res.status(200).json(revenue);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Get Revenue for Today for a Specific Tutor
+exports.getRevenueForTodayForTutor = async (req, res) => {
+  try {
+    const tutorId = req.user._id;
+    const courses = await Course.find({ tutor: tutorId }).select("_id");
+    const courseIds = courses.map((course) => course._id);
+
+    const startOfToday = new Date().setHours(0, 0, 0, 0);
+    const orders = await Order.find({
+      "order_items.course": { $in: courseIds },
+      order_date: { $gte: startOfToday },
+    });
+
+    const totalRevenueToday = orders.reduce(
+      (sum, order) => sum + order.total_price,
+      0
+    );
+    res.status(200).json({ totalRevenueToday });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Get Revenue for This Year for a Specific Tutor
+exports.getRevenueForThisYearForTutor = async (req, res) => {
+  try {
+    const tutorId = req.user._id;
+    const courses = await Course.find({ tutor: tutorId }).select("_id");
+    const courseIds = courses.map((course) => course._id);
+
+    const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+    const orders = await Order.find({
+      "order_items.course": { $in: courseIds },
+      order_date: { $gte: startOfYear },
+    });
+
+    const totalRevenueThisYear = orders.reduce(
+      (sum, order) => sum + order.total_price,
+      0
+    );
+    res.status(200).json({ totalRevenueThisYear });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
