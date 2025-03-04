@@ -16,7 +16,7 @@ const Login = () => {
   const recaptchaRef = useRef(null);
   const timeoutRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [avatar,setAvatarUrl] = useState(false);
+  const [avatar, setAvatarUrl] = useState(false);
 
   useEffect(() => {
      const token = localStorage.getItem("authToken");
@@ -38,7 +38,6 @@ const Login = () => {
       }
     }
   }, [isSubmitting, navigate]);
-
 
   // Hàm kiểm tra Username
   const validateUsername = (username) => {
@@ -115,13 +114,11 @@ const Login = () => {
   };
 
   const handleSignUpForStudent = () => {
-    console.log("🔥 Navigating to /signup as Student");
     navigate("/signup", { state: { role: "Student" } });
   };
   
   
   const handleSignUpForTutor = () => {
-    console.log("🔥 SIGN UP TUTOR clicked!");
     navigate("/signup", { state: { role: "Tutor" } });
   };
   
