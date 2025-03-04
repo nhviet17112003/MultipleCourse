@@ -317,12 +317,14 @@ const Navbar = () => {
                 >
                   Profile
                 </button>
-                <button
+                {role === "Student" &&(
+                  <button
                   className="block w-full px-4 py-2 text-left hover:bg-teal-100 dark:hover:bg-gray-700"
                   onClick={() => debouncedNavigate("/cart")}
                 >
                   Cart
-                </button>
+                </button>)}
+                
                 <button
                   className="block w-full px-4 py-2 text-left text-red-600 hover:bg-red-100 dark:hover:bg-red-800"
                   onClick={logout}
@@ -347,11 +349,6 @@ const Navbar = () => {
 };
 
 export default Navbar;
-
-
-
-
-
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -386,8 +383,6 @@ export default Navbar;
 //   const role = localStorage.getItem("role");
 //   const recaptchaRef = useRef(null);
 //   const isHome = location.pathname === "/";
-
-
 
 //   useEffect(() => {
 //     const fetchBalance = async () => {
@@ -512,21 +507,21 @@ export default Navbar;
 //           }
 //         );
 //       }
-  
+
 //       // Xóa token và thông tin trong localStorage
 //       localStorage.removeItem("authToken");
 //       localStorage.removeItem("fullname");
 //       localStorage.removeItem("role");
 //       localStorage.removeItem("avatar");
-  
+
 //       // Xóa cookie Token
 //       deleteCookie("Token");
-  
+
 //       // Reset reCAPTCHA khi đăng xuất
 //       if (recaptchaRef.current) {
 //         recaptchaRef.current.reset();
 //       }
-  
+
 //       // Chuyển về trang login
 //       navigate("/login");
 //       window.location.reload();
