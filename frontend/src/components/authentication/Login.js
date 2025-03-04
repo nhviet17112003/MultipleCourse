@@ -71,7 +71,7 @@ const Login = () => {
       return;
     }
 
-    if (!password || password.length < 6) {
+    if (!password || password.length < 3) {
       setError("Password must be at least 6 characters.");
       return;
     }
