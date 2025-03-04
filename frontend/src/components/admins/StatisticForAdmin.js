@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 const StatisticForAdmin = () => {
   const [totalRevenue, setTotalRevenue] = useState(0);
@@ -7,7 +8,6 @@ const StatisticForAdmin = () => {
   const [monthlyRevenue, setMonthlyRevenue] = useState([]);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  console.log(orders);
 
   const fetchData = async (url, setState) => {
     try {
@@ -34,10 +34,7 @@ const StatisticForAdmin = () => {
     fetchData("http://localhost:3000/api/orders/revenue-year", (data) =>
       setRevenueYear(data.totalRevenueThisYear)
     );
-    fetchData(
-      "http://localhost:3000/api/orders/revenue-each-month",
-      setMonthlyRevenue
-    );
+    fetchData("http://localhost:3000/api/orders/revenue-each-month", setMonthlyRevenue);
     fetchData("http://localhost:3000/api/orders/all-orders", setOrders);
 
     setLoading(false);
@@ -49,38 +46,32 @@ const StatisticForAdmin = () => {
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-semibold text-teal-600">
-        Revenue statistics
-      </h1>
+      <h1 className="text-3xl font-semibold text-teal-600">Revenue Statistics</h1>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
         <div className="bg-white p-6 shadow rounded-lg text-center">
           <h2 className="text-xl font-semibold text-gray-700">Total revenue</h2>
           <p className="text-2xl text-teal-600">{totalRevenue} VND</p>
         </div>
         <div className="bg-white p-6 shadow rounded-lg text-center">
-          <h2 className="text-xl font-semibold text-gray-700">
-            Today's Revenue
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-700">Today's Revenue</h2>
           <p className="text-2xl text-teal-600">{revenueToday} VND</p>
         </div>
         <div className="bg-white p-6 shadow rounded-lg text-center">
-          <h2 className="text-xl font-semibold text-gray-700">
-            Revenue this year
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-700">Revenue this year</h2>
           <p className="text-2xl text-teal-600">{revenueYear} VND</p>
         </div>
       </div>
 
-      <h2 className="text-2xl font-semibold text-gray-700 mt-8">
-        Monthly Revenue
-      </h2>
-      <div className="grid grid-cols-3 md:grid-cols-6 gap-4 mt-4">
-        {monthlyRevenue.map(({ month, revenue }) => (
-          <div key={month} className="bg-gray-100 p-4 rounded-lg text-center">
-            <p className="text-teal-700 font-bold">{month}</p>
-            <p className="text-gray-600">{revenue} VND</p>
-          </div>
-        ))}
+      <h2 className="text-2xl font-semibold text-gray-700 mt-8">Monthly Revenue</h2>
+      <div className="mt-4 bg-white p-6 shadow rounded-lg">
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={monthlyRevenue}>
+            <XAxis dataKey="month" stroke="#8884d8" />
+            <YAxis />
+            <Tooltip />
+            <Bar dataKey="revenue" fill="#82ca9d" barSize={50} />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
 
       <h2 className="text-2xl font-semibold text-gray-700 mt-8">Order List</h2>
@@ -91,7 +82,7 @@ const StatisticForAdmin = () => {
               <th className="p-4">ID</th>
               <th className="p-4">Buyer</th>
               <th className="p-4">Amount</th>
-              <th className="p-4">Odder</th>
+              <th className="p-4">Order</th>
             </tr>
           </thead>
           <tbody>
@@ -100,9 +91,7 @@ const StatisticForAdmin = () => {
                 <td className="p-4">{order._id}</td>
                 <td className="p-4">{order.user?.fullname || "Anonymous"}</td>
                 <td className="p-4">{order.total_price} VND</td>
-                <td className="p-4">
-                  {new Date(order.order_date).toLocaleDateString()}
-                </td>
+                <td className="p-4">{new Date(order.order_date).toLocaleDateString()}</td>
               </tr>
             ))}
           </tbody>
