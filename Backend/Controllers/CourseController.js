@@ -159,6 +159,11 @@ exports.processCreateCourse = async (req, res) => {
       return res.status(400).json({ message: "Request has been rejected" });
     }
 
+    const tutor = await User.findById(request.tutor);
+    if (!tutor) {
+      return res.status(404).json({ message: "Tutor not found" });
+    }
+
     const newAdminActivity = new AdminActivityHistory({
       admin: req.user._id,
     });
@@ -313,6 +318,10 @@ exports.processUpdateCourse = async (req, res) => {
   try {
     const status = req.body.status;
     const request = await Request.findById(req.params.request_id);
+    const tutor = await User.findById(request.tutor);
+    if (!tutor) {
+      return res.status(404).json({ message: "Tutor not found" });
+    }
 
     if (!request) {
       return res.status(404).json({ message: "Request not found" });
