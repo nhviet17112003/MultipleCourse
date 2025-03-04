@@ -19,40 +19,27 @@ const Login = () => {
   const [avatar,setAvatarUrl] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
+     const token = localStorage.getItem("authToken");
     const role = localStorage.getItem("role");
-
+  
     if (token && role) {
-      const normalizedRole = role.toLowerCase(); // Normalize role
-      if (normalizedRole === "tutor" || normalizedRole === "student") {
-        navigate("/homescreen");
-      } else navigate("/admin");
+      navigate(role.toLowerCase() === "tutor" ? "/courses-list-tutor" : "/homescreen");
     }
-  }, [navigate]);
-  console.log("captchaValue", captchaValue);
-  // Hàm xử lý thay đổi captcha
-  const handleCaptchaChange = (value) => {
-    console.log("Captcha value:", value);
-    setCaptchaValue(value);
+  }, []);
   
-    // Hủy timeout cũ nếu có
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
+
+  useEffect(() => {
+    if (isSubmitting) {
+      const token = localStorage.getItem("authToken");
+      const role = localStorage.getItem("role");
+
+      if (token && role) {
+        navigate(role.toLowerCase() === "tutor" ? "/courses-list-tutor" : "/homescreen");
+      }
     }
-  
-    // Nếu không có giá trị mới, đặt lại timeout
-    if (value) {
-      timeoutRef.current = setTimeout(() => {
-        if (recaptchaRef.current) {
-          recaptchaRef.current.reset();
-          setCaptchaValue(null);
-          console.log("reCAPTCHA đã reset do hết hạn timeout.");
-        }
-      }, 120000);
-    }
-  };
-  
+  }, [isSubmitting, navigate]);
+
+
   // Hàm kiểm tra Username
   const validateUsername = (username) => {
     if (username.trim().length === 0) {
@@ -63,117 +50,82 @@ const Login = () => {
     }
     return "";
   };
-  
+
   // Hàm kiểm tra Password
   const validatePassword = (password) => {
-    if (password.length < 6) {  // Fix điều kiện kiểm tra
+    if (password.length < 6) {
       return "Password must be at least 6 characters.";
     }
     return "";
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
-    if (!captchaValue) {
-      setError("Please confirm reCAPTCHA.");
+
+    if (isSubmitting) return; // Ngăn spam nút đăng nhập
+
+    if (!username || username.length < 4) {
+      setError("Username must be at least 4 characters.");
       return;
     }
-  
-    // Kiểm tra nếu reCAPTCHA đã bị reset hoặc hết hạn
-    if (recaptchaRef.current && !recaptchaRef.current.getValue()) {
-      setError("reCAPTCHA đã hết hạn, vui lòng thử lại.");
-      recaptchaRef.current.reset();  // Reset để user có thể nhập lại
+
+    if (!password || password.length < 6) {
+      setError("Password must be at least 6 characters.");
       return;
     }
-  
-    // Dừng timeout khi submit
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-  
-    // Kiểm tra Username
-    const usernameError = validateUsername(username);
-    if (usernameError) {
-      setError(usernameError);
-      return;
-    }
-  
-    // Kiểm tra Password
-    const passwordError = validatePassword(password);
-    if (passwordError) {
-      setError(passwordError);
-      return;
-    }
-  
-    // Reset các thông báo lỗi trước đó
+
     setError("");
-    setSuccessMessage("");
     setIsLoading(true);
-  
+    setIsSubmitting(true);
+
     try {
-      const response = await axios.post(
-        "http://localhost:3000/api/users/login",
-        { username, password }
-      );
-  
+      const response = await axios.post("http://localhost:3000/api/users/login", { username, password });
+
       if (response.status === 200) {
-        const { user_id, token, role, fullname, status, tutor_certificates } =
-          response.data;
-  
+        const { user_id, token, role, fullname, status, tutor_certificates } = response.data;
+
         if (!status) {
           setError("Account has been BANNED");
-          setIsLoading(false);  // Fix lỗi UI bị kẹt
+          setIsSubmitting(false);
+          setIsLoading(false);
           return;
         }
-  
-        // Lưu thông tin vào localStorage
+
         localStorage.setItem("authToken", token);
         localStorage.setItem("fullname", fullname);
         localStorage.setItem("role", role);
-        setIsSubmitting(true);
+
         setSuccessMessage("Login successfully!");
-        setError("");
-        setAvatarUrl(avatar); // Cập nhật avatar ngay lập tức
-        // Kiểm tra role và điều hướng
-        if (role.toLowerCase() === "tutor") {
-          if (Array.isArray(tutor_certificates) && tutor_certificates.length === 0) {
-            navigate(`/uploadtutorcertificate/${user_id}`);
+        console.log("Cert: ",tutor_certificates);
+        
+        setTimeout(() => {
+          if (role.toLowerCase() === "tutor" && (!tutor_certificates || tutor_certificates.length === 0)) {
+            navigate(`/uploadtutorcertificate/${user_id}`, { replace: true });
           } else {
-            navigate("/courses-list-tutor");
+            navigate("/homescreen", { replace: true });
           }
-        } else {
-          window.location.reload(); // Reload trang nếu không phải tutor
-        }
+        }, 500);        
       }
     } catch (err) {
       setError("Incorrect account or password.");
-      setSuccessMessage("");
-    } finally {
       setIsSubmitting(false);
+    } finally {
       setIsLoading(false);
     }
   };
-  
-  // Clear timeout khi component unmount để tránh memory leak
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-        console.log("Timeout đã được xóa khi component unmount.");
-      }
-    };
-  }, [captchaValue]);
-  
+
   const handleSignUpForStudent = () => {
+    console.log("🔥 Navigating to /signup as Student");
     navigate("/signup", { state: { role: "Student" } });
   };
-
+  
+  
   const handleSignUpForTutor = () => {
+    console.log("🔥 SIGN UP TUTOR clicked!");
     navigate("/signup", { state: { role: "Tutor" } });
   };
+  
+  
 
   const handleGoogleLogin = () => {
     // Mở trang đăng nhập Google
@@ -277,15 +229,14 @@ const Login = () => {
                       Forgot Password
                     </button>
                   </div>
-
                   {/* Thêm reCAPTCHA */}
-                  <div className="mb-4">
+                  {/* <div className="mb-4">
                     <ReCAPTCHA
                       ref={recaptchaRef}
                       sitekey="6LfoC-IqAAAAAMr2bpxkSbRdBQytK_WEa4HPPhHt"
                       onChange={handleCaptchaChange}
                     />
-                  </div>
+                  </div> */}
                   {error && (
                     <div className="text-red-500 text-sm mb-4">{error}</div>
                   )}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 
 import axios from "axios";
@@ -39,6 +39,21 @@ const Navbar = () => {
       setReloadNavbar(true);
     }, 2000);
   };
+
+  const debounce = (func, delay) => {
+    let debounceTimer;
+    return function (...args) {
+      const context = this;
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => func.apply(context, args), delay);
+    };
+  };
+
+  const debouncedNavigate = useCallback(
+    debounce((path) => navigate(path), 300),
+    [navigate]
+  );
+
   useEffect(() => {
     const fetchBalance = async () => {
       try {
@@ -75,14 +90,14 @@ const Navbar = () => {
 
     const protectedRoutes = ["/userprofile", "/cart"];
     if (protectedRoutes.includes(location.pathname) && !token) {
-      navigate("/login");
+      debouncedNavigate("/login");
     } else {
       const savedFullname = localStorage.getItem("fullname");
       const savedAvatar = localStorage.getItem("avatar");
       setFullname(savedFullname || "Người dùng");
       setAvatarUrl(savedAvatar);
     }
-  }, [navigate, location.pathname]);
+  }, [debouncedNavigate, location.pathname]);
 
   useEffect(() => {
     // Lấy token từ localStorage
@@ -165,7 +180,7 @@ const Navbar = () => {
       // Reload Navbar sau 2 giây
       reload();
       // Chuyển về trang login
-      navigate("/login");
+      debouncedNavigate("/login");
       window.location.reload();
     } catch (error) {
       console.error("Đăng xuất thất bại:", error);
@@ -178,7 +193,7 @@ const Navbar = () => {
 
     if (!token) {
       setError("You are not logged in. Please log in again.");
-      navigate("/login");
+      debouncedNavigate("/login");
       return;
     }
 
@@ -198,13 +213,16 @@ const Navbar = () => {
     } catch (err) {
       setError("Your session has expired. Please log in again.");
       localStorage.removeItem("authToken"); // Remove token
-      navigate("/login"); // Redirect to login page
+      debouncedNavigate("/login"); // Redirect to login page
     }
   };
-
   useEffect(() => {
-    fetchUserProfile();
+    const protectedRoutes = ["/homescreen", "/courses-list-tutor", "/dashboard"];
+    if (protectedRoutes.includes(window.location.pathname)) {
+      fetchUserProfile();
+    }
   }, []);
+  
 
   // Danh sách các trang không muốn hiển thị Navbar
   const hideNavbarRoutes = ["/login", "/signup", "/uploadtutorcertificate"];
@@ -226,7 +244,7 @@ const Navbar = () => {
         {/* Logo */}
         <h1
           className="text-2xl font-bold cursor-pointer hover:text-teal-500 transition-all duration-300"
-          onClick={() => navigate("/")}
+          onClick={() => debouncedNavigate("/")}
         >
           MultiCourse
         </h1>
@@ -236,25 +254,25 @@ const Navbar = () => {
           <div className="flex space-x-6">
             <button
               className="hover:text-teal-500 transition-all duration-300"
-              onClick={() => navigate("/")}
+              onClick={() => debouncedNavigate("/")}
             >
               Home Page
             </button>
             <button
               className="hover:text-teal-500 transition-all duration-300"
-              onClick={() => navigate("/course-list")}
+              onClick={() => debouncedNavigate("/course-list")}
             >
               Course List
             </button>
             <button
               className="hover:text-teal-500 transition-all duration-300"
-              onClick={() => navigate("/contact")}
+              onClick={() => debouncedNavigate("/contact")}
             >
               Contact
             </button>
             <button
               className="hover:text-teal-500 transition-all duration-300"
-              onClick={() => navigate("/about")}
+              onClick={() => debouncedNavigate("/about")}
             >
               About
             </button>
@@ -271,7 +289,7 @@ const Navbar = () => {
                 <Button
                   type="primary"
                   className="ml-3 bg-blue-500 hover:bg-blue-600 text-white"
-                  onClick={() => navigate("/deposit")}
+                  onClick={() => debouncedNavigate("/deposit")}
                 >
                   Top Up
                 </Button>
@@ -295,16 +313,18 @@ const Navbar = () => {
                 </div>
                 <button
                   className="block w-full px-4 py-2 text-left hover:bg-teal-100 dark:hover:bg-gray-700"
-                  onClick={() => navigate("/userprofile")}
+                  onClick={() => debouncedNavigate("/userprofile")}
                 >
                   Profile
                 </button>
-                <button
+                {role === "Student" &&(
+                  <button
                   className="block w-full px-4 py-2 text-left hover:bg-teal-100 dark:hover:bg-gray-700"
-                  onClick={() => navigate("/cart")}
+                  onClick={() => debouncedNavigate("/cart")}
                 >
                   Cart
-                </button>
+                </button>)}
+                
                 <button
                   className="block w-full px-4 py-2 text-left text-red-600 hover:bg-red-100 dark:hover:bg-red-800"
                   onClick={logout}
