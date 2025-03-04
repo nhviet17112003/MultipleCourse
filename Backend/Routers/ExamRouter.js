@@ -30,7 +30,7 @@ router.get(
   "/get-exam/:course_id",
   cors.cors,
   auth.verifyUser,
-  auth.verifyTutor,
+  auth.verifyAdminOrTutor,
   ExamController.getExam
 );
 //Get exam for student

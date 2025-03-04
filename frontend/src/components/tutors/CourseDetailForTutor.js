@@ -55,6 +55,7 @@ const CourseDetailForTutor = () => {
     
         fetchStudents();
       }, [courseId]);
+  const [role, setRole] = useState(null);
 
   const handleDeleteLesson = async () => {
     const token = localStorage.getItem("authToken");
@@ -86,7 +87,6 @@ const CourseDetailForTutor = () => {
 
     try {
       await axios.delete(
-        
         `http://localhost:3000/api/exams/delete-exam/${exams._id}`,
         {
           headers: {
@@ -149,6 +149,8 @@ const CourseDetailForTutor = () => {
   useEffect(() => {
     const fetchCourseDetail = async () => {
       const token = localStorage.getItem("authToken");
+      const role = localStorage.getItem("role");
+      setRole(role);
       if (!token) {
         setErrorMessage("Please log in to view the course details.");
         setTimeout(() => {
@@ -216,6 +218,12 @@ const CourseDetailForTutor = () => {
         theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-gray-900"
       }`}
     >
+      <button
+        onClick={() => navigate(-1)}
+        className="bg-gray-500 text-white px-4 py-2 rounded-lg mt-4"
+      >
+        Back
+      </button>
       {course && (
         <div className={`p-6 ${theme === "dark" ? "bg-gray-800" : "bg-white"}`}>
           <div className="flex mt-8 justify-center items-center">
@@ -326,7 +334,7 @@ const CourseDetailForTutor = () => {
       )}
       <div>
         <h2 className="text-2xl font-semibold mt-6">Course Exams</h2>
-        {!exams && (
+        {role !== "Admin" && !exams && (
           <button
             onClick={() => navigate(`/create-exam/${courseId}`)}
             className="bg-teal-500 text-white px-4 py-2 rounded-lg mt-4"
@@ -379,18 +387,22 @@ const CourseDetailForTutor = () => {
                 </span>
               )}
             </li>
-            <button
-              onClick={() => navigate(`/update-exam/${courseId}`)}
-              className="bg-yellow-500 text-white px-4 py-2 rounded-lg mt-2 ml-2"
-            >
-              Update Exam
-            </button>
-            <button
-              onClick={() => setIsDeleteModalOpen(true)}
-              className="bg-red-500 text-white px-4 py-2 rounded-lg mt-2 ml-2"
-            >
-              Delete Exam
-            </button>
+            {role !== "Admin" && (
+              <>
+                <button
+                  onClick={() => navigate(`/update-exam/${courseId}`)}
+                  className="bg-yellow-500 text-white px-4 py-2 rounded-lg mt-2 ml-2"
+                >
+                  Update Exam
+                </button>
+                <button
+                  onClick={() => setIsDeleteModalOpen(true)}
+                  className="bg-red-500 text-white px-4 py-2 rounded-lg mt-2 ml-2"
+                >
+                  Delete Exam
+                </button>
+              </>
+            )}
           </ul>
         ) : (
           <p className="text-gray-500 mt-2">No exams found for this course.</p>
@@ -398,12 +410,14 @@ const CourseDetailForTutor = () => {
       </div>
 
       <h2 className="text-2xl font-semibold mt-6">Course Lessons</h2>
-      <button
-        onClick={() => navigate(`/create-lesson/${courseId}`)}
-        className="bg-teal-500 text-white px-4 py-2 rounded-lg mt-4"
-      >
-        Create Lesson
-      </button>
+      {role !== "Admin" && (
+        <button
+          onClick={() => navigate(`/create-lesson/${courseId}`)}
+          className="bg-teal-500 text-white px-4 py-2 rounded-lg mt-4"
+        >
+          Create Lesson
+        </button>
+      )}
       {lessons.length > 0 ? (
         <div className="lessons mt-6">
           <h3 className="text-xl font-semibold">Lessons</h3>
@@ -426,22 +440,26 @@ const CourseDetailForTutor = () => {
                 >
                   View Details
                 </button>
-                <button
-                  onClick={() => openModal(lesson)}
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg mt-2 ml-2"
-                >
-                  Update Lesson
-                </button>
+                {role !== "Admin" && (
+                  <>
+                    <button
+                      onClick={() => openModal(lesson)}
+                      className="bg-green-500 text-white px-4 py-2 rounded-lg mt-2 ml-2"
+                    >
+                      Update Lesson
+                    </button>
 
-                <button
-                  onClick={() => {
-                    setSelectedLesson(lesson);
-                    setIsDeleteLessonOpen(true);
-                  }}
-                  className="bg-red-500 text-white px-4 py-2 rounded-lg mt-2 ml-2"
-                >
-                  Delete Lesson
-                </button>
+                    <button
+                      onClick={() => {
+                        setSelectedLesson(lesson);
+                        setIsDeleteLessonOpen(true);
+                      }}
+                      className="bg-red-500 text-white px-4 py-2 rounded-lg mt-2 ml-2"
+                    >
+                      Delete Lesson
+                    </button>
+                  </>
+                )}
               </li>
             ))}
           </ul>
