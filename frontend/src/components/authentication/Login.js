@@ -19,15 +19,14 @@ const Login = () => {
   const [avatar, setAvatarUrl] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
+     const token = localStorage.getItem("authToken");
     const role = localStorage.getItem("role");
-
+  
     if (token && role) {
-      navigate(
-        role.toLowerCase() === "tutor" ? "/courses-list-tutor" : "/homescreen"
-      );
+      navigate(role.toLowerCase() === "tutor" ? "/courses-list-tutor" : "/homescreen");
     }
-  }, []); // Chạy một lần khi component render
+  }, []);
+  
 
   useEffect(() => {
     if (isSubmitting) {
@@ -35,9 +34,7 @@ const Login = () => {
       const role = localStorage.getItem("role");
 
       if (token && role) {
-        navigate(
-          role.toLowerCase() === "tutor" ? "/courses-list-tutor" : "/homescreen"
-        );
+        navigate(role.toLowerCase() === "tutor" ? "/courses-list-tutor" : "/homescreen");
       }
     }
   }, [isSubmitting, navigate]);
@@ -81,14 +78,10 @@ const Login = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await axios.post(
-        "http://localhost:3000/api/users/login",
-        { username, password }
-      );
+      const response = await axios.post("http://localhost:3000/api/users/login", { username, password });
 
       if (response.status === 200) {
-        const { user_id, token, role, fullname, status, tutor_certificates } =
-          response.data;
+        const { user_id, token, role, fullname, status, tutor_certificates } = response.data;
 
         if (!status) {
           setError("Account has been BANNED");
@@ -102,20 +95,15 @@ const Login = () => {
         localStorage.setItem("role", role);
 
         setSuccessMessage("Login successfully!");
-        console.log("Cert: ", tutor_certificates);
-
+        console.log("Cert: ",tutor_certificates);
+        
         setTimeout(() => {
-          if (
-            role.toLowerCase() === "tutor" &&
-            (!tutor_certificates || tutor_certificates.length === 0)
-          ) {
-            navigate(`/uploadtutorcertificate/${user_id}`);
-            window.location.reload();
+          if (role.toLowerCase() === "tutor" && (!tutor_certificates || tutor_certificates.length === 0)) {
+            navigate(`/uploadtutorcertificate/${user_id}`, { replace: true });
           } else {
-            navigate("/homescreen");
-            window.location.reload();
+            navigate("/homescreen", { replace: true });
           }
-        }, 500);
+        }, 500);        
       }
     } catch (err) {
       setError("Incorrect account or password.");
@@ -126,15 +114,15 @@ const Login = () => {
   };
 
   const handleSignUpForStudent = () => {
-    console.log("Navigating to signup as Student");
-    console.log("navigate function:", navigate);
     navigate("/signup", { state: { role: "Student" } });
   };
-
+  
+  
   const handleSignUpForTutor = () => {
-    console.log("Navigating to signup as Tutor");
     navigate("/signup", { state: { role: "Tutor" } });
   };
+  
+  
 
   const handleGoogleLogin = () => {
     // Mở trang đăng nhập Google
@@ -238,7 +226,6 @@ const Login = () => {
                       Forgot Password
                     </button>
                   </div>
-
                   {/* Thêm reCAPTCHA */}
                   {/* <div className="mb-4">
                     <ReCAPTCHA

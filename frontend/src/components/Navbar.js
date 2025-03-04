@@ -39,7 +39,6 @@ const Navbar = () => {
       setReloadNavbar(true);
     }, 2000);
   };
-
   // Hàm debounce để trì hoãn việc gọi hàm navigate để tránh người dùng nhấn quá nhanh và liên tục
   const debounce = (func, delay) => {
     let debounceTimer;
@@ -217,10 +216,13 @@ const Navbar = () => {
       debouncedNavigate("/login"); // Redirect to login page
     }
   };
-
   useEffect(() => {
-    fetchUserProfile();
+    const protectedRoutes = ["/homescreen", "/courses-list-tutor", "/dashboard"];
+    if (protectedRoutes.includes(window.location.pathname)) {
+      fetchUserProfile();
+    }
   }, []);
+  
 
   // Danh sách các trang không muốn hiển thị Navbar
   const hideNavbarRoutes = ["/login", "/signup", "/uploadtutorcertificate"];
@@ -315,12 +317,14 @@ const Navbar = () => {
                 >
                   Profile
                 </button>
-                <button
+                {role === "Student" &&(
+                  <button
                   className="block w-full px-4 py-2 text-left hover:bg-teal-100 dark:hover:bg-gray-700"
                   onClick={() => debouncedNavigate("/cart")}
                 >
                   Cart
-                </button>
+                </button>)}
+                
                 <button
                   className="block w-full px-4 py-2 text-left text-red-600 hover:bg-red-100 dark:hover:bg-red-800"
                   onClick={logout}
