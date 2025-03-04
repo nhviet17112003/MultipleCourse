@@ -42,17 +42,23 @@ import WalletStudent from "./components/students/wallet/WalletStudent";
 import ActivitiesHistory from "./components/admins/ActivitiesHistory";
 import BuyerHistory from "./components/admins/BuyerHistory";
 import StatisticForTutor from "./components/tutors/StatisticForTutor";
-
 import Introduce from "./components/Introduce";
 import DepositHistory from "./components/students/wallet/DepositHistory";
 import HomeScreen from "./components/HomeScreen";
 import Footer from "./components/Footer";
 import Students from "./components/tutors/Students";
 
+import { useState } from "react";
 function Layout() {
   const location = useLocation();
-
-
+  const [navbarKey, setNavbarKey] = useState(0);
+  // Hàm reload Navbar khi có thay đổi
+  const reloadNavbar = () => {
+    setNavbarKey(prevKey => prevKey + 1);
+  };
+  useEffect(() => {
+    reloadNavbar(); // Gọi reload Navbar khi location thay đổi
+  }, [location]);
   // Danh sách các trang không hiển thị Sidebar
   const noSidebarPages = ["/login", "/signup", "/forgetpassword", "/","/uploadtutorcertificate/:userId"];
 
@@ -61,7 +67,7 @@ function Layout() {
 
   return (
     <div className="bg-white dark:bg-black w-screen min-h-screen flex flex-col">
-      <Navbar />
+    <Navbar key={navbarKey} reloadNavbar={reloadNavbar} />
       
       <div className="flex">
         {!hideSidebar && <Sidebar className="w-1/4" />}

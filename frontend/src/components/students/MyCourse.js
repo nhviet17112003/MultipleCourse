@@ -206,12 +206,28 @@ const MyCourses = () => {
                   alt={item.course.title}
                   className="w-full h-48 object-cover"
                 />
-                <div className="p-4 flex items-center">
+                <div className="p-4 flex flex-col">
                   <h2 className="text-xl font-semibold text-gray-800 truncate">
                     {item.course.title}
                   </h2>
+                  {isEnrolled(item.course._id) && (
+                    <div className="mt-3">
+                      <div className="w-full bg-gray-200 rounded-full h-3">
+                        <div
+                          className="bg-green-500 h-3 rounded-full transition-all duration-500"
+                          style={{
+                            width: `${getProgressForCourse(item.course._id)}%`,
+                          }}
+                        ></div>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1 text-center">
+                        Progress:{" "}
+                        {getProgressForCourse(item.course._id).toFixed(0)}%
+                      </p>
+                    </div>
+                  )}
                 </div>
-                {certificates.find(
+                {certificates.some(
                   (certificate) =>
                     certificate.course._id === item.course._id &&
                     certificate.isPassed
@@ -219,34 +235,8 @@ const MyCourses = () => {
                   <img
                     src={require("../../assets/passed44.png")}
                     alt="Passed"
-                    className="absolute top-0 right-0 w-21 h-20"
+                    className="absolute top-2 right-2 w-12 h-12"
                   />
-                )}
-                {isEnrolled(item.course._id) ? (
-                  <div className="mt-4">
-                    <div className="w-full bg-gray-200 rounded-full h-3">
-                      <div
-                        className="bg-green-500 h-3 rounded-full transition-all duration-500"
-                        style={{
-                          width: `${getProgressForCourse(item.course._id)}%`,
-                        }}
-                      ></div>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1 text-center">
-                      Progress:{" "}
-                      {getProgressForCourse(item.course._id).toFixed(0)}%
-                    </p>
-                  </div>
-                ) : (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEnroll(item.course._id);
-                    }}
-                    className="mt-4 w-full py-2 rounded-xl transition duration-300 bg-blue-500 text-white hover:bg-blue-600"
-                  >
-                    Enroll
-                  </button>
                 )}
               </div>
             ))

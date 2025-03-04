@@ -86,7 +86,7 @@ const [newComment, setNewComment] = useState("");
 
       const data = await response.json();
       if (response.ok) {
-        toast.success("Thêm vào giỏ hàng thành công!", {
+        toast.success("Add product to cart successfully!", {
           position: "top-right",
           autoClose: 3000, // Đóng sau 3 giây
           hideProgressBar: false,
@@ -103,7 +103,7 @@ const [newComment, setNewComment] = useState("");
         });
       }
     } catch (error) {
-      toast.error("Đã xảy ra lỗi. Vui lòng thử lại!", {
+      toast.error("An error occurred. Please try again.!", {
         position: "top-right",
         autoClose: 3000,
       });
@@ -115,7 +115,7 @@ const [newComment, setNewComment] = useState("");
 
   const handleCommentSubmit = async () => {
     if (!newComment.trim()) {
-      toast.warn("Bình luận không được để trống!");
+      toast.warn("Comments cannot be left blank!");
       return;
     }
   
@@ -156,12 +156,12 @@ const [newComment, setNewComment] = useState("");
         setNewComment(""); 
         setNewRating(5); 
         setHasCommented(true); 
-        toast.success("Bình luận đã được thêm!");
+        toast.success("Comment has been added!");
       } else {
         toast.error(`Lỗi: ${data.message}`);
       }
     } catch (error) {
-      toast.error("Đã xảy ra lỗi khi gửi bình luận!");
+      toast.error("An error occurred while submitting the comment.!");
     }
   };
   
@@ -174,7 +174,7 @@ const [newComment, setNewComment] = useState("");
     <div className="container mx-auto px-4 py-8">
       {/* Hiển thị loading nếu dữ liệu chưa sẵn sàng */}
       {loading ? (
-        <p className="text-center text-teal-600 text-xl">Đang tải dữ liệu...</p>
+        <p className="text-center text-teal-600 text-xl">Loading data...</p>
       ) : course ? (
         // Nội dung chi tiết khóa học
         <div className="bg-white shadow-lg rounded-lg overflow-hidden md:grid md:grid-cols-2 md:gap-8 p-6">
@@ -188,14 +188,14 @@ const [newComment, setNewComment] = useState("");
           <div className="mt-4 md:mt-0">
             <h2 className="text-3xl font-semibold text-teal-600">{course.title}</h2>
             <p className="text-lg text-gray-600 mt-2 italic">
-              Danh mục: {course.category}
+              Category: {course.category}
             </p>
             <p className="mt-4 text-gray-700 leading-relaxed">{course.description}</p>
             <div className="mt-6 flex justify-between items-center">
               <p className="text-3xl text-teal-800 font-bold">${course.price}</p>
              
               <p className="text-sm text-gray-500 italic">
-                Ngày tạo: {new Date(course.createAt).toLocaleDateString()}
+              Date created: {new Date(course.createAt).toLocaleDateString()}
               </p>
             </div>
             {/* Nút Thêm vào giỏ hàng */}
@@ -206,14 +206,14 @@ const [newComment, setNewComment] = useState("");
               }}
               className="mt-4 bg-teal-600 text-white py-2 px-6 rounded-lg hover:bg-teal-700 transition duration-300"
             >
-              Thêm vào giỏ hàng
+              Add to cart
             </button>
           </div>
         </div>
       ) : (
         // Hiển thị nếu không tìm thấy dữ liệu khóa học
         <p className="text-center text-red-600 text-xl">
-          Không tìm thấy thông tin khóa học.
+         No course information found.
         </p>
       )}
 
@@ -222,12 +222,12 @@ const [newComment, setNewComment] = useState("");
       {/* 🆕 Khu vực bình luận */}
       <div className="mt-8 bg-white shadow-lg p-6 rounded-lg">
         
-          <h3 className="text-2xl font-semibold text-teal-600">Bình luận</h3>
+          <h3 className="text-2xl font-semibold text-teal-600">Comments</h3>
 
 
           {isAuthenticated && !hasCommented && (
   <div className="mt-6 p-4 bg-gray-100 rounded-lg shadow">
-    <h4 className="text-lg font-semibold text-teal-700">Viết bình luận của bạn</h4>
+    <h4 className="text-lg font-semibold text-teal-700">Write your comment</h4>
 
     <textarea
       className="w-full mt-2 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
@@ -238,7 +238,7 @@ const [newComment, setNewComment] = useState("");
     ></textarea>
 
     <div className="mt-3 flex items-center space-x-2">
-      <span className="text-gray-700 font-medium">Đánh giá:</span>
+      <span className="text-gray-700 font-medium">Evaluate:</span>
       {[...Array(5)].map((_, i) => (
         <button key={i} onClick={() => setNewRating(i + 1)}>
           <span className={`text-2xl ${i < newRating ? "text-yellow-400" : "text-gray-300"}`}>★</span>
@@ -250,13 +250,13 @@ const [newComment, setNewComment] = useState("");
       onClick={handleCommentSubmit}
       className="mt-4 bg-teal-600 text-white py-2 px-6 rounded-lg hover:bg-teal-700 transition duration-300"
     >
-      Gửi bình luận
+     Submit a comment
     </button>
   </div>
 )}
 
 {hasCommented && (
-  <p className="text-gray-600 mt-4 italic">Bạn đã bình luận về khóa học này.</p>
+  <p className="text-gray-600 mt-4 italic">You have commented on this course.</p>
 )}
 
 
@@ -290,7 +290,7 @@ const [newComment, setNewComment] = useState("");
     ))}
   </ul>
 ) : (
-  <p className="text-gray-500 mt-2">Chưa có bình luận nào.</p>
+  <p className="text-gray-500 mt-2">No comments yet.</p>
 )}
 
 

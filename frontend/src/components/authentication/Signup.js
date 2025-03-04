@@ -27,31 +27,110 @@ const Signup = () => {
   const [role, setRole] = useState(initialRole);
   const handleViewTerms = () => {
     alert(
-      "Điều khoản và nội quy: \n1. Không được chia sẻ thông tin đăng nhập.\n2. Tôn trọng người dùng khác.\n3. Tuân thủ quy định của hệ thống."
+      "Terms and Rules: \n1. Do not share login information.\n2. Respect other users.\n3. Comply with system regulations."
     );
   };
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-  
-    // Kiểm tra điều khoản trước
-    if (!agreeTerms) {
-      setTermsError("Bạn phải đồng ý với điều khoản để tiếp tục.");
-      return;
-    } else {
-      setTermsError(""); // Reset thông báo điều khoản
-    }
-  
-    if (password !== confirmPassword) {
-      setError("Mật khẩu không khớp.");
+
+  const validateForm = () => {
+    if (!fullname.trim().includes(" ")) {
+      setError("Full name must be at least 2 words.");
       setTimeout(() => {
         setError(""); // Reset thông báo sau 3 giây
       }, 3000);
-      return;
+      return false;
     }
-  
-    
-    
-  
+
+    const usernameRegex = /^[^\s]{3,20}$/;
+    if (!usernameRegex.test(username)) {
+      setError("Username must be 3-20 characters and must not contain spaces.");
+      setTimeout(() => {
+        setError(""); // Reset thông báo sau 3 giây
+      }, 3000);
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Email is invalid.");
+      setTimeout(() => {
+        setError(""); // Reset thông báo sau 3 giây
+      }, 3000);
+      return false;
+    }
+
+    const phoneRegex = /^0\d{8,10}$/;
+    if (!phoneRegex.test(phone)) {
+      setError("Phone number must be 9-11 digits and start with 0.");
+      setTimeout(() => {
+        setError(""); // Reset thông báo sau 3 giây
+      }, 3000);
+      return false;
+    }
+
+    if (!gender) {
+      setError("Please select gender.");
+      setTimeout(() => {
+        setError(""); // Reset thông báo sau 3 giây
+      }, 3000);
+      return false;
+    }
+
+    const birthDate = new Date(birthday);
+    const today = new Date();
+    if (birthDate > today) {
+      setError("Date of birth cannot be in the future.");
+      setTimeout(() => {
+        setError(""); // Reset thông báo sau 3 giây
+      }, 3000);
+      return false;
+    }
+
+    if (address.length < 5) {
+      setError("Address must be at least 5 characters.");
+      setTimeout(() => {
+        setError(""); // Reset thông báo sau 3 giây
+      }, 3000);
+      return false;
+    }
+
+    const passwordRegex =
+      /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&_-])[A-Za-z\d@$!%*?&_-]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      setError(
+        "Password must be at least 8 characters, contain uppercase, lowercase, numbers and special characters."
+      );
+      setTimeout(() => {
+        setError(""); // Reset thông báo sau 3 giây
+      }, 3000);
+      return false;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Confirmation password does not match.");
+      setTimeout(() => {
+        setError(""); // Reset thông báo sau 3 giây
+      }, 3000);
+      return false;
+    }
+
+    if (!agreeTerms) {
+      setTermsError("You must agree to the terms to continue.");
+      setTimeout(() => {
+        setError(""); // Reset thông báo sau 3 giây
+      }, 3000);
+      return false;
+    }
+
+    setError("");
+    setTermsError("");
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validateForm()) return;
+
     try {
       const response = await axios.post(
         "http://localhost:3000/api/users/signup",
@@ -67,8 +146,8 @@ const Signup = () => {
           role,
         }
       );
-  
-      setSuccessMessage("Đăng ký thành công!");
+
+      // setSuccessMessage("Sign up successfully. Redirecting to login page...");
       setShowSuccessPopup(true); // Hiển thị popup
       setTimeout(() => {
         setShowSuccessPopup(false);
@@ -79,23 +158,23 @@ const Signup = () => {
         }
       }, 3000); // 3 giây
     } catch (err) {
-      if (err.response && err.response.data.error) {
-        setError(err.response.data.error); // Hiển thị lỗi từ server
+      if (err.response && err.response.data.message) {
+        setError(err.response.data.message); // Hiển thị lỗi từ server
       } else {
-        setError("Email is already exists");
+        setError("Something went wrong. Please try again."); // Hiển thị lỗi tổng quát
       }
       setTimeout(() => {
         setError(""); // Reset thông báo sau 3 giây
       }, 3000);
     }
   };
-    
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100 relative">
       {/* Popup thông báo */}
       {showSuccessPopup && (
         <div className="absolute top-10 bg-teal-500 text-white py-4 px-6 rounded-lg shadow-lg animate-fadeIn">
-          Đăng ký thành công! Mời bạn đăng nhập.
+          Sign up successfully. Redirecting to login page...
         </div>
       )}
 
@@ -108,12 +187,16 @@ const Signup = () => {
         </h2>
 
         {error && <div className="text-red-500 mb-4 text-center">{error}</div>}
-       
+
         {successMessage && (
-          <div className="text-green-500 mb-4 text-center">{successMessage}</div>
+          <div className="text-green-500 mb-4 text-center">
+            {successMessage}
+          </div>
         )}
         {emailExists && (
-          <div className="text-red-500 mb-4 text-center">Email đã tồn tại.</div>
+          <div className="text-red-500 mb-4 text-center">
+            Email is already exists.
+          </div>
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

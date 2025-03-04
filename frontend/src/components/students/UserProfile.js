@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 const UserProfile = () => {
   const [userData, setUserData] = useState(null);
   const [error, setError] = useState("");
@@ -12,6 +13,7 @@ const UserProfile = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const recaptchaRef = useRef(null);
+
   // Fetch user data
   const fetchUserProfile = async () => {
     const token = localStorage.getItem("authToken");
@@ -32,7 +34,9 @@ const UserProfile = () => {
           },
         }
       );
+      console.log("Avatar từ API:", response.data.avatar);
       setUserData(response.data); // Save user data
+      localStorage.setItem("avatar", response.data.avatar);
     } catch (err) {
       setError("Your session has expired. Please log in again.");
       localStorage.removeItem("authToken"); // Remove token
@@ -79,6 +83,9 @@ const UserProfile = () => {
 
       if (response.data && response.data.avatar) {
         setUserData({ ...userData, avatar: response.data.avatar });
+
+        // Reload lại trang sau khi cập nhật avatar thành công
+        window.location.reload();
       } else {
         setError("Failed to upload the avatar.");
       }
@@ -88,7 +95,6 @@ const UserProfile = () => {
       setLoading(false);
     }
   };
-
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
       setError("New password and confirmation do not match.");
@@ -178,19 +184,31 @@ const UserProfile = () => {
 
       {userData ? (
         <div className="flex items-center mb-6 space-x-6">
-          <label htmlFor="avatar-upload" className="cursor-pointer">
+          <label htmlFor="avatar-upload" className="cursor-pointer relative">
+            {/* Hiển thị spinner khi loading */}
+            {loading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-200 bg-opacity-50 rounded-full">
+                <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            )}
+
+            {/* Avatar */}
             <img
               src={userData.avatar || "/default-avatar.png"}
               alt="Avatar"
-              className="w-24 h-24 rounded-full object-cover shadow-lg transition-transform transform hover:scale-105"
+              className={`w-24 h-24 rounded-full object-cover shadow-lg transition-transform transform hover:scale-105 ${
+                loading ? "opacity-50" : ""
+              }`}
             />
           </label>
+
+          {/* Input file ẩn */}
           <input
             id="avatar-upload"
             type="file"
             accept="image/*"
             onChange={handleAvatarChange}
-            style={{ display: "none" }} // Hide file input
+            className="hidden"
           />
           <div>
             <p className="text-xl font-semibold text-gray-700">

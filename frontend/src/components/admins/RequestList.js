@@ -144,12 +144,17 @@
 // }
 
 import React, { useState, useEffect } from "react";
+import { toast, ToastContainer } from "react-toastify";
 
 export default function RequestList() {
   const [requests, setRequests] = useState([]);
   const token = localStorage.getItem("authToken");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const [selectedRequest, setSelectedRequest] = useState(null);
+
 
   useEffect(() => {
     if (token) {
@@ -177,7 +182,11 @@ export default function RequestList() {
       if (!response.ok) throw new Error(`Error: ${response.status}`);
 
       const data = await response.json();
-      setRequests(Array.isArray(data) ? data : []);
+      const sortedRequests = Array.isArray(data)
+        ? data.sort((a, b) => new Date(b.request_date) - new Date(a.request_date))
+        : [];
+      
+      setRequests(sortedRequests);
     } catch (err) {
       console.error("Error fetching requests:", err);
       setError("Failed to fetch requests.");
@@ -186,19 +195,18 @@ export default function RequestList() {
     }
   };
 
-  const handleProcessRequest = async (requestId, status, requestType) => {
+  const handleRejectClick = (request) => {
+    setSelectedRequest(request);
+    setIsModalOpen(true);
+  };
+
+  const handleProcessRequest = async (requestId, status, requestType, message = "") => {
     let endpoint = "";
     let method = "POST";
-
-    if (!requestType) {
-      alert("Request type is undefined for request " + requestId);
-      return;
-    }
 
     switch (true) {
       case requestType.includes("Created new course"):
         endpoint = "process-create-course";
-        method = "POST";
         break;
       case requestType.includes("Updated course"):
         endpoint = "process-update-course";
@@ -213,8 +221,6 @@ export default function RequestList() {
         return;
     }
 
-    // const url = `http://localhost:3000/api/requests/${endpoint}/${requestId}`;
-
     try {
       const response = await fetch(
         `http://localhost:3000/api/courses/${endpoint}/${requestId}`,
@@ -224,21 +230,19 @@ export default function RequestList() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: method === "CREATE" || "UPDATE" ? JSON.stringify({ status }) : null,
+          body: JSON.stringify({ status, message }),
         }
       );
 
       if (!response.ok) throw new Error(`Error: ${response.status}`);
 
-      const result = await response.json();
-    //   alert(result.message);
-    // console.log("result", result)
-    alert("Successfully processed request.")
-       
+      toast.success("Successfully processed request.");
+      setIsModalOpen(false);
+      setRejectReason("");
       await fetchRequests();
     } catch (err) {
       console.error("Error processing request:", err);
-      alert("Failed to process request");
+      toast.error("Failed to process request");
     }
   };
 
@@ -251,10 +255,8 @@ export default function RequestList() {
         <table className="min-w-full bg-white border border-gray-200 shadow-md rounded-lg">
           <thead className="bg-gray-100">
             <tr className="text-left">
-              <th className="px-4 py-2 border">Request ID</th>
               <th className="px-4 py-2 border">Course ID</th>
               <th className="px-4 py-2 border">Request Type</th>
-              <th className="px-4 py-2 border">Content</th>
               <th className="px-4 py-2 border">Status</th>
               <th className="px-4 py-2 border">Actions</th>
             </tr>
@@ -263,24 +265,8 @@ export default function RequestList() {
             {requests.length > 0 ? (
               requests.map((request) => (
                 <tr key={request._id} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-2 border">{request._id}</td>
-                  <td className="px-4 py-2 border">
-                    {request.course || "N/A"}
-                  </td>
-                  <td className="px-4 py-2 border">
-                    {request.request_type || "N/A"}
-                  </td>
-                  <td className="px-4 py-2 border">
-                    {request.content && request.content.length > 0 ? (
-                      request.content.map((item, index) => (
-                        <div key={index} className="text-sm">
-                          <strong>{item.title}:</strong> {item.value}
-                        </div>
-                      ))
-                    ) : (
-                      <span className="text-gray-500">No content</span>
-                    )}
-                  </td>
+                  <td className="px-4 py-2 border">{request.course || "N/A"}</td>
+                  <td className="px-4 py-2 border">{request.request_type || "N/A"}</td>
                   <td className="px-4 py-2 border">
                     <span
                       className={`px-2 py-1 text-sm font-medium rounded-md ${
@@ -300,24 +286,14 @@ export default function RequestList() {
                         <button
                           className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
                           onClick={() =>
-                            handleProcessRequest(
-                              request._id,
-                              "Approved",
-                              request.request_type
-                            )
+                            handleProcessRequest(request._id, "Approved", request.request_type)
                           }
                         >
                           Approve
                         </button>
                         <button
                           className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                          onClick={() =>
-                            handleProcessRequest(
-                              request._id,
-                              "Rejected",
-                              request.request_type
-                            )
-                          }
+                          onClick={() => handleRejectClick(request)}
                         >
                           Reject
                         </button>
@@ -328,7 +304,7 @@ export default function RequestList() {
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="px-4 py-2 text-center text-gray-500">
+                <td colSpan="4" className="px-4 py-2 text-center text-gray-500">
                   No requests found
                 </td>
               </tr>
@@ -336,6 +312,25 @@ export default function RequestList() {
           </tbody>
         </table>
       </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl w-96">
+            <h2 className="text-lg font-bold mb-4">Enter rejection reason</h2>
+            <textarea
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              rows="4"
+            />
+            <div className="flex justify-end mt-4 space-x-2">
+              <button className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400" onClick={() => setIsModalOpen(false)}>Cancel</button>
+              <button className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600" onClick={() => handleProcessRequest(selectedRequest._id, "Rejected", selectedRequest.request_type, rejectReason)}>Submit</button>
+            </div>
+          </div>
+        </div>
+      )}
+       <ToastContainer />
     </div>
   );
 }
