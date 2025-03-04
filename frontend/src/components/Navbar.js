@@ -1,5 +1,4 @@
-
-import React, { useEffect, useState , useRef} from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 
 import axios from "axios";
@@ -34,16 +33,34 @@ const Navbar = () => {
 
   const [reloadNavbar, setReloadNavbar] = useState(true);
 
-const reload = () => {
-  setReloadNavbar(false);
-  setTimeout(() => {
-    setReloadNavbar(true);
-  }, 2000);
-};
+  const reload = () => {
+    setReloadNavbar(false);
+    setTimeout(() => {
+      setReloadNavbar(true);
+    }, 2000);
+  };
+
+  const debounce = (func, delay) => {
+    let debounceTimer;
+    return function (...args) {
+      const context = this;
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => func.apply(context, args), delay);
+    };
+  };
+
+  const debouncedNavigate = useCallback(
+    debounce((path) => navigate(path), 300),
+    [navigate]
+  );
+
   useEffect(() => {
     const fetchBalance = async () => {
       try {
         const token = localStorage.getItem("authToken");
+        if (!token) {
+          return;
+        }
         const response = await axios.get(
           "http://localhost:3000/api/wallet/show-balance",
           {
@@ -73,14 +90,14 @@ const reload = () => {
 
     const protectedRoutes = ["/userprofile", "/cart"];
     if (protectedRoutes.includes(location.pathname) && !token) {
-      navigate("/login");
+      debouncedNavigate("/login");
     } else {
       const savedFullname = localStorage.getItem("fullname");
       const savedAvatar = localStorage.getItem("avatar");
       setFullname(savedFullname || "Người dùng");
-      setAvatarUrl(savedAvatar );
+      setAvatarUrl(savedAvatar);
     }
-  }, [navigate, location.pathname]);
+  }, [debouncedNavigate, location.pathname]);
 
   useEffect(() => {
     // Lấy token từ localStorage
@@ -89,7 +106,7 @@ const reload = () => {
     // Nếu không có token, thông báo lỗi hoặc điều hướng về trang login
     if (!token) {
       setError("Bạn cần đăng nhập để xem khóa học.");
-      return; 
+      return;
     }
 
     // Gửi yêu cầu API với token
@@ -160,10 +177,10 @@ const reload = () => {
       if (recaptchaRef.current) {
         recaptchaRef.current.reset();
       }
- // Reload Navbar sau 2 giây
- reload();
+      // Reload Navbar sau 2 giây
+      reload();
       // Chuyển về trang login
-      navigate("/login");
+      debouncedNavigate("/login");
       window.location.reload();
     } catch (error) {
       console.error("Đăng xuất thất bại:", error);
@@ -176,7 +193,7 @@ const reload = () => {
 
     if (!token) {
       setError("You are not logged in. Please log in again.");
-      navigate("/login");
+      debouncedNavigate("/login");
       return;
     }
 
@@ -191,18 +208,21 @@ const reload = () => {
       );
       setUserData(response.data);
       localStorage.setItem("role", response.data.role);
-      setAvatarUrl(response.data.avatar );
+      setAvatarUrl(response.data.avatar);
       console.log("User data:", response.data);
     } catch (err) {
       setError("Your session has expired. Please log in again.");
       localStorage.removeItem("authToken"); // Remove token
-      navigate("/login"); // Redirect to login page
+      debouncedNavigate("/login"); // Redirect to login page
     }
   };
-
   useEffect(() => {
-    fetchUserProfile();
+    const protectedRoutes = ["/homescreen", "/courses-list-tutor", "/dashboard"];
+    if (protectedRoutes.includes(window.location.pathname)) {
+      fetchUserProfile();
+    }
   }, []);
+  
 
   // Danh sách các trang không muốn hiển thị Navbar
   const hideNavbarRoutes = ["/login", "/signup", "/uploadtutorcertificate"];
@@ -214,116 +234,115 @@ const reload = () => {
 
   return (
     <nav
+      className={`top-0 left-0 w-full z-50 transition-all duration-300 shadow-lg ${
+        isHome
+          ? "fixed bg-transparent text-white"
+          : "bg-white dark:bg-gray-900 shadow-md"
+      }`}
+    >
+      <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+        {/* Logo */}
+        <h1
+          className="text-2xl font-bold cursor-pointer hover:text-teal-500 transition-all duration-300"
+          onClick={() => debouncedNavigate("/")}
+        >
+          MultiCourse
+        </h1>
 
-    className={`top-0 left-0 w-full z-50 transition-all duration-300 shadow-lg ${
-      isHome ? "fixed bg-transparent text-white" : "bg-white dark:bg-gray-900 shadow-md"
-    }`}
-  >
-    <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-      {/* Logo */}
-      <h1
-        className="text-2xl font-bold cursor-pointer hover:text-teal-500 transition-all duration-300"
-        onClick={() => navigate("/")}
-      >
-        MultiCourse
-      </h1>
-  
-      {/* Navigation Links */}
-      {isHome && (
-        <div className="flex space-x-6">
-          <button
-            className="hover:text-teal-500 transition-all duration-300"
-            onClick={() => navigate("/")}
-          >
-            Home Page
-          </button>
-          <button
-            className="hover:text-teal-500 transition-all duration-300"
-            onClick={() => navigate("/course-list")}
-          >
-            Course List
-          </button>
-          <button
-            className="hover:text-teal-500 transition-all duration-300"
-            onClick={() => navigate("/contact")}
-          >
-            Contact
-          </button>
-          <button
-            className="hover:text-teal-500 transition-all duration-300"
-            onClick={() => navigate("/about")}
-          >
-            About
-          </button>
-        </div>
-      )}
-  
-      {/* User Profile + Balance */}
-      <div className="flex items-center space-x-6">
-        {role === "Tutor" || role === "Student" ? (
-          <div className="flex items-center text-gray-700 dark:text-white px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm">
-            <span className="mr-2">Balance:</span>
-            <span className="font-semibold">{balance ?? "0"} VND</span>
-            {role === "Student" && (
-              <Button
-                type="primary"
-                className="ml-3 bg-blue-500 hover:bg-blue-600 text-white"
-                onClick={() => navigate("/deposit")}
-              >
-                Top Up
-              </Button>
+        {/* Navigation Links */}
+        {isHome && (
+          <div className="flex space-x-6">
+            <button
+              className="hover:text-teal-500 transition-all duration-300"
+              onClick={() => debouncedNavigate("/")}
+            >
+              Home Page
+            </button>
+            <button
+              className="hover:text-teal-500 transition-all duration-300"
+              onClick={() => debouncedNavigate("/course-list")}
+            >
+              Course List
+            </button>
+            <button
+              className="hover:text-teal-500 transition-all duration-300"
+              onClick={() => debouncedNavigate("/contact")}
+            >
+              Contact
+            </button>
+            <button
+              className="hover:text-teal-500 transition-all duration-300"
+              onClick={() => debouncedNavigate("/about")}
+            >
+              About
+            </button>
+          </div>
+        )}
 
+        {/* User Profile + Balance */}
+        <div className="flex items-center space-x-6">
+          {role === "Tutor" || role === "Student" ? (
+            <div className="flex items-center text-gray-700 dark:text-white px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm">
+              <span className="mr-2">Balance:</span>
+              <span className="font-semibold">{balance ?? "0"} VND</span>
+              {role === "Student" && (
+                <Button
+                  type="primary"
+                  className="ml-3 bg-blue-500 hover:bg-blue-600 text-white"
+                  onClick={() => debouncedNavigate("/deposit")}
+                >
+                  Top Up
+                </Button>
+              )}
+            </div>
+          ) : null}
+
+          {/* Avatar + Dropdown */}
+          <div className="relative dropdown-container">
+            <img
+              src={avatarUrl}
+              alt="Avatar"
+              className="w-10 h-10 rounded-full border-2 border-white shadow-md cursor-pointer"
+              onClick={() => setShowDropdown((prev) => !prev)}
+            />
+
+            {showDropdown && (
+              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 text-teal-900 dark:text-white rounded-lg shadow-lg z-50 transition-opacity duration-200">
+                <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700 text-center">
+                  <span className="font-semibold">User Menu</span>
+                </div>
+                <button
+                  className="block w-full px-4 py-2 text-left hover:bg-teal-100 dark:hover:bg-gray-700"
+                  onClick={() => debouncedNavigate("/userprofile")}
+                >
+                  Profile
+                </button>
+                <button
+                  className="block w-full px-4 py-2 text-left hover:bg-teal-100 dark:hover:bg-gray-700"
+                  onClick={() => debouncedNavigate("/cart")}
+                >
+                  Cart
+                </button>
+                <button
+                  className="block w-full px-4 py-2 text-left text-red-600 hover:bg-red-100 dark:hover:bg-red-800"
+                  onClick={logout}
+                >
+                  Logout
+                </button>
+                <div className="w-full flex justify-center py-3">
+                  <Switch
+                    onClick={toggleTheme}
+                    checkedChildren="Dark"
+                    unCheckedChildren="Light"
+                    defaultChecked={theme === "dark"}
+                  />
+                </div>
+              </div>
             )}
           </div>
-        ) : null}
-  
-        {/* Avatar + Dropdown */}
-        <div className="relative dropdown-container">
-          <img
-            src={avatarUrl}
-            alt="Avatar"
-            className="w-10 h-10 rounded-full border-2 border-white shadow-md cursor-pointer"
-            onClick={() => setShowDropdown((prev) => !prev)}
-          />
-  
-          {showDropdown && (
-            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 text-teal-900 dark:text-white rounded-lg shadow-lg z-50 transition-opacity duration-200">
-              <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700 text-center">
-                <span className="font-semibold">User Menu</span>
-              </div>
-              <button
-                className="block w-full px-4 py-2 text-left hover:bg-teal-100 dark:hover:bg-gray-700"
-                onClick={() => navigate("/userprofile")}
-              >
-                Profile
-              </button>
-              <button
-                className="block w-full px-4 py-2 text-left hover:bg-teal-100 dark:hover:bg-gray-700"
-                onClick={() => navigate("/cart")}
-              >
-                Cart
-              </button>
-              <button
-                className="block w-full px-4 py-2 text-left text-red-600 hover:bg-red-100 dark:hover:bg-red-800"
-                onClick={logout}
-              >
-                Logout
-              </button>
-              <div className="w-full flex justify-center py-3">
-                <Switch
-                  onClick={toggleTheme}
-                  checkedChildren="Dark"
-                  unCheckedChildren="Light"
-                  defaultChecked={theme === "dark"}
-                />
-              </div>
-            </div>
-          )}
         </div>
       </div>
-    </div>
-  </nav>
-  
+    </nav>
   );
 };
 
