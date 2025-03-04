@@ -548,6 +548,10 @@ exports.processDeleteCourse = async (req, res) => {
   try {
     const status = req.body.status;
     const request = await Request.findById(req.params.request_id);
+    const tutor = await User.findById(request.tutor);
+    if (!tutor) {
+      return res.status(404).json({ message: "Tutor not found" });
+    }
 
     if (!request) {
       return res.status(404).json({ message: "Request not found" });

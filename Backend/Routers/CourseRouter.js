@@ -99,6 +99,7 @@ router.get(
 //5 tutor có sức ảnh hưởng nhất
 router.get("/top-tutors", cors.corsWithOptions, courseController.getTop5Tutor);
 
+
 //course bán chạy nhất
 router.get(
   "/best-seller",
@@ -116,3 +117,4 @@ router.get(
 );
 
 module.exports = router;
+
