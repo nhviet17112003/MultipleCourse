@@ -145,7 +145,7 @@
 
 import React, { useState, useEffect } from "react";
 import { toast, ToastContainer } from "react-toastify";
-
+import { useNavigate } from "react-router-dom";
 export default function RequestList() {
   const [requests, setRequests] = useState([]);
   const token = localStorage.getItem("authToken");
@@ -154,7 +154,7 @@ export default function RequestList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [selectedRequest, setSelectedRequest] = useState(null);
-
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (token) {
@@ -178,7 +178,6 @@ export default function RequestList() {
           },
         }
       );
-
       if (!response.ok) throw new Error(`Error: ${response.status}`);
 
       const data = await response.json();
@@ -255,7 +254,8 @@ export default function RequestList() {
         <table className="min-w-full bg-white border border-gray-200 shadow-md rounded-lg">
           <thead className="bg-gray-100">
             <tr className="text-left">
-              <th className="px-4 py-2 border">Course ID</th>
+              <th className="px-4 py-2 border">Request ID</th>
+              <th className="px-4 py-2 border">Course Title</th>
               <th className="px-4 py-2 border">Request Type</th>
               <th className="px-4 py-2 border">Status</th>
               <th className="px-4 py-2 border">Actions</th>
@@ -265,8 +265,26 @@ export default function RequestList() {
             {requests.length > 0 ? (
               requests.map((request) => (
                 <tr key={request._id} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-2 border">{request.course || "N/A"}</td>
-                  <td className="px-4 py-2 border">{request.request_type || "N/A"}</td>
+                  <td className="px-4 py-2 border">{request._id}</td>
+                  <td className="px-4 py-2 border">
+                    <a href={`/courses-list-tutor/${request.course_id}`}>
+                      {request.course_title}
+                    </a>
+                  </td>
+                  <td className="px-4 py-2 border">
+                    {request.request_type || "N/A"}
+                  </td>
+                  <td className="px-4 py-2 border">
+                    {request.content && request.content.length > 0 ? (
+                      request.content.map((item, index) => (
+                        <div key={index} className="text-sm">
+                          <strong>{item.title}:</strong> {item.value}
+                        </div>
+                      ))
+                    ) : (
+                      <span className="text-gray-500">No content</span>
+                    )}
+                  </td>
                   <td className="px-4 py-2 border">
                     <span
                       className={`px-2 py-1 text-sm font-medium rounded-md ${
