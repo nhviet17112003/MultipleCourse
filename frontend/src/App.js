@@ -1,4 +1,10 @@
-import { BrowserRouter as Router, Route, Routes,useNavigate, useLocation } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 import { useEffect } from "react";
 import Login from "./components/authentication/Login";
 import UploadTutorCertificate from "./components/tutors/UploadTutorCertificate";
@@ -52,166 +58,128 @@ function Layout() {
   const [navbarKey, setNavbarKey] = useState(0);
   // Hàm reload Navbar khi có thay đổi
   const reloadNavbar = () => {
-    setNavbarKey(prevKey => prevKey + 1);
+    setNavbarKey((prevKey) => prevKey + 1);
   };
   useEffect(() => {
     reloadNavbar(); // Gọi reload Navbar khi location thay đổi
   }, [location]);
   // Danh sách các trang không hiển thị Sidebar
-  const noSidebarPages = ["/login", "/signup", "/forgetpassword", "/","/uploadtutorcertificate/:userId"];
+  const noSidebarPages = [
+    "/login",
+    "/signup",
+    "/forgetpassword",
+    "/",
+    "/uploadtutorcertificate/:userId",
+  ];
 
   // Kiểm tra nếu đang ở một trong các trang trên thì không hiển thị Sidebar
   const hideSidebar = noSidebarPages.includes(location.pathname);
 
   return (
     <div className="bg-white dark:bg-black w-screen min-h-screen flex flex-col">
-    <Navbar key={navbarKey} reloadNavbar={reloadNavbar} />
-      
+      <Navbar key={navbarKey} reloadNavbar={reloadNavbar} />
+
       <div className="flex">
         {!hideSidebar && <Sidebar className="w-1/4" />}
         <div className="flex-1">
           <Routes>
-         
-
-            <Route path="/" element={<HomeScreen />} />
+            <Route path="/homescreen" element={<HomeScreen />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/forgetpassword" element={<ForgetPassword />} />
             <Route path="/" element={<HomeScreen />} />
 
-
             {/* Các route khác */}
             <Route path="/introduce" element={<Introduce />} />
-                  {/* <Route path="/login" element={<Login />} /> */}
-                  <Route
-                    path="/uploadtutorcertificate/:userId"
-                    element={<UploadTutorCertificate />}
-                  />
-                  {/* <Route path="/signup" element={<Signup />} />
+            {/* <Route path="/login" element={<Login />} /> */}
+            <Route
+              path="/uploadtutorcertificate/:userId"
+              element={<UploadTutorCertificate />}
+            />
+            {/* <Route path="/signup" element={<Signup />} />
                   <Route path="/forgetpassword" element={<ForgetPassword />} /> */}
-                  <Route path="/userprofile" element={<UserProfile />} />
-                  <Route
-                    path="/updateprofile/:id"
-                    element={<UpdateProfile />}
-                  />
-                  <Route
-                    path="/courses-list-tutor"
-                    element={<CourseListForTutor />}
-                  />
-                  <Route path="/course-list" element={<CourseList />} />
-                  <Route path="/coursedetail/:id" element={<CourseDetail />} />
-                  <Route path="/createcourse" element={<CreateCourse />} />
-                  <Route path="/cart" element={<Cart />} />
-                  <Route path="/wallet" element={<WalletManage />} />
-                  <Route path="/deposit-history" element={<DepositHistory />} />
+            <Route path="/userprofile" element={<UserProfile />} />
+            <Route path="/updateprofile/:id" element={<UpdateProfile />} />
+            <Route
+              path="/courses-list-tutor"
+              element={<CourseListForTutor />}
+            />
+            <Route path="/course-list" element={<CourseList />} />
+            <Route path="/coursedetail/:id" element={<CourseDetail />} />
+            <Route path="/createcourse" element={<CreateCourse />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/wallet" element={<WalletManage />} />
+            <Route path="/deposit-history" element={<DepositHistory />} />
 
-                  <Route
-                    path="/withdrawal-history"
-                    element={<WithdrawalHistory />}
-                  />
-                  <Route
-                    path="/wallet-manage-for-admin"
-                    element={<WalletManageForAdmin />}
-                  />
-                  <Route
-                    path="/coursemanagertutor/:courseId"
-                    element={<CourseManageTutor />}
-                  />
-                  <Route path="/updatecourse" element={<UpdateCourse />} />
-                  <Route
-                    path="/courses-list-tutor/:courseId"
-                    element={<CourseDetailForTutor />}
-                  />
-                  <Route path="/courses-list" element={<ViewCourseList />} />
-                  <Route
-                    path="/create-lesson/:courseId"
-                    element={<CreateLesson />}
-                  />
-                  <Route
-                    path="/lesson-detail/:lessonId"
-                    element={<LessonDetail />}
-                  />
-                  <Route
-                    path="/update-lesson/:lessonId"
-                    element={<UpdateLessonModal />}
-                  />
+            <Route path="/withdrawal-history" element={<WithdrawalHistory />} />
+            <Route
+              path="/wallet-manage-for-admin"
+              element={<WalletManageForAdmin />}
+            />
+            <Route
+              path="/coursemanagertutor/:courseId"
+              element={<CourseManageTutor />}
+            />
+            <Route path="/updatecourse" element={<UpdateCourse />} />
+            <Route
+              path="/courses-list-tutor/:courseId"
+              element={<CourseDetailForTutor />}
+            />
+            <Route path="/courses-list" element={<ViewCourseList />} />
+            <Route path="/create-lesson/:courseId" element={<CreateLesson />} />
+            <Route path="/lesson-detail/:lessonId" element={<LessonDetail />} />
+            <Route
+              path="/update-lesson/:lessonId"
+              element={<UpdateLessonModal />}
+            />
 
-                  <Route path="/my-courses" element={<MyCourses />} />
-                  <Route path="/deposit" element={<WalletStudent />} />
-                  <Route path="/manage-users" element={<ManageUser />} />
+            <Route path="/my-courses" element={<MyCourses />} />
+            <Route path="/deposit" element={<WalletStudent />} />
+            <Route path="/manage-users" element={<ManageUser />} />
 
-                  <Route
-                    path="/courses/:courseId"
-                    element={<CourseLearningPage />}
-                  />
+            <Route path="/courses/:courseId" element={<CourseLearningPage />} />
 
-                  <Route
-                    path="/purchase-history"
-                    element={<PurchaseHistory />}
-                  />
+            <Route path="/purchase-history" element={<PurchaseHistory />} />
 
-                  <Route
-                    path="/purchase-history-for-admin"
-                    element={<PurchaseHistoryForAdmin />}
-                  />
+            <Route
+              path="/purchase-history-for-admin"
+              element={<PurchaseHistoryForAdmin />}
+            />
 
-                  <Route
-                    path="/manage-review-for-admin"
-                    element={<ManageReview />}
-                  />
+            <Route path="/manage-review-for-admin" element={<ManageReview />} />
 
-                  <Route
-                    path="/statistic-for-admin"
-                    element={<StatisticForAdmin />}
-                  />
+            <Route
+              path="/statistic-for-admin"
+              element={<StatisticForAdmin />}
+            />
 
-                  <Route path="/final-exam/:courseId" element={<FinalExam />} />
+            <Route path="/final-exam/:courseId" element={<FinalExam />} />
 
-                  <Route
-                    path="/course-list-for-admin"
-                    element={<CourseListForAdmin />}
-                  />
-                  <Route
-                    path="/create-exam/:courseId"
-                    element={<CreateExam />}
-                  />
-                  <Route
-                    path="/update-exam/:courseId"
-                    element={<UpdateExam />}
-                  />
+            <Route
+              path="/course-list-for-admin"
+              element={<CourseListForAdmin />}
+            />
+            <Route path="/create-exam/:courseId" element={<CreateExam />} />
+            <Route path="/update-exam/:courseId" element={<UpdateExam />} />
 
-                  <Route path="/my-certificate" element={<Certificate />} />
-                  <Route
-                    path="/manage-request-list"
-                    element={<RequestList />}
-                  />
-                    <Route
-                    path="/activities-history-list"
-                    element={<ActivitiesHistory />}
-                  />
-                       <Route
-                    path="/buyer-history-list"
-                    element={<BuyerHistory />}
-                  />
+            <Route path="/my-certificate" element={<Certificate />} />
+            <Route path="/manage-request-list" element={<RequestList />} />
+            <Route
+              path="/activities-history-list"
+              element={<ActivitiesHistory />}
+            />
+            <Route path="/buyer-history-list" element={<BuyerHistory />} />
 
-<Route
-                    path="/statistic-tutor"
-                    element={<StatisticForTutor />}
-                  />
+            <Route path="/statistic-tutor" element={<StatisticForTutor />} />
           </Routes>
-          
         </div>
-        
       </div>
 
-    
       <Footer />
     </div>
-    
   );
 }
 function App() {
- 
   return (
     <div className="bg-white dark:bg-black w-screen h-screen">
       <AuthProvider>
@@ -221,9 +189,7 @@ function App() {
           {" "}
           {/* Bọc ứng dụng trong ThemeProvider */}
           <Router>
-          <Layout />
-          
-           
+            <Layout />
           </Router>
         </ThemeProvider>
       </AuthProvider>
@@ -232,5 +198,3 @@ function App() {
 }
 
 export default App;
-
-

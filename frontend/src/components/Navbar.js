@@ -315,12 +315,14 @@ const Navbar = () => {
                 >
                   Profile
                 </button>
-                <button
-                  className="block w-full px-4 py-2 text-left hover:bg-teal-100 dark:hover:bg-gray-700"
-                  onClick={() => debouncedNavigate("/cart")}
-                >
-                  Cart
-                </button>
+                {role === "Student" && (
+                  <button
+                    className="block w-full px-4 py-2 text-left hover:bg-teal-100 dark:hover:bg-gray-700"
+                    onClick={() => debouncedNavigate("/cart")}
+                  >
+                    Cart
+                  </button>
+                )}
                 <button
                   className="block w-full px-4 py-2 text-left text-red-600 hover:bg-red-100 dark:hover:bg-red-800"
                   onClick={logout}

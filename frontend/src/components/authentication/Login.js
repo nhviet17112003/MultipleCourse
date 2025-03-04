@@ -110,10 +110,12 @@ const Login = () => {
             (!tutor_certificates || tutor_certificates.length === 0)
           ) {
             navigate(`/uploadtutorcertificate/${user_id}`);
-            window.location.reload();
-          } else {
+          } else if (role.toLowerCase() === "admin") {
+            navigate("/statistic-for-admin");
+          } else if (role.toLowerCase() === "student") {
             navigate("/homescreen");
-            window.location.reload();
+          } else {
+            navigate("/courses-list-tutor");
           }
         }, 500);
       }
@@ -127,7 +129,6 @@ const Login = () => {
 
   const handleSignUpForStudent = () => {
     console.log("Navigating to signup as Student");
-    console.log("navigate function:", navigate);
     navigate("/signup", { state: { role: "Student" } });
   };
 
