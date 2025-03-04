@@ -52,6 +52,8 @@ import Introduce from "./components/Introduce";
 import DepositHistory from "./components/students/wallet/DepositHistory";
 import HomeScreen from "./components/HomeScreen";
 import Footer from "./components/Footer";
+import Students from "./components/tutors/Students";
+
 import { useState } from "react";
 function Layout() {
   const location = useLocation();
@@ -169,8 +171,8 @@ function Layout() {
               element={<ActivitiesHistory />}
             />
             <Route path="/buyer-history-list" element={<BuyerHistory />} />
-
             <Route path="/statistic-tutor" element={<StatisticForTutor />} />
+            <Route path="/student-list" element={<Students />} />
           </Routes>
         </div>
       </div>

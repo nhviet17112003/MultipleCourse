@@ -39,7 +39,6 @@ const Navbar = () => {
       setReloadNavbar(true);
     }, 2000);
   };
-
   // Hàm debounce để trì hoãn việc gọi hàm navigate để tránh người dùng nhấn quá nhanh và liên tục
   const debounce = (func, delay) => {
     let debounceTimer;
@@ -217,9 +216,15 @@ const Navbar = () => {
       debouncedNavigate("/login"); // Redirect to login page
     }
   };
-
   useEffect(() => {
-    fetchUserProfile();
+    const protectedRoutes = [
+      "/homescreen",
+      "/courses-list-tutor",
+      "/dashboard",
+    ];
+    if (protectedRoutes.includes(window.location.pathname)) {
+      fetchUserProfile();
+    }
   }, []);
 
   // Danh sách các trang không muốn hiển thị Navbar

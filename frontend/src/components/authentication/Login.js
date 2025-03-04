@@ -27,7 +27,7 @@ const Login = () => {
         role.toLowerCase() === "tutor" ? "/courses-list-tutor" : "/homescreen"
       );
     }
-  }, []); // Chạy một lần khi component render
+  }, []);
 
   useEffect(() => {
     if (isSubmitting) {
@@ -128,12 +128,10 @@ const Login = () => {
   };
 
   const handleSignUpForStudent = () => {
-    console.log("Navigating to signup as Student");
     navigate("/signup", { state: { role: "Student" } });
   };
 
   const handleSignUpForTutor = () => {
-    console.log("Navigating to signup as Tutor");
     navigate("/signup", { state: { role: "Tutor" } });
   };
 
@@ -239,7 +237,6 @@ const Login = () => {
                       Forgot Password
                     </button>
                   </div>
-
                   {/* Thêm reCAPTCHA */}
                   {/* <div className="mb-4">
                     <ReCAPTCHA
