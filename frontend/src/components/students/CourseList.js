@@ -203,6 +203,10 @@ const CourseList = () => {
     .sort((a, b) => {
       if (sortOption === "asc") return a.price - b.price;
       if (sortOption === "desc") return b.price - a.price;
+      if (sortOption === "rating-asc")
+        return (a.average_rating ?? 0) - (b.average_rating ?? 0);
+      if (sortOption === "rating-desc")
+        return (b.average_rating ?? 0) - (a.average_rating ?? 0);
       return 0;
     });
 
@@ -233,6 +237,8 @@ const CourseList = () => {
                 <option value="default">Sort by</option>
                 <option value="asc">Price Low to High</option>
                 <option value="desc">Price High to Low</option>
+                <option value="rating-asc">Rating Low to High</option>
+                <option value="rating-desc">Rating High to Low</option>
               </select>
             </div>
             <div className="w-32">
@@ -272,7 +278,25 @@ const CourseList = () => {
               />
             </div>
           </div>
+
+          <div className="flex flex-row-reverse items-center mt-4 gap-4">
+            <button
+              onClick={() => {
+                setFilter("");
+                setSortOption("default");
+                setPriceRange([0, 100000]);
+                setRatingFilter(0);
+              }}
+              className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+            >
+              Reset
+            </button>
+            <p className="text-gray-800 text-sm italic">
+              The result has {filteredCourses.length} courses
+            </p>
+          </div>
         </div>
+
         <div className="bg-white p-6 rounded-lg shadow-md">
           {loading ? (
             <p>Đang tải danh sách khóa học...</p>
