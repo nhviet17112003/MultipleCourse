@@ -38,6 +38,12 @@ const CourseList = () => {
     return <span className="inline-flex">{stars}</span>;
   };
 
+  const ratingCounts = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map((rating) => ({
+    rating,
+    count: courses.filter((course) => (course.average_rating ?? 0) >= rating)
+      .length,
+  }));
+
   useEffect(() => {
     const fetchCourses = async () => {
       try {
@@ -194,7 +200,6 @@ const CourseList = () => {
 
       return (titleMatch || tutorMatch) && priceMatch && ratingMatch;
     })
-
     .sort((a, b) => {
       if (sortOption === "asc") return a.price - b.price;
       if (sortOption === "desc") return b.price - a.price;
@@ -236,14 +241,13 @@ const CourseList = () => {
                 onChange={(e) => setRatingFilter(Number(e.target.value))}
                 className="w-full p-3 text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
               >
-                <option value={0}>All Ratings</option>
-                {[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map((rating) => (
+                <option value={0}>All Rating</option>
+                {ratingCounts.map(({ rating, count }) => (
                   <option key={rating} value={rating}>
-                    {rating} ⭐
+                    From {rating} ⭐ ({count})
                   </option>
                 ))}
               </select>
-              <div className="mt-2">{renderStars(ratingFilter)}</div>
             </div>
 
             <div className="flex-1">
