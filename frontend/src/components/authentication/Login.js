@@ -17,7 +17,7 @@ const Login = () => {
   const timeoutRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [avatar, setAvatarUrl] = useState(false);
-  const key = "6LcI9ukqAAAAAGiqY3Yy7D43OWEXNXPxpcakTefC"
+  const key = "6LcI9ukqAAAAAGiqY3Yy7D43OWEXNXPxpcakTefC";
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
@@ -87,7 +87,7 @@ const Login = () => {
     try {
       const response = await axios.post(
         "http://localhost:3000/api/users/login",
-        { username, password,recaptchaToken: captchaValue, }
+        { username, password, recaptchaToken: captchaValue }
       );
 
       if (response.status === 200) {
@@ -156,7 +156,7 @@ const Login = () => {
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(";").shift();
   };
-  
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2 bg-gray-100">
       <main className="flex flex-col items-center justify-center w-full flex-1 px-20 text-center">
@@ -241,6 +241,7 @@ const Login = () => {
                   <div className="mb-4">
                     <ReCAPTCHA
                       sitekey={key}
+                      explicit={true}
                       onChange={(value) => setCaptchaValue(value)}
                     />
                   </div>
