@@ -97,6 +97,7 @@ exports.googlePassport = passport.use(
             user.googleId = profile.id;
             user.email = profile.emails[0].value;
             user.fullname = profile.displayName;
+            user.avatar = profile.picture;
             user.role = "Student";
             user.save().then((user) => {
               return done(null, user);
