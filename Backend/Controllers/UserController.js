@@ -524,7 +524,19 @@ exports.googleLoginCallback = async (req, res, next) => {
       email: user.email,
     });
     res.cookie("Token", token, { maxAge: 7200000, path: "/" }); // dùng cookie để lưu token
-    return res.redirect("http://localhost:3001/homescreen");
+    return res.redirect(
+      "http://localhost:3001/course-list" +
+        "?token=" +
+        token +
+        "&user_id=" +
+        user._id +
+        "&fullname=" +
+        user.fullname +
+        "&role=" +
+        user.role +
+        "&status=" +
+        user.status
+    );
     // res.status(200).json({
     //   message: "Login successful",
     //   token: token,

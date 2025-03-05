@@ -114,8 +114,9 @@ const Login = () => {
             (!tutor_certificates || tutor_certificates.length === 0)
           ) {
             navigate(`/uploadtutorcertificate/${user_id}`, { replace: true });
-          }
-          if (role.toLowerCase() === "student") {
+          } else if (role.toLowerCase() === "admin") {
+            navigate("/statistic-for-admin");
+          } else if (role.toLowerCase() === "student") {
             navigate("/course-list");
           } else {
             navigate("/courses-list-tutor");
@@ -148,7 +149,22 @@ const Login = () => {
       if (token) {
         clearInterval(checkToken); // Dừng kiểm tra khi đã có token
         console.log("Đăng nhập thành công! Token:", token);
-        window.location.href = "/homescreen"; // Chuyển đến trang Home
+
+        // Lấy các tham số từ URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const user_id = urlParams.get("user_id");
+        const fullname = urlParams.get("fullname");
+        const role = urlParams.get("role");
+        const status = urlParams.get("status");
+
+        // Lưu các tham số vào localStorage
+        localStorage.setItem("authToken", token);
+        localStorage.setItem("user_id", user_id);
+        localStorage.setItem("fullname", fullname);
+        localStorage.setItem("role", role);
+        localStorage.setItem("status", status);
+
+        window.location.href = "/course-list"; // Chuyển đến trang Home
       }
     }, 500); // Kiểm tra mỗi 500ms
   };
