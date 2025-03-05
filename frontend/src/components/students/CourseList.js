@@ -300,6 +300,10 @@ const CourseList = () => {
                       <p className="text-sm text-gray-600 mt-2">
                         Tutor: {course.tutor?.fullname}
                       </p>
+                      <p className="text-yellow-500 flex items-center">
+                        {renderStars(course.average_rating)} (
+                        {course.comments.length})
+                      </p>
                       <div className="mt-4 flex items-center justify-between">
                         <span className="text-cyan-700 font-bold">
                           ${course.price}
