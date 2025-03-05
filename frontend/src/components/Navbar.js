@@ -61,6 +61,10 @@ const Navbar = () => {
         if (!token) {
           return;
         }
+        const role = localStorage.getItem("role");
+        if (role === "Admin") {
+          return;
+        }
         const response = await axios.get(
           "http://localhost:3000/api/wallet/show-balance",
           {
@@ -95,7 +99,7 @@ const Navbar = () => {
       const savedFullname = localStorage.getItem("fullname");
       const savedAvatar = localStorage.getItem("avatar");
       setFullname(savedFullname || "Người dùng");
-      setAvatarUrl(savedAvatar);
+      setAvatarUrl(savedAvatar || "");
     }
   }, [debouncedNavigate, location.pathname]);
 
@@ -178,10 +182,8 @@ const Navbar = () => {
         recaptchaRef.current.reset();
       }
       // Reload Navbar sau 2 giây
-      reload();
       // Chuyển về trang login
       debouncedNavigate("/login");
-      window.location.reload();
     } catch (error) {
       console.error("Đăng xuất thất bại:", error);
       alert("Có lỗi xảy ra khi đăng xuất. Vui lòng thử lại!");
@@ -217,12 +219,18 @@ const Navbar = () => {
     }
   };
   useEffect(() => {
-    const protectedRoutes = [
-      "/homescreen",
-      "/courses-list-tutor",
-      "/dashboard",
-    ];
-    if (protectedRoutes.includes(window.location.pathname)) {
+    // const protectedRoutes = [
+    //   "/homescreen",
+    //   "/courses-list-tutor",
+    //   "/statistic-for-admin",
+    //   "/course-list-for-admin",
+
+    // ];
+    // if (protectedRoutes.includes(window.location.pathname)) {
+    //   fetchUserProfile();
+    // }
+    const token = localStorage.getItem("authToken");
+    if (token) {
       fetchUserProfile();
     }
   }, []);
@@ -284,6 +292,9 @@ const Navbar = () => {
 
         {/* User Profile + Balance */}
         <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-6 font-bold">
+            {fullname}
+          </div>
           {role === "Tutor" || role === "Student" ? (
             <div className="flex items-center text-gray-700 dark:text-white px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm">
               <span className="mr-2">Balance:</span>

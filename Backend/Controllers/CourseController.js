@@ -292,16 +292,25 @@ exports.requestUpdateCourse = async (req, res) => {
       return res.status(400).json({ message: "Request is already pending" });
     }
 
+    const content = [];
+    if (newTitle !== course.title) {
+      content.push({ title: "NewTitle", value: newTitle });
+    }
+    if (description !== course.description) {
+      content.push({ title: "NewDescription", value: description });
+    }
+    if (price !== course.price) {
+      content.push({ title: "NewPrice", value: price });
+    }
+    if (category !== course.category) {
+      content.push({ title: "NewCategory", value: category });
+    }
+
     const newRequest = new Request({
       tutor: req.user._id,
       course: course._id,
       request_type: "Updated course and waiting for approval",
-      content: [
-        { title: "NewTitle", value: newTitle },
-        { title: "NewDescription", value: description },
-        { title: "Price", value: price },
-        { title: "Category", value: category },
-      ],
+      content: content,
       status: "Pending",
     });
 
@@ -343,16 +352,16 @@ exports.processUpdateCourse = async (req, res) => {
     if (status === "Approved") {
       const newTitle = request.content.find(
         (item) => item.title === "NewTitle"
-      ).value;
-      const description = request.content.find(
+      )?.value;
+      const newDescription = request.content.find(
         (item) => item.title === "NewDescription"
-      ).value;
-      const price = request.content.find(
-        (item) => item.title === "Price"
-      ).value;
-      const category = request.content.find(
-        (item) => item.title === "Category"
-      ).value;
+      )?.value;
+      const newPrice = request.content.find(
+        (item) => item.title === "NewPrice"
+      )?.value;
+      const newCategory = request.content.find(
+        (item) => item.title === "NewCategory"
+      )?.value;
 
       const course = await Course.findById(request.course);
       if (!course) {
@@ -360,7 +369,7 @@ exports.processUpdateCourse = async (req, res) => {
       }
 
       // Nếu tiêu đề mới khác với tiêu đề cũ
-      if (course.title !== newTitle) {
+      if (newTitle) {
         const oldFolderPath = `Courses/${course.title}/`;
         const newFolderPath = `Courses/${newTitle}/`;
 
@@ -409,9 +418,15 @@ exports.processUpdateCourse = async (req, res) => {
         course.title = newTitle;
       }
 
-      course.description = description;
-      course.price = price;
-      course.category = category;
+      if (newDescription) {
+        course.description = newDescription;
+      }
+      if (newPrice) {
+        course.price = newPrice;
+      }
+      if (newCategory) {
+        course.category = newCategory;
+      }
       request.status = "Approved";
       newAdminActivity.description = `Approved the request to update course with ID: ${request.course}`;
       await course.save();
@@ -441,10 +456,10 @@ exports.processUpdateCourse = async (req, res) => {
 
       <p>The updated details of your course are now live on our platform. Students will see the new information, including:</p>
       <ul>
-        <li><strong>Title:</strong> ${newTitle}</li>
-        <li><strong>Description:</strong> ${description}</li>
-        <li><strong>Price:</strong> $${price}</li>
-        <li><strong>Category:</strong> ${category}</li>
+      {newTitle && <li><strong>Title:</strong> ${newTitle}</li>}
+      {newDescription && <li><strong>Description:</strong> ${newDescription}</li>}
+      {newPrice && <li><strong>Price:</strong> ${newPrice}</li>}
+      {newCategory && <li><strong>Category:</strong> ${newCategory}
       </ul>
 
       <p>You can check your course and make any further updates as needed.</p>

@@ -17,7 +17,7 @@ const Login = () => {
   const timeoutRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [avatar, setAvatarUrl] = useState(false);
-  const key = "6LcI9ukqAAAAAGiqY3Yy7D43OWEXNXPxpcakTefC"
+  const key = "6LcI9ukqAAAAAGiqY3Yy7D43OWEXNXPxpcakTefC";
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
@@ -87,7 +87,7 @@ const Login = () => {
     try {
       const response = await axios.post(
         "http://localhost:3000/api/users/login",
-        { username, password,recaptchaToken: captchaValue, }
+        { username, password, recaptchaToken: captchaValue }
       );
 
       if (response.status === 200) {
@@ -114,6 +114,10 @@ const Login = () => {
             (!tutor_certificates || tutor_certificates.length === 0)
           ) {
             navigate(`/uploadtutorcertificate/${user_id}`, { replace: true });
+          } else if (role.toLowerCase() === "admin") {
+            navigate("/statistic-for-admin");
+          } else if (role.toLowerCase() === "student") {
+            navigate("/course-list");
           } else {
             navigate("/courses-list-tutor");
           }
@@ -145,7 +149,22 @@ const Login = () => {
       if (token) {
         clearInterval(checkToken); // Dừng kiểm tra khi đã có token
         console.log("Đăng nhập thành công! Token:", token);
-        window.location.href = "/homescreen"; // Chuyển đến trang Home
+
+        // Lấy các tham số từ URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const user_id = urlParams.get("user_id");
+        const fullname = urlParams.get("fullname");
+        const role = urlParams.get("role");
+        const status = urlParams.get("status");
+
+        // Lưu các tham số vào localStorage
+        localStorage.setItem("authToken", token);
+        localStorage.setItem("user_id", user_id);
+        localStorage.setItem("fullname", fullname);
+        localStorage.setItem("role", role);
+        localStorage.setItem("status", status);
+
+        window.location.href = "/course-list"; // Chuyển đến trang Home
       }
     }, 500); // Kiểm tra mỗi 500ms
   };
@@ -156,7 +175,7 @@ const Login = () => {
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(";").shift();
   };
-  
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2 bg-gray-100">
       <main className="flex flex-col items-center justify-center w-full flex-1 px-20 text-center">
@@ -241,6 +260,7 @@ const Login = () => {
                   <div className="mb-4">
                     <ReCAPTCHA
                       sitekey={key}
+                      explicit={true}
                       onChange={(value) => setCaptchaValue(value)}
                     />
                   </div>
