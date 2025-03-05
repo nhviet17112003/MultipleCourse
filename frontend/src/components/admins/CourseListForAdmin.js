@@ -76,7 +76,7 @@ const CourseListForAdmin = () => {
               >
                 {/* <td className="p-4">{course._id}</td> */}
                 <td className="p-4 font-semibold text-gray-700">
-                  <a href={`/courses-list-tutor/${course._id}`}>
+                  <a href={`/courses-list-for-admin/${course._id}`}>
                     {course.title}
                   </a>
                 </td>

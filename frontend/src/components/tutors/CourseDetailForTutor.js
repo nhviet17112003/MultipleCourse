@@ -178,6 +178,18 @@ const CourseDetailForTutor = () => {
 
         if (courseResponse.status === 200) {
           setCourse(courseResponse.data.courseDetail);
+          setLessons(courseResponse.data.lessons);
+        }
+        const examResponse = await axios.get(
+          `http://localhost:3000/api/exams/get-exam/${courseId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        console.log("Exam Response:", examResponse.data);
+
+        if (examResponse.status === 200) {
+          setExams(examResponse.data);
         }
 
         const incomeResponse = await axios.get(
