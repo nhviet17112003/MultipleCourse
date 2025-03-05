@@ -202,7 +202,7 @@ const MyCourses = () => {
                 onClick={() => handleCourseClick(item.course._id)}
               >
                 <img
-                  src={item.course.image}
+                  src={item.course.image || ""}
                   alt={item.course.title}
                   className="w-full h-48 object-cover"
                 />

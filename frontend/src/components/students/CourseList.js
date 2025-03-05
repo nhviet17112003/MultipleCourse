@@ -6,6 +6,8 @@ import { ToastContainer, toast } from "react-toastify";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import "react-toastify/dist/ReactToastify.css";
+import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
+
 const CourseList = () => {
   const navigate = useNavigate();
   const [spinning, setSpinning] = useState(false);
@@ -21,6 +23,20 @@ const CourseList = () => {
   const [ratingFilter, setRatingFilter] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+
+  const renderStars = (rating) => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      if (i <= rating) {
+        stars.push(<FaStar key={i} className="text-yellow-500" />);
+      } else if (i - 0.5 === rating) {
+        stars.push(<FaStarHalfAlt key={i} className="text-yellow-500" />);
+      } else {
+        stars.push(<FaRegStar key={i} className="text-gray-400" />);
+      }
+    }
+    return <span className="inline-flex">{stars}</span>;
+  };
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -174,7 +190,7 @@ const CourseList = () => {
         .includes(filter.toLowerCase());
       const priceMatch =
         course.price >= priceRange[0] && course.price <= priceRange[1];
-      const ratingMatch = (course.rating ?? 0) >= ratingFilter;
+      const ratingMatch = (course.average_rating ?? 0) >= ratingFilter;
 
       return (titleMatch || tutorMatch) && priceMatch && ratingMatch;
     })
@@ -221,14 +237,13 @@ const CourseList = () => {
                 className="w-full p-3 text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
               >
                 <option value={0}>All Ratings</option>
-                {[1, 2, 3, 4, 5].map((rating) => (
+                {[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map((rating) => (
                   <option key={rating} value={rating}>
-                    {Array.from({ length: rating })
-                      .map(() => "★")
-                      .join("")}
+                    {rating} ⭐
                   </option>
                 ))}
               </select>
+              <div className="mt-2">{renderStars(ratingFilter)}</div>
             </div>
 
             <div className="flex-1">

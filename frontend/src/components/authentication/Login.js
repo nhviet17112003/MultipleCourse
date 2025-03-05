@@ -17,6 +17,7 @@ const Login = () => {
   const timeoutRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [avatar, setAvatarUrl] = useState(false);
+  const key = "6LcI9ukqAAAAAGiqY3Yy7D43OWEXNXPxpcakTefC";
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
@@ -42,24 +43,24 @@ const Login = () => {
     }
   }, [isSubmitting, navigate]);
 
-  // Hàm kiểm tra Username
-  const validateUsername = (username) => {
-    if (username.trim().length === 0) {
-      return "Username cannot be blank.";
-    }
-    if (username.length < 4) {
-      return "Username must be at least 4 characters.";
-    }
-    return "";
-  };
+  // // Hàm kiểm tra Username
+  // const validateUsername = (username) => {
+  //   if (username.trim().length === 0) {
+  //     return "Username cannot be blank.";
+  //   }
+  //   if (username.length < 4) {
+  //     return "Username must be at least 4 characters.";
+  //   }
+  //   return "";
+  // };
 
-  // Hàm kiểm tra Password
-  const validatePassword = (password) => {
-    if (password.length < 6) {
-      return "Password must be at least 6 characters.";
-    }
-    return "";
-  };
+  // // Hàm kiểm tra Password
+  // const validatePassword = (password) => {
+  //   if (password.length < 6) {
+  //     return "Password must be at least 6 characters.";
+  //   }
+  //   return "";
+  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -71,11 +72,14 @@ const Login = () => {
       return;
     }
 
-    if (!password || password.length < 6) {
+    if (!password || password.length < 3) {
       setError("Password must be at least 6 characters.");
       return;
     }
-
+    if (!captchaValue) {
+      setError("Please complete reCAPTCHA.");
+      return;
+    }
     setError("");
     setIsLoading(true);
     setIsSubmitting(true);
@@ -83,7 +87,7 @@ const Login = () => {
     try {
       const response = await axios.post(
         "http://localhost:3000/api/users/login",
-        { username, password }
+        { username, password, recaptchaToken: captchaValue }
       );
 
       if (response.status === 200) {
@@ -98,22 +102,17 @@ const Login = () => {
         }
 
         localStorage.setItem("authToken", token);
-        localStorage.setItem("fullname", fullname);
-        localStorage.setItem("role", role);
-
         setSuccessMessage("Login successfully!");
-        console.log("Cert: ", tutor_certificates);
-
         setTimeout(() => {
           if (
             role.toLowerCase() === "tutor" &&
             (!tutor_certificates || tutor_certificates.length === 0)
           ) {
-            navigate(`/uploadtutorcertificate/${user_id}`);
+            navigate(`/uploadtutorcertificate/${user_id}`, { replace: true });
           } else if (role.toLowerCase() === "admin") {
             navigate("/statistic-for-admin");
           } else if (role.toLowerCase() === "student") {
-            navigate("/homescreen");
+            navigate("/course-list");
           } else {
             navigate("/courses-list-tutor");
           }
@@ -145,7 +144,8 @@ const Login = () => {
       if (token) {
         clearInterval(checkToken); // Dừng kiểm tra khi đã có token
         console.log("Đăng nhập thành công! Token:", token);
-        window.location.href = "/homescreen"; // Chuyển đến trang Home
+        localStorage.setItem("authToken", token); // Lưu token vào localStorage
+        window.location.href = "/course-list"; // Chuyển đến trang Home
       }
     }, 500); // Kiểm tra mỗi 500ms
   };
@@ -238,13 +238,13 @@ const Login = () => {
                     </button>
                   </div>
                   {/* Thêm reCAPTCHA */}
-                  {/* <div className="mb-4">
+                  <div className="mb-4">
                     <ReCAPTCHA
-                      ref={recaptchaRef}
-                      sitekey="6LfoC-IqAAAAAMr2bpxkSbRdBQytK_WEa4HPPhHt"
-                      onChange={handleCaptchaChange}
+                      sitekey={key}
+                      explicit={true}
+                      onChange={(value) => setCaptchaValue(value)}
                     />
-                  </div> */}
+                  </div>
                   {error && (
                     <div className="text-red-500 text-sm mb-4">{error}</div>
                   )}

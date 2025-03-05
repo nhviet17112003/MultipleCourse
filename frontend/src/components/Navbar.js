@@ -15,14 +15,11 @@ import ReCAPTCHA from "react-google-recaptcha";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const [fullname, setFullname] = useState("Người dùng");
+  const [fullname, setFullname] = useState("User");
   const [avatarUrl, setAvatarUrl] = useState(""); // Đường dẫn avatar
   const [error, setError] = useState("");
   const [userData, setUserData] = useState(null);
   const { theme, toggleTheme } = useTheme();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [courses, setCourses] = useState([]); // Mảng khóa học
-  const [filteredCourses, setFilteredCourses] = useState([]); // Mảng khóa học sau khi lọc
   const [showDropdown, setShowDropdown] = useState(false);
   const location = useLocation();
   const [balance, setBalance] = useState(0);
@@ -30,7 +27,6 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const recaptchaRef = useRef(null);
   const isHome = location.pathname === "/";
-
   const [reloadNavbar, setReloadNavbar] = useState(true);
 
   const reload = () => {
@@ -54,33 +50,63 @@ const Navbar = () => {
     [navigate]
   );
 
-  useEffect(() => {
-    const fetchBalance = async () => {
-      try {
-        const token = localStorage.getItem("authToken");
-        if (!token) {
-          return;
+  const fetchUserProfile = async () => {
+    const token = localStorage.getItem("authToken");
+
+    if (!token) {
+      setError("You are not logged in. Please log in again.");
+      debouncedNavigate("/login");
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        "http://localhost:3000/api/users/get-user-by-token",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-        const response = await axios.get(
-          "http://localhost:3000/api/wallet/show-balance",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        console.log("Phản hồi từ API:", response.data);
-        setBalance(response.data.current_balance);
-      } catch (error) {
-        console.error("Lỗi khi lấy balance:", error);
+      );
+      setUserData(response.data);
+      localStorage.setItem("role", response.data.role);
+      setAvatarUrl(response.data.avatar);
+      setFullname(response.data.fullname || "User");
+      console.log("User data:", response.data);
+    } catch (err) {
+      setError("Your session has expired. Please log in again.");
+      localStorage.removeItem("authToken"); // Remove token
+      debouncedNavigate("/login"); // Redirect to login page
+    }
+  };
+
+  const fetchBalance = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        return;
       }
-    };
-    fetchBalance();
-  }, []);
+      const role = localStorage.getItem("role");
+      if (role === "Admin") {
+        return;
+      }
+      const response = await axios.get(
+        "http://localhost:3000/api/wallet/show-balance",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("Phản hồi từ API:", response.data);
+      setBalance(response.data.current_balance);
+    } catch (error) {
+      console.error("Lỗi khi lấy balance:", error);
+    }
+  };
 
   useEffect(() => {
     let token = localStorage.getItem("authToken");
-
     if (!token) {
       token = Cookies.get("Token");
       if (token) {
@@ -88,62 +114,14 @@ const Navbar = () => {
       }
     }
 
+    fetchUserProfile();
+    fetchBalance();
+
     const protectedRoutes = ["/userprofile", "/cart"];
     if (protectedRoutes.includes(location.pathname) && !token) {
       debouncedNavigate("/login");
-    } else {
-      const savedFullname = localStorage.getItem("fullname");
-      const savedAvatar = localStorage.getItem("avatar");
-      setFullname(savedFullname || "Người dùng");
-      setAvatarUrl(savedAvatar);
     }
   }, [debouncedNavigate, location.pathname]);
-
-  useEffect(() => {
-    // Lấy token từ localStorage
-    const token = localStorage.getItem("authToken");
-
-    // Nếu không có token, thông báo lỗi hoặc điều hướng về trang login
-    if (!token) {
-      setError("Bạn cần đăng nhập để xem khóa học.");
-      return;
-    }
-
-    // Gửi yêu cầu API với token
-    const fetchCourses = async () => {
-      try {
-        const response = await axios.get(
-          "http://localhost:3000/api/courses/all-courses",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`, // Thêm token vào header
-            },
-          }
-        );
-        console.log("Dữ liệu nhận được từ server:", response.data); // Log dữ liệu trả về từ server
-        setCourses(response.data);
-      } catch (err) {
-        if (err.response) {
-          // Log chi tiết phản hồi lỗi từ server
-          console.log("Lỗi từ server:", err.response);
-          setError(
-            "Lỗi khi lấy danh sách khóa học: " +
-              (err.response.data.message || "Không có thông tin chi tiết")
-          );
-        } else if (err.request) {
-          // Log nếu không nhận được phản hồi từ server
-          console.log("Không nhận được phản hồi từ server:", err.request);
-          setError("Không nhận được phản hồi từ server.");
-        } else {
-          // Log nếu có lỗi xảy ra trong quá trình tạo yêu cầu
-          console.log("Lỗi trong quá trình gửi yêu cầu:", err.message);
-          setError("Đã có lỗi xảy ra.");
-        }
-      }
-    };
-
-    fetchCourses();
-  }, []);
 
   const deleteCookie = (name) => {
     document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost; secure; SameSite=None;`;
@@ -178,54 +156,13 @@ const Navbar = () => {
         recaptchaRef.current.reset();
       }
       // Reload Navbar sau 2 giây
-      reload();
       // Chuyển về trang login
       debouncedNavigate("/login");
-      window.location.reload();
     } catch (error) {
       console.error("Đăng xuất thất bại:", error);
       alert("Có lỗi xảy ra khi đăng xuất. Vui lòng thử lại!");
     }
   };
-
-  const fetchUserProfile = async () => {
-    const token = localStorage.getItem("authToken");
-
-    if (!token) {
-      setError("You are not logged in. Please log in again.");
-      debouncedNavigate("/login");
-      return;
-    }
-
-    try {
-      const response = await axios.get(
-        "http://localhost:3000/api/users/profile",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      setUserData(response.data);
-      localStorage.setItem("role", response.data.role);
-      setAvatarUrl(response.data.avatar);
-      console.log("User data:", response.data);
-    } catch (err) {
-      setError("Your session has expired. Please log in again.");
-      localStorage.removeItem("authToken"); // Remove token
-      debouncedNavigate("/login"); // Redirect to login page
-    }
-  };
-  useEffect(() => {
-    const protectedRoutes = [
-      "/homescreen",
-      "/courses-list-tutor",
-      "/dashboard",
-    ];
-    if (protectedRoutes.includes(window.location.pathname)) {
-      fetchUserProfile();
-    }
-  }, []);
 
   // Danh sách các trang không muốn hiển thị Navbar
   const hideNavbarRoutes = ["/login", "/signup", "/uploadtutorcertificate"];
@@ -284,6 +221,9 @@ const Navbar = () => {
 
         {/* User Profile + Balance */}
         <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-6 font-bold">
+            {fullname}
+          </div>
           {role === "Tutor" || role === "Student" ? (
             <div className="flex items-center text-gray-700 dark:text-white px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm">
               <span className="mr-2">Balance:</span>

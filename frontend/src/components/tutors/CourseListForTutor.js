@@ -3,9 +3,10 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import UpdateCourseModal from "./UpdateCourseModal"; // Import modal
 import { useTheme } from "../context/ThemeContext"; // Import context
-import { Button, Spin, Breadcrumb } from 'antd';
-import { HomeOutlined, UserOutlined } from '@ant-design/icons';
-import {ToastContainer, toast} from 'react-toastify';
+import { Button, Spin, Breadcrumb } from "antd";
+import { HomeOutlined, UserOutlined } from "@ant-design/icons";
+import { ToastContainer, toast } from "react-toastify";
+import { ArrowRight } from "lucide-react";
 
 const CourseListForTutor = () => {
   const [courses, setCourses] = useState([]);
@@ -85,15 +86,17 @@ const CourseListForTutor = () => {
         }
       );
 
-      if (response.status === 200) {
-
-        toast.success("Course deleted successfully!");
-        setCourses((prevCourses) => prevCourses.filter(course => course._id !== courseId));
-
+      if (response.status === 201) {
+        toast.success("Request delete course successfully.");
+        setCourses((prevCourses) =>
+          prevCourses.filter((course) => course._id !== courseId)
+        );
       }
     } catch (error) {
       console.error("Error deleting course:", error);
-      alert(error.response?.data?.message || "Failed to delete course.");
+      toast.error(
+        error.response?.data?.message || "Failed to request delete course."
+      );
     }
   };
 
@@ -121,23 +124,22 @@ const CourseListForTutor = () => {
       );
 
       if (response.status === 201) {
-     
         setCourses((prevCourses) =>
-          
           prevCourses.map((course) =>
             course._id === updatedCourse._id ? response.data : course
           )
         );
-      
+
         handleCloseModal();
         toast.success("Send request to admin successfully!");
       }
     } catch (error) {
       setErrorMessage(
         // error.response?.data?.message || "An error occurred while updating the course."
-        toast.error("Send request to admin fail.")
+        toast.error(
+          error.response?.data?.message || "Send request to admin fail."
+        )
       );
-      
     }
   };
 
@@ -170,7 +172,7 @@ const CourseListForTutor = () => {
       // setErrorMessage(
       //   error.response?.data?.message || "An error occurred while updating the image."
       // );
-toast.error("Update image fail.");
+      toast.error("Update image fail.");
     }
   };
 
@@ -194,13 +196,31 @@ toast.error("Update image fail.");
                 theme === "dark" ? "bg-gray-800" : "bg-white"
               }`}
             >
-              <div className="flex-shrink-0 w-32 h-32 rounded-lg overflow-hidden">
+              <div className="flex-shrink-0 w-36 h-36 rounded-2xl overflow-hidden relative border-2 border-teal-500">
+                {/* Input file ẩn */}
+                <input
+                  type="file"
+                  accept="image/*"
+                  id={`upload-image-${course._id}`}
+                  className="hidden"
+                  onChange={(e) =>
+                    handleUpdateImage(course._id, e.target.files[0])
+                  }
+                />
+
+                {/* Hình ảnh có sự kiện onClick */}
                 <img
                   src={course.image}
                   alt={course.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover cursor-pointer transition-transform duration-300 hover:scale-105"
+                  onClick={() =>
+                    document
+                      .getElementById(`upload-image-${course._id}`)
+                      .click()
+                  }
                 />
               </div>
+
               <div className="ml-6 flex-1">
                 <h2 className="text-xl font-semibold text-teal-600">
                   {course.title}
@@ -209,7 +229,7 @@ toast.error("Update image fail.");
                 <p className="text-gray-700 mt-2 line-clamp-2">
                   {course.description}
                 </p>
-                <p className="text-teal-700 font-bold mt-2">${course.price}</p>
+                <p className="text-teal-700 font-bold mt-2">{course.price}</p>
                 <p
                   className={`mt-2 font-bold ${
                     course.status ? "text-green-600" : "text-red-600"
@@ -227,12 +247,12 @@ toast.error("Update image fail.");
                   className="hidden"
                   id={`upload-image-${course._id}`}
                 />
-                <label
+                {/* <label
                   htmlFor={`upload-image-${course._id}`}
                   className="bg-teal-500 text-white py-2 px-4 rounded hover:bg-teal-600 transition-all cursor-pointer"
                 >
                   Update Image
-                </label>
+                </label> */}
                 <button
                   className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-all"
                   onClick={() => handleOpenModal(course)}
@@ -248,7 +268,7 @@ toast.error("Update image fail.");
                 </button>
 
                 <button
-                  className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-all"
+                  className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 transition-all"
                   onClick={() => navigate(`/courses-list-tutor/${course._id}`)} // Thêm chức năng điều hướng đến chi tiết khóa học
                 >
                   View Details
@@ -270,7 +290,7 @@ toast.error("Update image fail.");
           onUpdate={handleUpdateCourse}
         />
       )}
-       <ToastContainer theme={theme === "dark" ? "dark" : "light"} />
+      <ToastContainer theme={theme === "dark" ? "dark" : "light"} />
     </div>
   );
 };

@@ -91,8 +91,15 @@ router.post(
 );
 
 //google auth
- router.get("/google/login", cors.corsWithOptions, userController.googleLogin);
+router.get("/google/login", cors.corsWithOptions, userController.googleLogin);
 router.get("/auth/callback", cors.cors, userController.googleLoginCallback);
 
-module.exports = router;
+//get user by token
+router.get(
+  "/get-user-by-token",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  userController.getUserByToken
+);
 
+module.exports = router;
