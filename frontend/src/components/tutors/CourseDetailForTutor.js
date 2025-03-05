@@ -247,7 +247,7 @@ const closeCommentModal = () => {
               {course.category}
             </p>
             <p className="text-green-600 bg-green-300 px-2 py-1 rounded-lg mr-2">
-              ${course.price}
+              {course.price.toLocaleString()} VND
             </p>
 
             <p
@@ -395,7 +395,7 @@ const closeCommentModal = () => {
               <ul className="ml-4 mt-2 space-y-1">
                 {question.answers.map((answer) => (
                   <li key={answer._id} className={`pl-2 border-l-2 ${answer.isCorrect ? "border-green-500 text-green-600" : "border-red-500 text-red-600"}`}>
-                    - {answer.answer}
+                    {answer.answer}
                   </li>
                 ))}
               </ul>

@@ -222,7 +222,7 @@ toast.error("Update image fail.");
                 <p className="text-gray-700 mt-2 line-clamp-2">
                   {course.description}
                 </p>
-                <p className="text-teal-700 font-bold mt-2">{course.price}</p>
+                <p className="text-teal-700 font-bold mt-2">{course.price.toLocaleString()}</p>
                 <p
                   className={`mt-2 font-bold ${
                     course.status ? "text-green-600" : "text-red-600"

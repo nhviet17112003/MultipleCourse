@@ -116,7 +116,7 @@ console.log(requests,"requests");
         <table className="min-w-full bg-white border border-gray-200 shadow-md rounded-lg">
           <thead className="bg-gray-100">
             <tr className="text-left">
-              <th className="px-4 py-2 border">Course ID</th>
+              <th className="px-4 py-2 border">Course Name</th>
               <th className="px-4 py-2 border">Request Type</th>
               <th className="px-4 py-2 border">Status</th>
               <th className="px-4 py-2 border">Actions</th>
