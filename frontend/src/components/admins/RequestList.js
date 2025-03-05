@@ -126,7 +126,7 @@ console.log(requests,"requests");
             {requests.length > 0 ? (
               requests.map((request) => (
                 <tr key={request._id} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-2 border">{request.course || "N/A"}</td>
+                  <td className="px-4 py-2 border">{request.course_title || "N/A"}</td>
                   <td className="px-4 py-2 border">{request.request_type || "N/A"}</td>
                   <td className="px-4 py-2 border">
                     <span
