@@ -55,6 +55,7 @@ import Footer from "./components/Footer";
 import Students from "./components/tutors/Students";
 
 import { useState } from "react";
+import CourseDetailForAdmin from "./components/admins/CourseDetailForAdmin";
 function Layout() {
   const location = useLocation();
   const [navbarKey, setNavbarKey] = useState(0);
@@ -126,6 +127,10 @@ function Layout() {
             <Route
               path="/courses-list-tutor/:courseId"
               element={<CourseDetailForTutor />}
+            />
+               <Route
+              path="/courses-list-for-admin/:courseId"
+              element={<CourseDetailForAdmin />}
             />
             <Route path="/courses-list" element={<ViewCourseList />} />
             <Route path="/create-lesson/:courseId" element={<CreateLesson />} />
