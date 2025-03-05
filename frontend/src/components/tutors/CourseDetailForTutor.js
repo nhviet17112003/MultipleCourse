@@ -180,16 +180,25 @@ const CourseDetailForTutor = () => {
           setCourse(courseResponse.data.courseDetail);
           setLessons(courseResponse.data.lessons);
         }
-        const examResponse = await axios.get(
+
+        const examResponse = await fetch(
           `http://localhost:3000/api/exams/get-exam/${courseId}`,
           {
-            headers: { Authorization: `Bearer ${token}` },
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
           }
         );
-        console.log("Exam Response:", examResponse.data);
 
-        if (examResponse.status === 200) {
-          setExams(examResponse.data);
+        if (examResponse.ok) {
+          const examData = await examResponse.json();
+          console.log("Exam Response:", examData);
+          setExams(examData);
+        } else if (examResponse.status === 404) {
+          console.log("No exam found for this course.");
+          setExams(null);
         }
 
         const incomeResponse = await axios.get(
