@@ -55,6 +55,10 @@ const CourseSchema = new Schema({
     type: String,
     required: true,
   },
+  average_rating: {
+    type: Number,
+    default: 0,
+  },
   createAt: {
     type: Date,
     default: Date.now,

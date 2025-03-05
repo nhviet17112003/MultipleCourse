@@ -20,13 +20,12 @@ export default function RequestList() {
       setError("User not authenticated.");
     }
   }, []);
-console.log(requests,"requests");
+  console.log(requests, "requests");
   const fetchRequests = async () => {
     setLoading(true);
     setError(null);
     try {
       const response = await fetch(
-        
         "http://localhost:3000/api/requests/all-requests",
         {
           method: "GET",
@@ -39,14 +38,15 @@ console.log(requests,"requests");
 
       if (!response.ok) throw new Error(`Error: ${response.status}`);
 
-      
       const data = await response.json();
       console.log("API Response:", data);
 
       const sortedRequests = Array.isArray(data)
-        ? data.sort((a, b) => new Date(b.request_date) - new Date(a.request_date))
+        ? data.sort(
+            (a, b) => new Date(b.request_date) - new Date(a.request_date)
+          )
         : [];
-      
+
       setRequests(sortedRequests);
     } catch (err) {
       console.error("Error fetching requests:", err);
@@ -56,7 +56,12 @@ console.log(requests,"requests");
     }
   };
 
-  const handleProcessRequest = async (requestId, status, requestType, message = "") => {
+  const handleProcessRequest = async (
+    requestId,
+    status,
+    requestType,
+    message = ""
+  ) => {
     let endpoint = "";
     let method = "POST";
 
@@ -118,6 +123,7 @@ console.log(requests,"requests");
             <tr className="text-left">
               <th className="px-4 py-2 border">Course Name</th>
               <th className="px-4 py-2 border">Request Type</th>
+              <th className="px-4 py-2 border">Content</th>
               <th className="px-4 py-2 border">Status</th>
               <th className="px-4 py-2 border">Actions</th>
             </tr>
@@ -126,8 +132,23 @@ console.log(requests,"requests");
             {requests.length > 0 ? (
               requests.map((request) => (
                 <tr key={request._id} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-2 border">{request.course_title || "N/A"}</td>
-                  <td className="px-4 py-2 border">{request.request_type || "N/A"}</td>
+                  <td className="px-4 py-2 border">
+                    {request.course_title || "N/A"}
+                  </td>
+                  <td className="px-4 py-2 border">
+                    {request.request_type || "N/A"}
+                  </td>
+                  <td className="px-4 py-2 border">
+                    {request.content && request.content.length > 0 ? (
+                      request.content.map((item, index) => (
+                        <div key={index} className="text-sm">
+                          <strong>{item.title}:</strong> {item.value}
+                        </div>
+                      ))
+                    ) : (
+                      <span className="text-gray-500">No content</span>
+                    )}
+                  </td>
                   <td className="px-4 py-2 border">
                     <span
                       className={`px-2 py-1 text-sm font-medium rounded-md ${
@@ -146,7 +167,13 @@ console.log(requests,"requests");
                       <>
                         <button
                           className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-                          onClick={() => handleProcessRequest(request._id, "Approved", request.request_type)}
+                          onClick={() =>
+                            handleProcessRequest(
+                              request._id,
+                              "Approved",
+                              request.request_type
+                            )
+                          }
                         >
                           Approve
                         </button>
@@ -185,8 +212,25 @@ console.log(requests,"requests");
               rows="4"
             />
             <div className="flex justify-end mt-4 space-x-2">
-              <button className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400" onClick={() => setIsModalOpen(false)}>Cancel</button>
-              <button className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600" onClick={() => handleProcessRequest(selectedRequest._id, "Rejected", selectedRequest.request_type, rejectReason)}>Submit</button>
+              <button
+                className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
+                onClick={() => setIsModalOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                onClick={() =>
+                  handleProcessRequest(
+                    selectedRequest._id,
+                    "Rejected",
+                    selectedRequest.request_type,
+                    rejectReason
+                  )
+                }
+              >
+                Submit
+              </button>
             </div>
           </div>
         </div>

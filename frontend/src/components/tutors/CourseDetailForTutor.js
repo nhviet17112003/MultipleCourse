@@ -21,7 +21,7 @@ const CourseDetailForTutor = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleteLessonOpen, setIsDeleteLessonOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [students, setStudents] = useState([])
+  const [students, setStudents] = useState([]);
   const token = localStorage.getItem("authToken");
   const [error, setError] = useState(null);
   const [role, setRole] = useState(null);
@@ -31,49 +31,46 @@ const CourseDetailForTutor = () => {
 
   // comment ne
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
-const [selectedComments, setSelectedComments] = useState([]);
+  const [selectedComments, setSelectedComments] = useState([]);
 
-const openCommentModal = () => {
-  setSelectedComments(course.comments || []);
-  setIsCommentModalOpen(true);
-};
+  const openCommentModal = () => {
+    setSelectedComments(course.comments || []);
+    setIsCommentModalOpen(true);
+  };
 
-const closeCommentModal = () => {
-  setIsCommentModalOpen(false);
-};
-
-
- 
+  const closeCommentModal = () => {
+    setIsCommentModalOpen(false);
+  };
 
   useEffect(() => {
-        const fetchStudents = async () => {
-          try {
-            const response = await fetch(
-              `http://localhost:3000/api/progress/students/${courseId}`,
-              {
-                method: "GET",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-            
-            if (!response.ok) {
-              throw new Error("Failed to fetch students");
-            }
-    
-            const data = await response.json();
-            setStudents(data);
-          } catch (error) {
-            setError(error.message);
-          } finally {
-            setLoading(false);
+    const fetchStudents = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:3000/api/progress/students/${courseId}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
           }
-        };
-    
-        fetchStudents();
-      }, [courseId]);
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch students");
+        }
+
+        const data = await response.json();
+        setStudents(data);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudents();
+  }, [courseId]);
 
   const handleDeleteLesson = async () => {
     const token = localStorage.getItem("authToken");
@@ -183,16 +180,25 @@ const closeCommentModal = () => {
           setCourse(courseResponse.data.courseDetail);
           setLessons(courseResponse.data.lessons);
         }
-        const examResponse = await axios.get(
+
+        const examResponse = await fetch(
           `http://localhost:3000/api/exams/get-exam/${courseId}`,
           {
-            headers: { Authorization: `Bearer ${token}` },
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
           }
         );
-        console.log("Exam Response:", examResponse.data);
 
-        if (examResponse.status === 200) {
-          setExams(examResponse.data);
+        if (examResponse.ok) {
+          const examData = await examResponse.json();
+          console.log("Exam Response:", examData);
+          setExams(examData);
+        } else if (examResponse.status === 404) {
+          console.log("No exam found for this course.");
+          setExams(null);
         }
 
         const incomeResponse = await axios.get(
@@ -269,7 +275,7 @@ const closeCommentModal = () => {
               })}
             </p>
           </div>
-          
+
           <div className="flex justify-center items-center mt-4">
             <h2 className="text-[70px] text-center font-semibold">
               {course.title}{" "}
@@ -285,80 +291,83 @@ const closeCommentModal = () => {
                 className="w-[1000px] h-[700px] object-contain rounded-lg"
               />
             )}
-            
           </div>
-              {/* comment nha ae */}
-              <div className="flex justify-center mt-4">
-  <button
-    onClick={openCommentModal}
-    className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
-  >
-    View Comments
-  </button>
-</div>
-
-<div className="mt-6 p-4 border border-green-300 bg-green-200 rounded-lg text-center">
-            <h3 className="text-xl font-semibold">💰 Total Income: ${totalIncome}</h3>
-            <h3 className="text-lg text-gray-600">📈 Total Sales: {totalSales}</h3>
+          {/* comment nha ae */}
+          <div className="flex justify-center mt-4">
+            <button
+              onClick={openCommentModal}
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
+            >
+              View Comments
+            </button>
           </div>
 
-
-          
+          <div className="mt-6 p-4 border border-green-300 bg-green-200 rounded-lg text-center">
+            <h3 className="text-xl font-semibold">
+              💰 Total Income: ${totalIncome}
+            </h3>
+            <h3 className="text-lg text-gray-600">
+              📈 Total Sales: {totalSales}
+            </h3>
+            <div />
+          </div>
         </div>
       )}
-
-      {/* student ne */}
-
-<h2 className="text-3xl font-bold text-gray-800 mb-8 text-center tracking-wide">Students Enrolled</h2>
-{loading ? (
-  <p>Loading students...</p>
-) : error ? (
-  <p className="text-red-500">{error}</p>
-) : students.length > 0 ? (
-  <div className="overflow-x-auto mt-4">
-    <table className="min-w-full border border-gray-300">
-      <thead>
-        <tr className="bg-gray-100">
-          <th className="px-4 py-2 border">Avatar</th>
-          <th className="px-4 py-2 border">Full Name</th>
-          <th className="px-4 py-2 border">Status</th>
-          <th className="px-4 py-2 border">Progress</th>
-        </tr>
-      </thead>
-      <tbody>
-        {students.map((student) => (
-          <tr key={student.student._id} className="text-center">
-            <td className="border px-4 py-2">
-              <img
-                src={student.student.avatar}
-                alt={student.student.fullname}
-                className="w-12 h-12 rounded-full mx-auto"
-              />
-            </td>
-            <td className="border px-4 py-2">{student.student.fullname}</td>
-            <td className="border px-4 py-2">
-              <span
-                className={`px-2 py-1 rounded ${
-                  student.status === "Enrolled"
-                    ? "bg-green-200 text-green-700"
-                    : "bg-red-200 text-red-700"
-                }`}
-              >
-                {student.status}
-              </span>
-            </td>
-            <td className="border px-4 py-2">{student.percent.toFixed(2)}%</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-) : (
-  <p className="text-gray-500 mt-2">No students enrolled in this course.</p>
-)}
-
-      
-
+      <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center tracking-wide">
+        Students Enrolled
+      </h2>
+      {loading ? (
+        <p>Loading students...</p>
+      ) : error ? (
+        <p className="text-red-500">{error}</p>
+      ) : students.length > 0 ? (
+        <div className="overflow-x-auto mt-4">
+          <table className="min-w-full border border-gray-300">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="px-4 py-2 border">Avatar</th>
+                <th className="px-4 py-2 border">Full Name</th>
+                <th className="px-4 py-2 border">Status</th>
+                <th className="px-4 py-2 border">Progress</th>
+              </tr>
+            </thead>
+            <tbody>
+              {students.map((student) => (
+                <tr key={student.student._id} className="text-center">
+                  <td className="border px-4 py-2">
+                    <img
+                      src={student.student.avatar}
+                      alt={student.student.fullname}
+                      className="w-12 h-12 rounded-full mx-auto"
+                    />
+                  </td>
+                  <td className="border px-4 py-2">
+                    {student.student.fullname}
+                  </td>
+                  <td className="border px-4 py-2">
+                    <span
+                      className={`px-2 py-1 rounded ${
+                        student.status === "Enrolled"
+                          ? "bg-green-200 text-green-700"
+                          : "bg-red-200 text-red-700"
+                      }`}
+                    >
+                      {student.status}
+                    </span>
+                  </td>
+                  <td className="border px-4 py-2">
+                    {student.percent.toFixed(2)}%
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <p className="text-gray-500 mt-2">
+          No students enrolled in this course.
+        </p>
+      )}
       {isModalOpen && selectedLesson && (
         <UpdateLessonModal
           lesson={selectedLesson}
@@ -367,246 +376,280 @@ const closeCommentModal = () => {
         />
       )}
       <div className="p-6">
-  <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center tracking-wide mt-6">
-    📚 Course Exams
-  </h2>
+        <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center tracking-wide mt-6">
+          📚 Course Exams
+        </h2>
 
-  {role !== "Admin" && !exams && (
-    <button
-      onClick={() => navigate(`/create-exam/${courseId}`)}
-      className="bg-gradient-to-r from-teal-500 to-green-400 text-white px-6 py-3 rounded-xl shadow-lg transition-transform transform hover:scale-105 active:scale-95"
-    >
-      + Create Exam
-    </button>
-  )}
+        {role !== "Admin" && !exams && (
+          <button
+            onClick={() => navigate(`/create-exam/${courseId}`)}
+            className="bg-gradient-to-r from-teal-500 to-green-400 text-white px-6 py-3 rounded-xl shadow-lg transition-transform transform hover:scale-105 active:scale-95"
+          >
+            + Create Exam
+          </button>
+        )}
 
-  {exams ? (
-    <ul className="space-y-6 mt-4">
-      <li className="p-6 rounded-xl shadow-lg bg-white border border-gray-200 hover:shadow-2xl transition">
-        <h3 className="text-xl font-bold text-gray-900">{exams.title}</h3>
-        <p className="text-gray-700 font-medium">📊 Total Marks: {exams.totalMark}</p>
-        <p className="text-gray-700 font-medium">⏳ Duration: {exams.duration} min</p>
+        {exams ? (
+          <ul className="space-y-6 mt-4">
+            <li className="p-6 rounded-xl shadow-lg bg-white border border-gray-200 hover:shadow-2xl transition">
+              <h3 className="text-xl font-bold text-gray-900">{exams.title}</h3>
+              <p className="text-gray-700 font-medium">
+                📊 Total Marks: {exams.totalMark}
+              </p>
+              <p className="text-gray-700 font-medium">
+                ⏳ Duration: {exams.duration} min
+              </p>
 
-        <h4 className="mt-4 text-lg font-semibold text-gray-800">📝 Questions:</h4>
-        <ul className="mt-2 space-y-2">
-          {(showAllQuestions ? exams.questions : exams.questions.slice(0, 3)).map((question, index) => (
-            <li key={question._id} className="p-4 bg-gray-50 rounded-lg shadow-sm border-l-4 border-teal-400">
-              <p className="text-gray-900 font-semibold">{index + 1}. {question.question}</p>
-              <ul className="ml-4 mt-2 space-y-1">
-                {question.answers.map((answer) => (
-                  <li key={answer._id} className={`pl-2 border-l-2 ${answer.isCorrect ? "border-green-500 text-green-600" : "border-red-500 text-red-600"}`}>
-                    {answer.answer}
+              <h4 className="mt-4 text-lg font-semibold text-gray-800">
+                📝 Questions:
+              </h4>
+              <ul className="mt-2 space-y-2">
+                {(showAllQuestions
+                  ? exams.questions
+                  : exams.questions.slice(0, 3)
+                ).map((question, index) => (
+                  <li
+                    key={question._id}
+                    className="p-4 bg-gray-50 rounded-lg shadow-sm border-l-4 border-teal-400"
+                  >
+                    <p className="text-gray-900 font-semibold">
+                      {index + 1}. {question.question}
+                    </p>
+                    <ul className="ml-4 mt-2 space-y-1">
+                      {question.answers.map((answer) => (
+                        <li
+                          key={answer._id}
+                          className={`pl-2 border-l-2 ${
+                            answer.isCorrect
+                              ? "border-green-500 text-green-600"
+                              : "border-red-500 text-red-600"
+                          }`}
+                        >
+                          {answer.answer}
+                        </li>
+                      ))}
+                    </ul>
                   </li>
                 ))}
               </ul>
+
+              {exams.questions.length > 3 && (
+                <span
+                  className="mt-4 text-blue-500 underline cursor-pointer hover:text-blue-700 transition"
+                  onClick={() => setShowAllQuestions(!showAllQuestions)}
+                >
+                  {showAllQuestions ? "⬆ Show Less" : "⬇ Show More"}
+                </span>
+              )}
             </li>
-          ))}
-        </ul>
 
-        {exams.questions.length > 3 && (
-          <span
-            className="mt-4 text-blue-500 underline cursor-pointer hover:text-blue-700 transition"
-            onClick={() => setShowAllQuestions(!showAllQuestions)}
-          >
-            {showAllQuestions ? "⬆ Show Less" : "⬇ Show More"}
-          </span>
+            {role !== "Admin" && (
+              <div className="flex gap-4">
+                <button
+                  onClick={() => navigate(`/update-exam/${courseId}`)}
+                  className="bg-yellow-500 text-white px-5 py-2 rounded-lg shadow-md hover:bg-yellow-400 transition"
+                >
+                  ✏ Update
+                </button>
+                <button
+                  onClick={() => setIsDeleteModalOpen(true)}
+                  className="bg-red-500 text-white px-5 py-2 rounded-lg shadow-md hover:bg-red-400 transition"
+                >
+                  ❌ Delete
+                </button>
+              </div>
+            )}
+          </ul>
+        ) : (
+          <p className="text-gray-500 mt-2 text-center italic">
+            No exams found for this course.
+          </p>
         )}
-      </li>
 
-      {role !== "Admin" && (
-        <div className="flex gap-4">
-          <button
-            onClick={() => navigate(`/update-exam/${courseId}`)}
-            className="bg-yellow-500 text-white px-5 py-2 rounded-lg shadow-md hover:bg-yellow-400 transition"
-          >
-            ✏ Update
-          </button>
-          <button
-            onClick={() => setIsDeleteModalOpen(true)}
-            className="bg-red-500 text-white px-5 py-2 rounded-lg shadow-md hover:bg-red-400 transition"
-          >
-            ❌ Delete
-          </button>
+        <div className="p-6 ">
+          {/* bg-gradient-to-b from-gray-50 to-gray-100 shadow-xl rounded-2xl */}
+          <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center tracking-wide">
+            📖 Course Lessons
+          </h2>
+
+          {role !== "Admin" && (
+            <button
+              onClick={() => navigate(`/create-lesson/${courseId}`)}
+              className="bg-gradient-to-r from-teal-500 to-green-400 text-white px-6 py-3 rounded-xl shadow-lg transition-transform transform hover:scale-105 active:scale-95"
+            >
+              + Create Lesson
+            </button>
+          )}
+
+          {lessons.length > 0 ? (
+            <div className="mt-6">
+              <h3 className="text-xl font-semibold text-gray-700">
+                📌 Lessons
+              </h3>
+
+              <ul className="space-y-6 mt-4">
+                {lessons.map((lesson) => (
+                  <li
+                    key={lesson._id}
+                    className={`p-6 rounded-xl shadow-lg border-l-4 ${
+                      theme === "dark"
+                        ? "bg-gray-800 border-teal-400 text-white"
+                        : "bg-white border-teal-500 text-gray-900"
+                    } transition transform hover:scale-105 hover:shadow-xl`}
+                  >
+                    <p className="font-bold text-teal-600 text-lg">
+                      {lesson.title}
+                    </p>
+                    <p className="text-gray-600 text-sm italic">
+                      {lesson.description}
+                    </p>
+
+                    <div className="flex gap-4 mt-4">
+                      <button
+                        onClick={() => navigate(`/lesson-detail/${lesson._id}`)}
+                        className="bg-blue-500 text-white px-5 py-2 rounded-lg shadow-md hover:bg-blue-400 transition"
+                      >
+                        🔍 View Details
+                      </button>
+
+                      {role !== "Admin" && (
+                        <>
+                          <button
+                            onClick={() => openModal(lesson)}
+                            className="bg-green-500 text-white px-5 py-2 rounded-lg shadow-md hover:bg-green-400 transition"
+                          >
+                            ✏ Update
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              setSelectedLesson(lesson);
+                              setIsDeleteLessonOpen(true);
+                            }}
+                            className="bg-red-500 text-white px-5 py-2 rounded-lg shadow-md hover:bg-red-400 transition"
+                          >
+                            ❌ Delete
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <p className="text-gray-500 mt-4 text-center italic">
+              No lessons found for this course.
+            </p>
+          )}
         </div>
-      )}
-    </ul>
-  ) : (
-    <p className="text-gray-500 mt-2 text-center italic">No exams found for this course.</p>
-  )}
-</div>
 
+        {isDeleteLessonOpen && (
+          <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center">
+            <div className="bg-white p-4 rounded-lg shadow-lg flex flex-col items-center">
+              <h2 className="text-lg font-bold mb-2">
+                Are you sure you want to delete this lesson?
+              </h2>
+              <div className="flex space-x-4">
+                <button
+                  onClick={handleDeleteLesson}
+                  className="bg-red-500 text-white px-4 py-2 rounded-lg"
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? "Deleting..." : "Delete"}
+                </button>
 
+                <button
+                  className="bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition"
+                  onClick={() => setIsDeleteLessonOpen(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
-<div className="p-6 ">
-  {/* bg-gradient-to-b from-gray-50 to-gray-100 shadow-xl rounded-2xl */}
-  <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center tracking-wide">
-    📖 Course Lessons
-  </h2>
+        {isDeleteModalOpen && (
+          <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center">
+            <div className="bg-white p-4 rounded-lg shadow-lg flex flex-col items-center">
+              <h2 className="text-lg font-bold mb-2">
+                Are you sure you want to delete this exam?
+              </h2>
+              <div className="flex space-x-4">
+                <button
+                  className="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition"
+                  onClick={handleDeleteExam}
+                >
+                  Confirm
+                </button>
+                <button
+                  className="bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition"
+                  onClick={handleDeleteModalClose}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
-  {role !== "Admin" && (
-    <button
-      onClick={() => navigate(`/create-lesson/${courseId}`)}
-      className="bg-gradient-to-r from-teal-500 to-green-400 text-white px-6 py-3 rounded-xl shadow-lg transition-transform transform hover:scale-105 active:scale-95"
-    >
-      + Create Lesson
-    </button>
-  )}
+        {isCommentModalOpen && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="relative bg-white p-6 rounded-2xl shadow-2xl w-[500px] max-h-[80vh] overflow-y-auto">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
+                Comments
+              </h2>
 
-  {lessons.length > 0 ? (
-    <div className="mt-6">
-      <h3 className="text-xl font-semibold text-gray-700">📌 Lessons</h3>
+              {selectedComments.length > 0 ? (
+                <div className="space-y-4">
+                  {selectedComments.map((comment) => (
+                    <div
+                      key={comment._id}
+                      className="border border-gray-300 rounded-lg p-4 shadow-sm bg-gray-50"
+                    >
+                      <p className="text-gray-800 font-semibold">
+                        {comment.author}
+                      </p>
+                      <p className="text-yellow-400 text-lg">
+                        {"⭐".repeat(comment.rating)}
+                      </p>
+                      <p className="text-gray-600">{comment.comment}</p>
+                      <p className="text-gray-400 text-sm">
+                        {new Date(comment.date).toLocaleString()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center">No comments yet.</p>
+              )}
 
-      <ul className="space-y-6 mt-4">
-        {lessons.map((lesson) => (
-          <li
-            key={lesson._id}
-            className={`p-6 rounded-xl shadow-lg border-l-4 ${
-              theme === "dark"
-                ? "bg-gray-800 border-teal-400 text-white"
-                : "bg-white border-teal-500 text-gray-900"
-            } transition transform hover:scale-105 hover:shadow-xl`}
-          >
-            <p className="font-bold text-teal-600 text-lg">{lesson.title}</p>
-            <p className="text-gray-600 text-sm italic">{lesson.description}</p>
-
-            <div className="flex gap-4 mt-4">
               <button
-                onClick={() => navigate(`/lesson-detail/${lesson._id}`)}
-                className="bg-blue-500 text-white px-5 py-2 rounded-lg shadow-md hover:bg-blue-400 transition"
+                onClick={closeCommentModal}
+                className="mt-4 w-full bg-gray-700 text-white py-2 rounded-lg hover:bg-gray-800 transition font-semibold"
               >
-                🔍 View Details
+                Close
               </button>
 
-              {role !== "Admin" && (
-                <>
-                  <button
-                    onClick={() => openModal(lesson)}
-                    className="bg-green-500 text-white px-5 py-2 rounded-lg shadow-md hover:bg-green-400 transition"
-                  >
-                    ✏ Update
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setSelectedLesson(lesson);
-                      setIsDeleteLessonOpen(true);
-                    }}
-                    className="bg-red-500 text-white px-5 py-2 rounded-lg shadow-md hover:bg-red-400 transition"
-                  >
-                    ❌ Delete
-                  </button>
-                </>
-              )}
+              <button
+                onClick={closeCommentModal}
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition text-2xl"
+              >
+                ✖
+              </button>
             </div>
-          </li>
-        ))}
-      </ul>
+          </div>
+        )}
+
+        <ToastContainer position="top-right" autoClose={3000} />
+      </div>
+      {/* // ) : ( //{" "}
+      <p className="mt-4 text-gray-500">
+        // No lessons available for this course. //{" "}
+      </p>
+      // )} */}
     </div>
-  ) : (
-    <p className="text-gray-500 mt-4 text-center italic">
-      No lessons found for this course.
-    </p>
-  )}
-
-
-</div>
-
-
-          {isDeleteLessonOpen && (
-            <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center">
-              <div className="bg-white p-4 rounded-lg shadow-lg flex flex-col items-center">
-                <h2 className="text-lg font-bold mb-2">
-                  Are you sure you want to delete this lesson?
-                </h2>
-                <div className="flex space-x-4">
-                  <button
-                    onClick={handleDeleteLesson}
-                    className="bg-red-500 text-white px-4 py-2 rounded-lg"
-                    disabled={isDeleting}
-                  >
-                    {isDeleting ? "Deleting..." : "Delete"}
-                  </button>
-
-                  <button
-                    className="bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition"
-                    onClick={() => setIsDeleteLessonOpen(false)}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {isDeleteModalOpen && (
-            <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center">
-              <div className="bg-white p-4 rounded-lg shadow-lg flex flex-col items-center">
-                <h2 className="text-lg font-bold mb-2">
-                  Are you sure you want to delete this exam?
-                </h2>
-                <div className="flex space-x-4">
-                  <button
-                    className="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition"
-                    onClick={handleDeleteExam}
-                  >
-                    Confirm
-                  </button>
-                  <button
-                    className="bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition"
-                    onClick={handleDeleteModalClose}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-{isCommentModalOpen && (
-  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-    <div className="relative bg-white p-6 rounded-2xl shadow-2xl w-[500px] max-h-[80vh] overflow-y-auto">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Comments</h2>
-
-      {selectedComments.length > 0 ? (
-        <div className="space-y-4">
-          {selectedComments.map((comment) => (
-            <div key={comment._id} className="border border-gray-300 rounded-lg p-4 shadow-sm bg-gray-50">
-              <p className="text-gray-800 font-semibold">{comment.author}</p>
-              <p className="text-yellow-400 text-lg">{'⭐'.repeat(comment.rating)}</p>
-              <p className="text-gray-600">{comment.comment}</p>
-              <p className="text-gray-400 text-sm">{new Date(comment.date).toLocaleString()}</p>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p className="text-gray-500 text-center">No comments yet.</p>
-      )}
-
-      <button
-        onClick={closeCommentModal}
-        className="mt-4 w-full bg-gray-700 text-white py-2 rounded-lg hover:bg-gray-800 transition font-semibold"
-      >
-        Close
-      </button>
-
-      <button
-        onClick={closeCommentModal}
-        className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition text-2xl"
-      >
-        ✖
-      </button>
-    </div>
-  </div>
-)}
-
-          <ToastContainer position="top-right" autoClose={3000} />
-        </div>
-    //   ) : (
-    //     <p className="mt-4 text-gray-500">
-    //       No lessons available for this course.
-    //     </p>
-    //   )}
-    // </div>
   );
 };
 
