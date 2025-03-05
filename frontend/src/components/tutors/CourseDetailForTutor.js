@@ -253,7 +253,7 @@ const CourseDetailForTutor = () => {
               {course.category}
             </p>
             <p className="text-green-600 bg-green-300 px-2 py-1 rounded-lg mr-2">
-              ${course.price}
+              {course.price.toLocaleString()} VND
             </p>
 
             <p
@@ -383,7 +383,7 @@ const CourseDetailForTutor = () => {
         {role !== "Admin" && !exams && (
           <button
             onClick={() => navigate(`/create-exam/${courseId}`)}
-            className="bg-gradient-to-r from-teal-500 to-green-400 text-white px-6 py-3 rounded-xl shadow-lg transition-transform transform hover:scale-105 active:scale-95"
+            className="ml-6 bg-gradient-to-r from-teal-500 to-green-400 text-white px-7 py-3 rounded-xl shadow-lg transition-transform transform hover:scale-105 active:scale-95"
           >
             + Create Exam
           </button>
@@ -425,7 +425,7 @@ const CourseDetailForTutor = () => {
                               : "border-red-500 text-red-600"
                           }`}
                         >
-                          - {answer.answer}
+                          {answer.answer}
                         </li>
                       ))}
                     </ul>
