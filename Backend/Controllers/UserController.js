@@ -524,19 +524,7 @@ exports.googleLoginCallback = async (req, res, next) => {
       email: user.email,
     });
     res.cookie("Token", token, { maxAge: 7200000, path: "/" }); // dùng cookie để lưu token
-    return res.redirect(
-      "http://localhost:3001/course-list" +
-        "?token=" +
-        token +
-        "&user_id=" +
-        user._id +
-        "&fullname=" +
-        user.fullname +
-        "&role=" +
-        user.role +
-        "&status=" +
-        user.status
-    );
+    return res.redirect("http://localhost:3001/course-list");
     // res.status(200).json({
     //   message: "Login successful",
     //   token: token,
@@ -544,4 +532,17 @@ exports.googleLoginCallback = async (req, res, next) => {
     //   role: user.role,
     // });
   })(req, res, next);
+};
+
+exports.getUserByToken = async (req, res) => {
+  try {
+    const user = await Users.findOne({ _id: req.user._id });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+    res.status(200).json(user);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };
