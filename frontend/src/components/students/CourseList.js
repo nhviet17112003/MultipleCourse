@@ -21,23 +21,7 @@ const CourseList = () => {
   const [ratingFilter, setRatingFilter] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-  
 
-  // useEffect(() => {
-  //   setSpinning(true);
-  //   let ptg = -10;
-  //   const interval = setInterval(() => {
-  //     ptg += 5;
-  //     setPercent(ptg);
-  //     if (ptg > 120) {
-  //       clearInterval(interval);
-  //       setSpinning(false);
-  //       setPercent(0);
-  //     }
-  //   }, 100);
-
-  //   return () => clearInterval(interval);
-  // }, []);
   useEffect(() => {
     const fetchCourses = async () => {
       try {
@@ -158,7 +142,7 @@ const CourseList = () => {
       if (response.ok) {
         toast.success("Add product to cart successfully", {
           position: "top-right",
-          autoClose: 3000, // Đóng sau 3 giây
+          autoClose: 3000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
@@ -190,9 +174,11 @@ const CourseList = () => {
         .includes(filter.toLowerCase());
       const priceMatch =
         course.price >= priceRange[0] && course.price <= priceRange[1];
+      const ratingMatch = (course.rating ?? 0) >= ratingFilter;
 
-      return (titleMatch || tutorMatch) && priceMatch;
+      return (titleMatch || tutorMatch) && priceMatch && ratingMatch;
     })
+
     .sort((a, b) => {
       if (sortOption === "asc") return a.price - b.price;
       if (sortOption === "desc") return b.price - a.price;
@@ -237,24 +223,32 @@ const CourseList = () => {
                 <option value={0}>All Ratings</option>
                 {[1, 2, 3, 4, 5].map((rating) => (
                   <option key={rating} value={rating}>
-                    {Array.from({ length: rating }).map((_, idx) => (
-                      <span key={idx}>★</span>
-                    ))}{" "}
-                    {rating} Star{rating > 1 ? "s" : ""}
+                    {Array.from({ length: rating })
+                      .map(() => "★")
+                      .join("")}
                   </option>
                 ))}
               </select>
             </div>
+
             <div className="flex-1">
               <p className="text-gray-800 text-center font-semibold mb-2">
-                Price: ${priceRange[0]} - ${priceRange[1]}
+                Price: {priceRange[0]} -{" "}
+                {priceRange[1] >= 100000 ? "All" : priceRange[1]}
               </p>
               <Slider
                 range
                 min={0}
-                max={1000}
+                max={100000}
+                step={1000}
                 value={priceRange}
-                onChange={(value) => setPriceRange(value)}
+                onChange={(value) => {
+                  if (value[1] >= 100000) {
+                    setPriceRange([value[0], 100000]);
+                  } else {
+                    setPriceRange(value);
+                  }
+                }}
                 className="w-full"
               />
             </div>
@@ -287,7 +281,6 @@ const CourseList = () => {
                       <p className="text-sm text-gray-600 mt-2">
                         Tutor: {course.tutor?.fullname}
                       </p>
-                      {/* <p className="text-gray-600 mt-2">{course.description}</p> */}
                       <div className="mt-4 flex items-center justify-between">
                         <span className="text-cyan-700 font-bold">
                           ${course.price}

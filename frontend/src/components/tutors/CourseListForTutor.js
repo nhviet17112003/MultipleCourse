@@ -5,7 +5,7 @@ import UpdateCourseModal from "./UpdateCourseModal"; // Import modal
 import { useTheme } from "../context/ThemeContext"; // Import context
 import { Button, Spin, Breadcrumb } from 'antd';
 import { HomeOutlined, UserOutlined } from '@ant-design/icons';
-
+import {ToastContainer, toast} from 'react-toastify';
 
 const CourseListForTutor = () => {
   const [courses, setCourses] = useState([]);
@@ -19,7 +19,7 @@ const CourseListForTutor = () => {
   const { theme } = useTheme();
   const navigate = useNavigate();
 
-  useEffect(() => { 
+  useEffect(() => {
     setSpinning(true);
     let ptg = -10;
     const interval = setInterval(() => {
@@ -31,7 +31,7 @@ const CourseListForTutor = () => {
         setPercent(0);
       }
     }, 100);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -61,7 +61,8 @@ const CourseListForTutor = () => {
         }
       } catch (error) {
         setErrorMessage(
-          error.response?.data?.message || "An error occurred while fetching courses."
+          error.response?.data?.message ||
+            "An error occurred while fetching courses."
         );
       } finally {
         setLoading(false);
@@ -71,9 +72,9 @@ const CourseListForTutor = () => {
     fetchTutorCourses();
   }, [navigate]);
 
-  const handleDeleteCourse = async (courseId) => {  
+  const handleDeleteCourse = async (courseId) => {
     if (!window.confirm("Are you sure you want to delete this course?")) return;
-  
+
     try {
       const response = await axios.delete(
         `http://localhost:3000/api/courses/delete-course/${courseId}`,
@@ -83,22 +84,18 @@ const CourseListForTutor = () => {
           },
         }
       );
-  
+
       if (response.status === 200) {
-        alert("Course deleted successfully!");
+
+        toast.success("Course deleted successfully!");
         setCourses((prevCourses) => prevCourses.filter(course => course._id !== courseId));
+
       }
     } catch (error) {
       console.error("Error deleting course:", error);
       alert(error.response?.data?.message || "Failed to delete course.");
     }
   };
-  
-      
-      
-
-  
-
 
   const handleOpenModal = (course) => {
     setSelectedCourse(course);
@@ -123,18 +120,24 @@ const CourseListForTutor = () => {
         }
       );
 
-      if (response.status === 200) {
+      if (response.status === 201) {
+     
         setCourses((prevCourses) =>
+          
           prevCourses.map((course) =>
             course._id === updatedCourse._id ? response.data : course
           )
         );
+      
         handleCloseModal();
+        toast.success("Send request to admin successfully!");
       }
     } catch (error) {
       setErrorMessage(
-        error.response?.data?.message || "An error occurred while updating the course."
+        // error.response?.data?.message || "An error occurred while updating the course."
+        toast.error("Send request to admin fail.")
       );
+      
     }
   };
 
@@ -161,17 +164,22 @@ const CourseListForTutor = () => {
             course._id === courseId ? response.data : course
           )
         );
+        toast.success("Update image successfully!");
       }
     } catch (error) {
-      setErrorMessage(
-        error.response?.data?.message || "An error occurred while updating the image."
-      );
+      // setErrorMessage(
+      //   error.response?.data?.message || "An error occurred while updating the image."
+      // );
+toast.error("Update image fail.");
     }
   };
 
-
   return (
-    <div className={`course-list-tutor p-6 h-full ${theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-gray-900"}`}>
+    <div
+      className={`course-list-tutor p-6 h-full ${
+        theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-gray-900"
+      }`}
+    >
       <Spin spinning={spinning} fullscreen />
       <h1 className="text-2xl font-semibold text-gray-800 mb-6">Course List</h1>
       {errorMessage && <p className="text-red-500 mb-4">{errorMessage}</p>}
@@ -194,18 +202,28 @@ const CourseListForTutor = () => {
                 />
               </div>
               <div className="ml-6 flex-1">
-                <h2 className="text-xl font-semibold text-teal-600">{course.title}</h2>
+                <h2 className="text-xl font-semibold text-teal-600">
+                  {course.title}
+                </h2>
                 <p className="text-sm text-gray-500 mt-1">{course.category}</p>
-                <p className="text-gray-700 mt-2 line-clamp-2">{course.description}</p>
+                <p className="text-gray-700 mt-2 line-clamp-2">
+                  {course.description}
+                </p>
                 <p className="text-teal-700 font-bold mt-2">${course.price}</p>
-                <p className={`mt-2 font-bold ${course.status ? "text-green-600" : "text-red-600"}`}>
+                <p
+                  className={`mt-2 font-bold ${
+                    course.status ? "text-green-600" : "text-red-600"
+                  }`}
+                >
                   {course.status ? "Available" : "Not Available"}
                 </p>
               </div>
               <div className="ml-auto flex space-x-4">
                 <input
                   type="file"
-                  onChange={(e) => handleUpdateImage(course._id, e.target.files[0])}
+                  onChange={(e) =>
+                    handleUpdateImage(course._id, e.target.files[0])
+                  }
                   className="hidden"
                   id={`upload-image-${course._id}`}
                 />
@@ -223,12 +241,11 @@ const CourseListForTutor = () => {
                 </button>
 
                 <button
-  className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 transition-all"
-  onClick={() => handleDeleteCourse(course._id)}
->
-  Delete
-</button>
-
+                  className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 transition-all"
+                  onClick={() => handleDeleteCourse(course._id)}
+                >
+                  Delete
+                </button>
 
                 <button
                   className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-all"
@@ -236,13 +253,14 @@ const CourseListForTutor = () => {
                 >
                   View Details
                 </button>
-             
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <p className="text-lg font-medium text-gray-600 mt-4">You have no courses at the moment.</p>
+        <p className="text-lg font-medium text-gray-600 mt-4">
+          You have no courses at the moment.
+        </p>
       )}
 
       {isModalOpen && selectedCourse && (
@@ -252,6 +270,7 @@ const CourseListForTutor = () => {
           onUpdate={handleUpdateCourse}
         />
       )}
+       <ToastContainer theme={theme === "dark" ? "dark" : "light"} />
     </div>
   );
 };

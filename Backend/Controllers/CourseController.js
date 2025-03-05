@@ -159,6 +159,11 @@ exports.processCreateCourse = async (req, res) => {
       return res.status(400).json({ message: "Request has been rejected" });
     }
 
+    const tutor = await User.findById(request.tutor);
+    if (!tutor) {
+      return res.status(404).json({ message: "Tutor not found" });
+    }
+
     const newAdminActivity = new AdminActivityHistory({
       admin: req.user._id,
     });
@@ -313,6 +318,10 @@ exports.processUpdateCourse = async (req, res) => {
   try {
     const status = req.body.status;
     const request = await Request.findById(req.params.request_id);
+    const tutor = await User.findById(request.tutor);
+    if (!tutor) {
+      return res.status(404).json({ message: "Tutor not found" });
+    }
 
     if (!request) {
       return res.status(404).json({ message: "Request not found" });
@@ -833,6 +842,31 @@ exports.getTop1BestSeller = async (req, res) => {
     res.status(200).json(top5BestSeller);
   } catch (err) {
     console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+//Show list student of each course
+exports.getListStudentOfCourses = async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.course_id);
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+    const order = await Order.find({
+      "order_items.course": req.params.course_id,
+    }).populate("user", "fullname email");
+
+    if (!order) {
+      return res.status(404).json({ message: "No student found" });
+    }
+
+    res.status(200).json({
+      course: course,
+      students: order.map((item) => item.user),
+    });
+  } catch (error) {
+    console.log(error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
