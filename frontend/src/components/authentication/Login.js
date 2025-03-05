@@ -17,6 +17,7 @@ const Login = () => {
   const timeoutRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [avatar, setAvatarUrl] = useState(false);
+  const key = "6LcI9ukqAAAAAGiqY3Yy7D43OWEXNXPxpcakTefC"
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
@@ -42,24 +43,24 @@ const Login = () => {
     }
   }, [isSubmitting, navigate]);
 
-  // Hàm kiểm tra Username
-  const validateUsername = (username) => {
-    if (username.trim().length === 0) {
-      return "Username cannot be blank.";
-    }
-    if (username.length < 4) {
-      return "Username must be at least 4 characters.";
-    }
-    return "";
-  };
+  // // Hàm kiểm tra Username
+  // const validateUsername = (username) => {
+  //   if (username.trim().length === 0) {
+  //     return "Username cannot be blank.";
+  //   }
+  //   if (username.length < 4) {
+  //     return "Username must be at least 4 characters.";
+  //   }
+  //   return "";
+  // };
 
-  // Hàm kiểm tra Password
-  const validatePassword = (password) => {
-    if (password.length < 6) {
-      return "Password must be at least 6 characters.";
-    }
-    return "";
-  };
+  // // Hàm kiểm tra Password
+  // const validatePassword = (password) => {
+  //   if (password.length < 6) {
+  //     return "Password must be at least 6 characters.";
+  //   }
+  //   return "";
+  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -75,7 +76,10 @@ const Login = () => {
       setError("Password must be at least 6 characters.");
       return;
     }
-
+    if (!captchaValue) {
+      setError("Please complete reCAPTCHA.");
+      return;
+    }
     setError("");
     setIsLoading(true);
     setIsSubmitting(true);
@@ -83,7 +87,7 @@ const Login = () => {
     try {
       const response = await axios.post(
         "http://localhost:3000/api/users/login",
-        { username, password }
+        { username, password,recaptchaToken: captchaValue, }
       );
 
       if (response.status === 200) {
@@ -109,11 +113,7 @@ const Login = () => {
             role.toLowerCase() === "tutor" &&
             (!tutor_certificates || tutor_certificates.length === 0)
           ) {
-            navigate(`/uploadtutorcertificate/${user_id}`);
-          } else if (role.toLowerCase() === "admin") {
-            navigate("/statistic-for-admin");
-          } else if (role.toLowerCase() === "student") {
-            navigate("/homescreen");
+            navigate(`/uploadtutorcertificate/${user_id}`, { replace: true });
           } else {
             navigate("/courses-list-tutor");
           }
@@ -156,7 +156,7 @@ const Login = () => {
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(";").shift();
   };
-
+  
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2 bg-gray-100">
       <main className="flex flex-col items-center justify-center w-full flex-1 px-20 text-center">
@@ -238,13 +238,12 @@ const Login = () => {
                     </button>
                   </div>
                   {/* Thêm reCAPTCHA */}
-                  {/* <div className="mb-4">
+                  <div className="mb-4">
                     <ReCAPTCHA
-                      ref={recaptchaRef}
-                      sitekey="6LfoC-IqAAAAAMr2bpxkSbRdBQytK_WEa4HPPhHt"
-                      onChange={handleCaptchaChange}
+                      sitekey={key}
+                      onChange={(value) => setCaptchaValue(value)}
                     />
-                  </div> */}
+                  </div>
                   {error && (
                     <div className="text-red-500 text-sm mb-4">{error}</div>
                   )}
