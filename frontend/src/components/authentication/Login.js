@@ -114,6 +114,9 @@ const Login = () => {
             (!tutor_certificates || tutor_certificates.length === 0)
           ) {
             navigate(`/uploadtutorcertificate/${user_id}`, { replace: true });
+          }
+          if (role.toLowerCase() === "student") {
+            navigate("/course-list");
           } else {
             navigate("/courses-list-tutor");
           }
