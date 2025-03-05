@@ -11,22 +11,23 @@ const Login = () => {
   const [error, setError] = useState(""); // Cho thông báo tài khoản/mật khẩu
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-  const [captchaValue, setCaptchaValue] = useState(null);
+  const [captchaDone, setCaptchaDone] = useState(null);
   const navigate = useNavigate();
   const recaptchaRef = useRef(null);
   const timeoutRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [avatar,setAvatarUrl] = useState(false);
-
+  const [avatar, setAvatarUrl] = useState(false);
+  const key = "6LfAEekqAAAAAJQdsVL8Ax2oxWhusJEfMSzovgqo";
   useEffect(() => {
-     const token = localStorage.getItem("authToken");
+    const token = localStorage.getItem("authToken");
     const role = localStorage.getItem("role");
-  
+
     if (token && role) {
-      navigate(role.toLowerCase() === "tutor" ? "/courses-list-tutor" : "/homescreen");
+      navigate(
+        role.toLowerCase() === "tutor" ? "/courses-list-tutor" : "/homescreen"
+      );
     }
   }, []);
-  
 
   useEffect(() => {
     if (isSubmitting) {
@@ -34,11 +35,12 @@ const Login = () => {
       const role = localStorage.getItem("role");
 
       if (token && role) {
-        navigate(role.toLowerCase() === "tutor" ? "/courses-list-tutor" : "/homescreen");
+        navigate(
+          role.toLowerCase() === "tutor" ? "/courses-list-tutor" : "/homescreen"
+        );
       }
     }
   }, [isSubmitting, navigate]);
-
 
   // Hàm kiểm tra Username
   const validateUsername = (username) => {
@@ -79,10 +81,14 @@ const Login = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await axios.post("http://localhost:3000/api/users/login", { username, password });
+      const response = await axios.post(
+        "http://localhost:3000/api/users/login",
+        { username, password }
+      );
 
       if (response.status === 200) {
-        const { user_id, token, role, fullname, status, tutor_certificates } = response.data;
+        const { user_id, token, role, fullname, status, tutor_certificates } =
+          response.data;
 
         if (!status) {
           setError("Account has been BANNED");
@@ -96,15 +102,18 @@ const Login = () => {
         localStorage.setItem("role", role);
 
         setSuccessMessage("Login successfully!");
-        console.log("Cert: ",tutor_certificates);
-        
+        console.log("Cert: ", tutor_certificates);
+
         setTimeout(() => {
-          if (role.toLowerCase() === "tutor" && (!tutor_certificates || tutor_certificates.length === 0)) {
+          if (
+            role.toLowerCase() === "tutor" &&
+            (!tutor_certificates || tutor_certificates.length === 0)
+          ) {
             navigate(`/uploadtutorcertificate/${user_id}`, { replace: true });
           } else {
             navigate("/homescreen", { replace: true });
           }
-        }, 500);        
+        }, 500);
       }
     } catch (err) {
       setError("Incorrect account or password.");
@@ -118,14 +127,11 @@ const Login = () => {
     console.log("🔥 Navigating to /signup as Student");
     navigate("/signup", { state: { role: "Student" } });
   };
-  
-  
+
   const handleSignUpForTutor = () => {
     console.log("🔥 SIGN UP TUTOR clicked!");
     navigate("/signup", { state: { role: "Tutor" } });
   };
-  
-  
 
   const handleGoogleLogin = () => {
     // Mở trang đăng nhập Google
@@ -148,7 +154,7 @@ const Login = () => {
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(";").shift();
   };
-
+  
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2 bg-gray-100">
       <main className="flex flex-col items-center justify-center w-full flex-1 px-20 text-center">
@@ -232,9 +238,8 @@ const Login = () => {
                   {/* Thêm reCAPTCHA */}
                   {/* <div className="mb-4">
                     <ReCAPTCHA
-                      ref={recaptchaRef}
-                      sitekey="6LfoC-IqAAAAAMr2bpxkSbRdBQytK_WEa4HPPhHt"
-                      onChange={handleCaptchaChange}
+                      sitekey={key}
+                      onChange={onChange}
                     />
                   </div> */}
                   {error && (
