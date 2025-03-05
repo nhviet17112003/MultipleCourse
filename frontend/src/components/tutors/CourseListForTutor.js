@@ -124,11 +124,20 @@ const CourseListForTutor = () => {
       );
 
       if (response.status === 201) {
+        // setCourses((prevCourses) =>
+        //   prevCourses.map((course) =>
+        //     course._id === updatedCourse._id ? response.data : course
+        //   )
+        // );
+
         setCourses((prevCourses) =>
           prevCourses.map((course) =>
-            course._id === updatedCourse._id ? response.data : course
+            course._id === updatedCourse._id
+              ? { ...course, ...response.data } // Giữ lại dữ liệu cũ nếu thiếu
+              : course
           )
         );
+        
 
         handleCloseModal();
         toast.success("Send request to admin successfully!");
@@ -229,7 +238,7 @@ const CourseListForTutor = () => {
                 <p className="text-gray-700 mt-2 line-clamp-2">
                   {course.description}
                 </p>
-                <p className="text-teal-700 font-bold mt-2">{course.price.toLocaleString()}</p>
+                <p className="text-teal-700 font-bold mt-2">{course.price}</p>
                 <p
                   className={`mt-2 font-bold ${
                     course.status ? "text-green-600" : "text-red-600"

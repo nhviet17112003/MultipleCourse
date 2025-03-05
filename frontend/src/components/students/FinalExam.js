@@ -58,14 +58,23 @@ const [certificateUrl, setCertificateUrl] = useState(null);
   }, [courseId]);
 
   useEffect(() => {
+    let timer;
     if (timeLeft > 0) {
-      const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
-      return () => clearInterval(timer);
-    } else if (timeLeft === 0) {
-      alert("Time's up! The exam has ended.");
-      handleSubmit();
+      timer = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            handleSubmit(); 
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
     }
+  
+    return () => clearInterval(timer);
   }, [timeLeft]);
+  
 
   // Xử lý chọn đáp án
   const handleAnswerChange = (question_id, answer, questionType, isChecked) => {
@@ -83,23 +92,26 @@ const [certificateUrl, setCertificateUrl] = useState(null);
 
   // Xử lý nộp bài
   const handleSubmit = async () => {
+    clearInterval(); 
+    setTimeLeft(0); 
+  
     try {
       console.log("Answers State:", answers);
       
       const formattedAnswers = Object.keys(answers).map((question_id) => {
         const questionData = exam.questions.find((q) => q.question_id === question_id);
         if (!questionData) return null;
-        
+  
         const correctAnswers = questionData.answers
           .filter((ans) => ans.isCorrect)
           .map((ans) => ans.answer);
-        
+  
         const selectedAnswers = answers[question_id] || [];
-        
+  
         const isCorrect =
           selectedAnswers.length === correctAnswers.length &&
           correctAnswers.every((ans) => selectedAnswers.includes(ans));
-        
+  
         return {
           question_id,
           questionType: questionData.questionType,
@@ -112,21 +124,21 @@ const [certificateUrl, setCertificateUrl] = useState(null);
           }),
         };
       });
-      
+  
       console.log("Formatted Answers:", formattedAnswers);
-      
+  
       const response = await axios.post(
         `http://localhost:3000/api/exams/submit-exam/${exam.exam_id}`,
         { course_id: courseId, questions: formattedAnswers },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+  
       console.log("API Response:", response.data);
-      
+  
       setScore(response.data.studentExamRS.score);
       setTotalMark(response.data.studentExamRS.totalMark);
       setModal(true);
-      
+  
       if (response.data.studentExamRS.score >= 0.8 * response.data.studentExamRS.totalMark) {
         try {
           const certResponse = await axios.post(
@@ -135,10 +147,8 @@ const [certificateUrl, setCertificateUrl] = useState(null);
             { headers: { Authorization: `Bearer ${token}` } }
           );
           console.log("Certificate API Response:", certResponse.data);
-          // setCertificate(true);
-        setCertificate(certResponse.data.certificate);
-  await fetchCertificate();
-          // alert("Certificate generated successfully!");
+          setCertificate(certResponse.data.certificate);
+          await fetchCertificate();
         } catch (certError) {
           console.error("Error generating certificate:", certError);
         }
@@ -149,6 +159,7 @@ const [certificateUrl, setCertificateUrl] = useState(null);
       console.error("Error submitting exam:", error);
     }
   };
+  
   
   const fetchCertificate = async () => {
     try {

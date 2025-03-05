@@ -18,12 +18,16 @@ import {
   Space,
   Switch,
   Upload,
+  Spin,
 } from 'antd';
+import { toast, ToastContainer } from "react-toastify";
 
 const CreateLesson = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
   const { theme } = useTheme(); // Lấy theme từ context
+  const [spinning, setSpinning] = useState(false);
+  const [percent, setPercent] = useState(0);
 
   const [formData, setFormData] = useState({
     number: "",
@@ -45,6 +49,20 @@ const CreateLesson = () => {
     if (formData.document) formDataToSend.append("document", formData.document);
 
     try {
+
+      setSpinning(true);
+
+      setPercent(0);
+      
+      let ptg = 0;
+      const interval = setInterval(() => {
+        ptg += 5;
+        setPercent(ptg);
+        if (ptg >= 100) {
+          clearInterval(interval);
+        }
+      }, 100);
+
       await axios.post(
         `http://localhost:3000/api/lessons/create-lesson/${courseId}`,
         formDataToSend,
@@ -55,9 +73,15 @@ const CreateLesson = () => {
           },
         }
       );
+      toast.success("Lesson created successfully!");
       navigate(`/courses-list-tutor/${courseId}`);
     } catch (err) {
+      toast.error(err.response?.data?.message || err.message);
       console.error("Lỗi khi tạo bài học: ", err.response?.data?.message || err.message);
+    }
+    finally {
+      setSpinning(false);
+      setPercent(100);
     }
   };
 
@@ -71,7 +95,8 @@ const CreateLesson = () => {
   };
 
   return (
-    <div className={`min-h-screen px-4 py-8 ${theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
+   <div className={`min-h-screen px-4 py-8 ${theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
+      <Spin spinning={spinning} percent={percent} fullscreen />
       <h1 className="mb-4 text-xl font-semibold">Create New Lesson</h1>
       <form onSubmit={handleSubmit}>
         <input
