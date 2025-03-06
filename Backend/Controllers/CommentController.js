@@ -20,6 +20,13 @@ exports.createCourseComment = async (req, res) => {
     };
 
     course.comments.push(newComment);
+
+    //tính average rating
+    let totalRating = 0;
+    course.comments.forEach((comment) => {
+      totalRating += comment.rating;
+    });
+    course.average_rating = totalRating / course.comments.length;
     await course.save();
 
     res
@@ -53,6 +60,13 @@ exports.updateCourseComment = async (req, res) => {
 
     comment.rating = req.body.rating || comment.rating;
     comment.comment = req.body.comment || comment.comment;
+
+    //tính average rating
+    let totalRating = 0;
+    course.comments.forEach((comment) => {
+      totalRating += comment.rating;
+    });
+    course.average_rating = totalRating / course.comments.length;
     await course.save();
 
     res.status(200).json({ message: "Comment updated successfully", comment });
@@ -81,6 +95,14 @@ exports.deleteCourseComment = async (req, res) => {
       { _id: req.body.courseId },
       { $pull: { comments: { _id: req.body.commentId } } }
     );
+
+    //tính average rating
+    let totalRating = 0;
+    course.comments.forEach((comment) => {
+      totalRating += comment.rating;
+    });
+    course.average_rating = totalRating / course.comments.length;
+    await course.save();
 
     res.status(200).json({ message: "Comment deleted successfully" });
   } catch (err) {
@@ -122,6 +144,12 @@ exports.createLessonComment = async (req, res) => {
     };
 
     lesson.comments.push(newComment);
+    //tính average rating
+    let totalRating = 0;
+    lesson.comments.forEach((comment) => {
+      totalRating += comment.rating;
+    });
+    lesson.average_rating = totalRating / lesson.comments.length;
     await lesson.save();
 
     res
@@ -155,6 +183,14 @@ exports.updateLessonComment = async (req, res) => {
 
     comment.rating = req.body.rating || comment.rating;
     comment.comment = req.body.comment || comment.comment;
+
+    //tính average rating
+    let totalRating = 0;
+    lesson.comments.forEach((comment) => {
+      totalRating += comment.rating;
+    });
+    lesson.average_rating = totalRating / lesson.comments.length;
+
     await lesson.save();
 
     res.status(200).json({ message: "Comment updated successfully", comment });
@@ -182,6 +218,15 @@ exports.deleteLessonComment = async (req, res) => {
       { _id: req.body.lessonId },
       { $pull: { comments: { _id: req.body.commentId } } }
     );
+
+    //tính average rating
+    let totalRating = 0;
+    lesson.comments.forEach((comment) => {
+      totalRating += comment.rating;
+    });
+    lesson.average_rating = totalRating / lesson.comments.length;
+
+    await lesson.save();
 
     res.status(200).json({ message: "Comment deleted successfully" });
   } catch (err) {
@@ -228,7 +273,6 @@ exports.updateCommentStatusById = async (req, res) => {
     await course.save();
 
     res.status(200).json({
-      
       message: `Comment is now ${comment.status ? "active" : "inactive"}`,
       comment: comment,
     });
