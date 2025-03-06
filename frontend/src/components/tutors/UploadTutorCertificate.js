@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom"; // Add the useParams hook
+import { useParams,useNavigate  } from "react-router-dom"; // Add the useParams hook
 
 const UploadTutorCertificate = () => {
+  const navigate = useNavigate(); // Hook để điều hướng
   const { userId } = useParams(); // Get userId from URL
   const [certificateUrl, setCertificateUrl] = useState(""); // Store certificate URL
   const [title, setTitle] = useState(""); // Store certificate title
@@ -108,6 +109,12 @@ const UploadTutorCertificate = () => {
         >
           {loading ? "Uploading..." : "Upload Certificates"}
         </button>
+        <button
+        onClick={() => navigate("/login")} // Điều hướng về trang login
+        className="mb-4 py-2 px-4 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-600"
+      >
+        Skip
+      </button>
       </form>
 
       {message && <p className="mt-4 text-center text-red-500">{message}</p>}
@@ -115,7 +122,9 @@ const UploadTutorCertificate = () => {
       {/* Display uploaded certificates */}
       {certificates.length > 0 && (
         <div className="mt-6">
+          
           <h3 className="text-xl font-semibold mb-4">Uploaded Certificates:</h3>
+          
           <ul className="space-y-2">
             {certificates.map((cert, index) => (
               <li key={index} className="flex items-center space-x-2">
