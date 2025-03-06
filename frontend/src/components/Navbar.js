@@ -55,7 +55,7 @@ const Navbar = () => {
 
     if (!token) {
       setError("You are not logged in. Please log in again.");
-      debouncedNavigate("/login");
+      // debouncedNavigate("/login");
       return;
     }
 
@@ -114,8 +114,14 @@ const Navbar = () => {
       }
     }
 
+    
+  if (token) {
+    setIsLoggedIn(true);
     fetchUserProfile();
     fetchBalance();
+  } else {
+    setIsLoggedIn(false);
+  }
 
     const protectedRoutes = ["/userprofile", "/cart"];
     if (protectedRoutes.includes(location.pathname) && !token) {
@@ -241,50 +247,60 @@ const Navbar = () => {
           ) : null}
 
           {/* Avatar + Dropdown */}
-          <div className="relative dropdown-container">
-            <img
-              src={avatarUrl}
-              alt="Avatar"
-              className="w-10 h-10 rounded-full border-2 border-white shadow-md cursor-pointer"
-              onClick={() => setShowDropdown((prev) => !prev)}
-            />
+          {isLoggedIn ? (
+            <div className="relative dropdown-container">
+              <img
+                src={avatarUrl}
+                alt="Avatar"
+                className="w-10 h-10 rounded-full border-2 border-white shadow-md cursor-pointer"
+                onClick={() => setShowDropdown((prev) => !prev)}
+              />
 
-            {showDropdown && (
-              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 text-teal-900 dark:text-white rounded-lg shadow-lg z-50 transition-opacity duration-200">
-                <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700 text-center">
-                  <span className="font-semibold">User Menu</span>
-                </div>
-                <button
-                  className="block w-full px-4 py-2 text-left hover:bg-teal-100 dark:hover:bg-gray-700"
-                  onClick={() => debouncedNavigate("/userprofile")}
-                >
-                  Profile
-                </button>
-                {role === "Student" && (
+              {showDropdown && (
+                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 text-teal-900 dark:text-white rounded-lg shadow-lg z-50 transition-opacity duration-200">
+                  <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700 text-center">
+                    <span className="font-semibold">User Menu</span>
+                  </div>
                   <button
                     className="block w-full px-4 py-2 text-left hover:bg-teal-100 dark:hover:bg-gray-700"
-                    onClick={() => debouncedNavigate("/cart")}
+                    onClick={() => debouncedNavigate("/userprofile")}
                   >
-                    Cart
+                    Profile
                   </button>
-                )}
-                <button
-                  className="block w-full px-4 py-2 text-left text-red-600 hover:bg-red-100 dark:hover:bg-red-800"
-                  onClick={logout}
-                >
-                  Logout
-                </button>
-                <div className="w-full flex justify-center py-3">
-                  <Switch
-                    onClick={toggleTheme}
-                    checkedChildren="Dark"
-                    unCheckedChildren="Light"
-                    defaultChecked={theme === "dark"}
-                  />
+                  {role === "Student" && (
+                    <button
+                      className="block w-full px-4 py-2 text-left hover:bg-teal-100 dark:hover:bg-gray-700"
+                      onClick={() => debouncedNavigate("/cart")}
+                    >
+                      Cart
+                    </button>
+                  )}
+                  <button
+                    className="block w-full px-4 py-2 text-left text-red-600 hover:bg-red-100 dark:hover:bg-red-800"
+                    onClick={logout}
+                  >
+                    Logout
+                  </button>
+                  <div className="w-full flex justify-center py-3">
+                    <Switch
+                      onClick={toggleTheme}
+                      checkedChildren="Dark"
+                      unCheckedChildren="Light"
+                      defaultChecked={theme === "dark"}
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          ) : (
+            <Button
+              type="primary"
+              className="bg-blue-500 hover:bg-blue-600 text-white"
+              onClick={() => debouncedNavigate("/login")}
+            >
+              Login
+            </Button>
+          )}
         </div>
       </div>
     </nav>

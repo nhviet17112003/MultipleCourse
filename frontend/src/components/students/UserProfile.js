@@ -169,7 +169,7 @@ const UserProfile = () => {
 
       // Chuyển về trang login
       navigate("/login");
-      window.location.reload();
+     
     } catch (error) {
       console.error("Đăng xuất thất bại:", error);
       alert("Có lỗi xảy ra khi đăng xuất. Vui lòng thử lại!");
