@@ -124,11 +124,20 @@ const CourseListForTutor = () => {
       );
 
       if (response.status === 201) {
+        // setCourses((prevCourses) =>
+        //   prevCourses.map((course) =>
+        //     course._id === updatedCourse._id ? response.data : course
+        //   )
+        // );
+
         setCourses((prevCourses) =>
           prevCourses.map((course) =>
-            course._id === updatedCourse._id ? response.data : course
+            course._id === updatedCourse._id
+              ? { ...course, ...response.data } // Giữ lại dữ liệu cũ nếu thiếu
+              : course
           )
         );
+        
 
         handleCloseModal();
         toast.success("Send request to admin successfully!");

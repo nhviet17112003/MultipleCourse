@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
-
+import { useTheme } from "../context/ThemeContext";
 import { toast, ToastContainer } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { Spin } from "antd";
+
 export default function RequestList() {
   const [requests, setRequests] = useState([]);
   const token = localStorage.getItem("authToken");
@@ -11,6 +13,11 @@ export default function RequestList() {
   const [rejectReason, setRejectReason] = useState("");
   const [selectedRequest, setSelectedRequest] = useState(null);
   const navigate = useNavigate();
+    const { theme } = useTheme();
+  
+
+    const [spinning, setSpinning] = useState(false);
+    const [percent, setPercent] = useState(0);
 
   useEffect(() => {
     if (token) {
@@ -84,6 +91,20 @@ export default function RequestList() {
     console.log("endpoint", endpoint);
 
     try {
+  
+      setSpinning(true);
+
+      setPercent(0);
+      
+      let ptg = 0;
+      const interval = setInterval(() => {
+        ptg += 5;
+        setPercent(ptg);
+        if (ptg >= 100) {
+          clearInterval(interval);
+        }
+      }, 100);
+
       const response = await fetch(
         `http://localhost:3000/api/courses/${endpoint}/${requestId}`,
         {
@@ -98,13 +119,20 @@ export default function RequestList() {
 
       if (!response.ok) throw new Error(`Error: ${response.status}`);
 
-      alert("Successfully processed request.");
+      // alert("Successfully processed request.");
+      toast.success("Successfully processed request.");
       setIsModalOpen(false);
       setRejectReason("");
       await fetchRequests();
     } catch (err) {
       console.error("Error processing request:", err);
-      alert("Failed to process request");
+      // alert("Failed to process request");
+      toast.error("Failed to process request");
+    }
+    finally {
+   
+      setSpinning(false);
+      setPercent(100);
     }
     console.log("requestId", requestId);
     console.log("status", status);
@@ -114,6 +142,7 @@ export default function RequestList() {
 
   return (
     <div className="container mx-auto p-6">
+       <Spin spinning={spinning} percent={percent} fullscreen />
       <h1 className="text-2xl font-bold mb-4">Request List</h1>
       {loading && <p className="text-blue-500">Loading...</p>}
       {error && <p className="text-red-500">{error}</p>}
@@ -121,7 +150,7 @@ export default function RequestList() {
         <table className="min-w-full bg-white border border-gray-200 shadow-md rounded-lg">
           <thead className="bg-gray-100">
             <tr className="text-left">
-              <th className="px-4 py-2 border">Course Title</th>
+              <th className="px-4 py-2 border">Course Name</th>
               <th className="px-4 py-2 border">Request Type</th>
               <th className="px-4 py-2 border">Content</th>
               <th className="px-4 py-2 border">Status</th>
@@ -235,6 +264,7 @@ export default function RequestList() {
           </div>
         </div>
       )}
+      <ToastContainer theme={theme === "dark" ? "dark" : "light"} />
     </div>
   );
 }

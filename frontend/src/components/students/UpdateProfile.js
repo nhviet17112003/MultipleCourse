@@ -51,7 +51,19 @@ const UpdateProfile = () => {
   }, [token]);
 
   const handleInputChange = (e) => {
+    
     const { name, value } = e.target;
+     // Nếu người dùng nhập ngày sinh, kiểm tra xem nó có phải là ngày trong tương lai không
+  if (name === "birthday") {
+    const selectedDate = new Date(value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Đặt giờ về 0 để so sánh chính xác
+
+    if (selectedDate > today) {
+      toast.error("Ngày sinh không thể ở trong tương lai!");
+      return;
+    }
+  }
     setFormData({
       ...formData,
       [name]: value,
@@ -65,7 +77,14 @@ const UpdateProfile = () => {
       setErrorMessage("Please log in to update your profile.");
       return;
     }
-
+    const selectedDate = new Date(formData.birthday);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Đặt giờ về 0 để so sánh chính xác
+  
+    if (selectedDate > today) {
+      toast.error("Ngày sinh không thể ở trong tương lai!");
+      return; // Dừng lại, không gửi request
+    }
     try {
       const response = await axios.post(
         "http://localhost:3000/api/users/update-profile",
@@ -94,6 +113,7 @@ const UpdateProfile = () => {
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
       <h2 className="text-3xl font-bold text-gray-700 mb-6">Update Profile</h2>
+      <ToastContainer />
 
       {successMessage && (
         <div className="bg-green-100 text-green-700 p-4 rounded mb-6">
