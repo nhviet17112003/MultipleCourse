@@ -72,7 +72,7 @@ const Navbar = () => {
       localStorage.setItem("role", response.data.role);
       setAvatarUrl(response.data.avatar);
       setFullname(response.data.fullname || "User");
-      console.log("User data:", response.data);
+      // console.log("User data:", response.data);
     } catch (err) {
       setError("Your session has expired. Please log in again.");
       localStorage.removeItem("authToken"); // Remove token
@@ -98,7 +98,7 @@ const Navbar = () => {
           },
         }
       );
-      console.log("Phản hồi từ API:", response.data);
+      // console.log("Phản hồi từ API:", response.data);
       setBalance(response.data.current_balance);
     } catch (error) {
       console.error("Lỗi khi lấy balance:", error);

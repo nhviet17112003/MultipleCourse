@@ -23,7 +23,7 @@ function Sidebar() {
       setToken(authToken);
       setRole(currentRole);
 
-      console.log("Role:", currentRole);
+      // console.log("Role:", currentRole);
     } else {
       setToken(null);
       setRole("Student"); // Reset lại role khi không có token
@@ -31,7 +31,7 @@ function Sidebar() {
   }, [location]);
 
   const onClick = (e) => {
-    console.log("click ", e);
+    // console.log("click ", e);
     setCurrent(e.key);
   };
 
