@@ -1,9 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
-import ReCAPTCHA from "react-google-recaptcha";
-
+import { FaEye, FaEyeSlash, FaGoogle, FaRedo } from "react-icons/fa";
+const generateCaptcha = () => {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let captcha = "";
+  for (let i = 0; i < 5; i++) {
+    captcha += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return captcha;
+};
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -11,13 +17,13 @@ const Login = () => {
   const [error, setError] = useState(""); // Cho thông báo tài khoản/mật khẩu
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-  const [captchaValue, setCaptchaValue] = useState(null);
+  const [captcha, setCaptcha] = useState(generateCaptcha());
+  const [userCaptcha, setUserCaptcha] = useState("");
   const navigate = useNavigate();
   const recaptchaRef = useRef(null);
   const timeoutRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [avatar, setAvatarUrl] = useState(false);
-  const key = "6LcI9ukqAAAAAGiqY3Yy7D43OWEXNXPxpcakTefC";
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
@@ -76,10 +82,17 @@ const Login = () => {
       setError("Password must be at least 6 characters.");
       return;
     }
-    if (!captchaValue) {
-      setError("Please complete reCAPTCHA.");
+    if (userCaptcha !== captcha) {
+      setError("CAPTCHA không chính xác!");
+      setCaptcha(generateCaptcha()); // Tạo CAPTCHA mới nếu sai
+      setUserCaptcha(""); // Xóa input CAPTCHA
       return;
     }
+
+    setError(""); // Xóa lỗi nếu CAPTCHA đúng
+    console.log("Đăng nhập thành công!", { username, password });
+
+    setError(""); // Xóa lỗi nếu CAPTCHA đúng
     setError("");
     setIsLoading(true);
     setIsSubmitting(true);
@@ -87,7 +100,7 @@ const Login = () => {
     try {
       const response = await axios.post(
         "http://localhost:3000/api/users/login",
-        { username, password, recaptchaToken: captchaValue }
+        { username, password }
       );
 
       if (response.status === 200) {
@@ -238,24 +251,47 @@ const Login = () => {
                     </button>
                   </div>
                   {/* Thêm reCAPTCHA */}
-                  <div className="mb-4">
-                    <ReCAPTCHA
-                      sitekey={key}
-                      explicit={true}
-                      onChange={(value) => setCaptchaValue(value)}
-                    />
+                  {/* Thêm reCAPTCHA */}
+                  <div className="text-2xl font-bold mb-3 tracking-widest">
+                    {captcha}
                   </div>
+                  <div className="relative w-full">
+                    <input
+                      type="text"
+                      placeholder="Nhập CAPTCHA"
+                      value={userCaptcha}
+                      onChange={(e) => setUserCaptcha(e.target.value)}
+                      required
+                      className={`w-full p-3 pr-10 border rounded-full focus:outline-none focus:ring-2 shadow-sm transition-all duration-200 ${
+                        error
+                          ? "border-red-500 focus:ring-red-500 animate-shake"
+                          : "border-green-500 focus:ring-green-500"
+                      }`}
+                    />
+                    <span
+                      onClick={() => setCaptcha(generateCaptcha())}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 cursor-pointer hover:text-green-500"
+                    >
+                      <FaRedo />
+                    </span>
+                  </div>
+
+                  {/* Hiển thị lỗi */}
                   {error && (
-                    <div className="text-red-500 text-sm mb-4">{error}</div>
+                    <p className="text-red-500 text-sm mt-2">{error}</p>
                   )}
+
+                  {/* Hiển thị thông báo thành công */}
                   {successMessage && (
-                    <div className="text-green-500 text-sm mb-4">
+                    <p className="text-green-500 text-sm mt-2">
                       {successMessage}
-                    </div>
+                    </p>
                   )}
+
+                  {/* Nút Login với khoảng cách hợp lý */}
                   <button
                     type="submit"
-                    className="border-2 border-green-500 text-green-500 rounded-full px-12 py-2 inline-block font-semibold hover:bg-green-500 hover:text-white"
+                    className="border-2 border-green-500 text-green-500 rounded-full px-12 py-2 inline-block font-semibold hover:bg-green-500 hover:text-white mt-4"
                   >
                     {isLoading ? "Loading..." : "Login"}
                   </button>
