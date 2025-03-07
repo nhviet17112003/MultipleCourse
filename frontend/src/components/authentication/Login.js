@@ -1,8 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
-import ReCAPTCHA from "react-google-recaptcha";
+import { FaEye, FaEyeSlash, FaGoogle, FaRedo } from "react-icons/fa";
+const generateCaptcha = () => {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let captcha = "";
+  for (let i = 0; i < 5; i++) {
+    captcha += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return captcha;
+};
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -11,14 +18,12 @@ const Login = () => {
   const [error, setError] = useState(""); // Cho thông báo tài khoản/mật khẩu
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-  const [captchaValue, setCaptchaValue] = useState(null);
+  const [captcha, setCaptcha] = useState(generateCaptcha());
+  const [userCaptcha, setUserCaptcha] = useState("");
   const navigate = useNavigate();
-  const recaptchaRef = useRef(null);
   const timeoutRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [avatar, setAvatarUrl] = useState(false);
-  const key = "6LcI9ukqAAAAAGiqY3Yy7D43OWEXNXPxpcakTefC";
-
+  const canvasRef = useRef(null);
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     const role = localStorage.getItem("role");
@@ -43,24 +48,75 @@ const Login = () => {
     }
   }, [isSubmitting, navigate]);
 
-  // // Hàm kiểm tra Username
-  // const validateUsername = (username) => {
-  //   if (username.trim().length === 0) {
-  //     return "Username cannot be blank.";
-  //   }
-  //   if (username.length < 4) {
-  //     return "Username must be at least 4 characters.";
-  //   }
-  //   return "";
-  // };
+  useEffect(() => {
+    drawCaptcha(captcha);
+  }, [captcha]);
 
-  // // Hàm kiểm tra Password
-  // const validatePassword = (password) => {
-  //   if (password.length < 6) {
-  //     return "Password must be at least 6 characters.";
-  //   }
-  //   return "";
-  // };
+  const drawCaptcha = (captcha) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = 150;
+    canvas.height = 50;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Nền có nhiễu
+    ctx.fillStyle = "#f4f4f4";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    for (let i = 0; i < 30; i++) {
+      ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.3})`;
+      ctx.fillRect(
+        Math.random() * canvas.width,
+        Math.random() * canvas.height,
+        2,
+        2
+      );
+    }
+
+    ctx.font = "bold 30px Arial";
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "center";
+
+    for (let i = 0; i < captcha.length; i++) {
+      const x = 25 + i * 25;
+      const y = 25 + Math.random() * 10 - 5;
+      ctx.save();
+      ctx.translate(x, y);
+
+      // Tạo hiệu ứng méo chữ
+      const scaleX = 1 + Math.random() * 0.4 - 0.2;
+      const scaleY = 1 + Math.random() * 0.3 - 0.15;
+      ctx.transform(
+        scaleX,
+        Math.random() * 0.3 - 0.15,
+        Math.random() * 0.3 - 0.15,
+        scaleY,
+        0,
+        0
+      );
+
+      ctx.rotate((Math.random() - 0.5) * 0.3);
+      ctx.fillStyle = `rgb(${Math.random() * 100}, ${Math.random() * 100}, ${
+        Math.random() * 100
+      })`;
+      ctx.fillText(captcha[i], 0, 0);
+      ctx.restore();
+    }
+
+    // Thêm các đường gạch ngang gây nhiễu
+    for (let i = 0; i < 5; i++) {
+      ctx.strokeStyle = `rgba(0,0,0,${Math.random() * 0.3})`;
+      ctx.beginPath();
+      ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
+      ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
+      ctx.stroke();
+    }
+  };
+
+  const refreshCaptcha = () => {
+    setCaptcha(generateCaptcha());
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -76,10 +132,17 @@ const Login = () => {
       setError("Password must be at least 6 characters.");
       return;
     }
-    if (!captchaValue) {
-      setError("Please complete reCAPTCHA.");
+    if (userCaptcha !== captcha) {
+      setError("CAPTCHA không chính xác!");
+      setCaptcha(generateCaptcha()); // Tạo CAPTCHA mới nếu sai
+      setUserCaptcha(""); // Xóa input CAPTCHA
       return;
     }
+
+    setError(""); // Xóa lỗi nếu CAPTCHA đúng
+    console.log("Đăng nhập thành công!", { username, password });
+
+    setError(""); // Xóa lỗi nếu CAPTCHA đúng
     setError("");
     setIsLoading(true);
     setIsSubmitting(true);
@@ -87,7 +150,7 @@ const Login = () => {
     try {
       const response = await axios.post(
         "http://localhost:3000/api/users/login",
-        { username, password, recaptchaToken: captchaValue }
+        { username, password }
       );
 
       if (response.status === 200) {
@@ -170,7 +233,7 @@ const Login = () => {
               <div className="border-2 w-10 border-green-500 inline-block mb-2"></div>
               <div className="flex justify-center my-2">
                 {/* 
-              login with gg */}
+                login with gg */}
                 <div className="flex justify-center mt-4 mb-4">
                   <button
                     className="flex items-center px-4 py-2 border rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
@@ -186,7 +249,7 @@ const Login = () => {
                 </div>
 
                 {/* 
-              login with gg */}
+                login with gg */}
               </div>
               <p className="text-gray-400 my-3">or use your UserName account</p>
               <div className="flex flex-col items-center">
@@ -238,24 +301,49 @@ const Login = () => {
                     </button>
                   </div>
                   {/* Thêm reCAPTCHA */}
-                  <div className="mb-4">
-                    <ReCAPTCHA
-                      sitekey={key}
-                      explicit={true}
-                      onChange={(value) => setCaptchaValue(value)}
+                  <div className="flex items-center gap-2 mb-[5px]">
+                    <canvas
+                      ref={canvasRef}
+                      className="w-[100px] h-[40px] border border-gray-300 rounded-md"
                     />
                   </div>
+                  <div className="relative w-full">
+                    <input
+                      type="text"
+                      placeholder="Nhập CAPTCHA"
+                      value={userCaptcha}
+                      onChange={(e) => setUserCaptcha(e.target.value)}
+                      required
+                      className={`w-full p-3 border rounded-full focus:outline-none focus:ring-2 shadow-sm transition ${
+                        error
+                          ? "border-red-500 focus:ring-red-500 animate-shake"
+                          : "border-green-500 focus:ring-green-500"
+                      }`}
+                    />
+                    <span
+                      onClick={() => setCaptcha(generateCaptcha())}
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-600 cursor-pointer hover:text-green-500 transition"
+                    >
+                      <FaRedo />
+                    </span>
+                  </div>
+
+                  {/* Hiển thị lỗi */}
                   {error && (
-                    <div className="text-red-500 text-sm mb-4">{error}</div>
+                    <p className="text-red-500 text-sm mt-2">{error}</p>
                   )}
+
+                  {/* Hiển thị thông báo thành công */}
                   {successMessage && (
-                    <div className="text-green-500 text-sm mb-4">
+                    <p className="text-green-500 text-sm mt-2">
                       {successMessage}
-                    </div>
+                    </p>
                   )}
+
+                  {/* Nút Login với khoảng cách hợp lý */}
                   <button
                     type="submit"
-                    className="border-2 border-green-500 text-green-500 rounded-full px-12 py-2 inline-block font-semibold hover:bg-green-500 hover:text-white"
+                    className="border-2 border-green-500 text-green-500 rounded-full px-12 py-2 inline-block font-semibold hover:bg-green-500 hover:text-white mt-4"
                   >
                     {isLoading ? "Loading..." : "Login"}
                   </button>
