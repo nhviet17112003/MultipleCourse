@@ -128,7 +128,7 @@ function Layout() {
               path="/courses-list-tutor/:courseId"
               element={<CourseDetailForTutor />}
             />
-               <Route
+            <Route
               path="/courses-list-for-admin/:courseId"
               element={<CourseDetailForAdmin />}
             />
