@@ -52,16 +52,18 @@ const CourseList = () => {
 
         const authToken = localStorage.getItem("authToken");
 
+        // Fetch danh sách khóa học mà không cần token
         const coursesResponse = await fetch(
           "http://localhost:3000/api/courses/active-courses",
           {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${authToken}`,
+              ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}), // Chỉ thêm nếu có token
             },
           }
         );
+
         const coursesData = await coursesResponse.json();
 
         console.log("Courses data received:", coursesData);
@@ -70,31 +72,42 @@ const CourseList = () => {
           console.error("Error fetching courses:", coursesData.message);
           return;
         }
-        const ordersResponse = await fetch(
-          "http://localhost:3000/api/orders/my-orders",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${authToken}`,
-            },
+
+        let filteredCourses = coursesData;
+
+        if (authToken) {
+          // Nếu có token, fetch đơn hàng
+          const ordersResponse = await fetch(
+            "http://localhost:3000/api/orders/my-orders",
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${authToken}`,
+              },
+            }
+          );
+
+          const ordersData = await ordersResponse.json();
+
+          if (!ordersResponse.ok) {
+            console.error("Error fetching orders:", ordersData.message);
+            return;
           }
-        );
-        const ordersData = await ordersResponse.json();
-        if (!ordersResponse.ok) {
-          console.error("Error fetching orders:", ordersData.message);
-          return;
+
+          const purchasedCourseIds = new Set(
+            ordersData.flatMap((order) =>
+              order.order_items.map((item) => item.course._id)
+            )
+          );
+
+          filteredCourses = coursesData.filter(
+            (course) => !purchasedCourseIds.has(course._id)
+          );
         }
-        const purchasedCourseIds = new Set(
-          ordersData.flatMap((order) =>
-            order.order_items.map((item) => item.course._id)
-          )
-        );
-        const filteredCourses = coursesData.filter(
-          (course) => !purchasedCourseIds.has(course._id)
-        );
 
         setCourses(filteredCourses);
+
         const uniqueTutorIds = [
           ...new Set(filteredCourses.map((course) => course.tutorId)),
         ];
