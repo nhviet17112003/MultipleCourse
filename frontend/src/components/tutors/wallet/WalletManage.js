@@ -71,6 +71,13 @@ const WalletManage = () => {
     "Keppel Bank",
   ];
 
+  const handleUpdateClick = (bank) => {
+    setNewBankName(bank.bank_name);
+    setNewAccountNumber(bank.account_number);
+    setNewAccountHolder(bank.account_name);
+    setIsUpdateFormVisible(true);
+  };
+
   const handleAccountHolderChange = (e) => {
     const value = e.target.value;
     if (/\d/.test(value)) {
@@ -412,7 +419,7 @@ const WalletManage = () => {
                     </div>
 
                     <button
-                      onClick={() => setIsUpdateFormVisible((prev) => !prev)}
+                      onClick={() => handleUpdateClick(bank)}
                       className="py-2 px-6 bg-yellow-500 text-white rounded-full hover:bg-yellow-600 transition-all ease-in-out flex items-center"
                     >
                       <svg
@@ -429,7 +436,7 @@ const WalletManage = () => {
                           d="M13 3l-7 7V3h14v14H7V10m3-4l4 4"
                         />
                       </svg>
-                      <span>{isUpdateFormVisible ? "Update" : "Update"}</span>{" "}
+                      <span>Update</span>
                     </button>
                   </div>
                 ))
