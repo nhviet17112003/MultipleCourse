@@ -93,81 +93,84 @@ const DepositHistory = () => {
   );
 
   return (
-    <div className="container mx-auto p-4 md:p-6 lg:p-8 w-full max-w-6xl">
-      <h1 className="text-3xl font-bold text-black-500 mb-4 text-center">
-        Deposit History
-      </h1>
+    <div className="justify-start items-start min-h-screen bg-gradient-to-b from-[#14b8a6] to-indigo-200 flex pt-10">
+      <div className="container mx-auto p-4 md:p-6 lg:p-8 w-full max-w-6xl bg-white shadow-lg rounded-lg ">
+        <h1 className="text-3xl font-bold text-black-500 mb-4 text-center">
+          Deposit History
+        </h1>
 
-      <div className="flex flex-col md:flex-row justify-between items-center mb-4 space-y-2 md:space-y-0 md:space-x-4">
-        <input
-          type="date"
-          value={selectedDate}
-          onChange={handleDateChange}
-          className="border px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 w-full md:w-auto"
-        />
+        <div className="flex flex-col md:flex-row justify-between items-center mb-4 space-y-2 md:space-y-0 md:space-x-4">
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={handleDateChange}
+            className="border px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 w-full md:w-auto"
+          />
 
-        <select
-          value={sortOrder}
-          onChange={(e) => setSortOrder(e.target.value)}
-          className="px-4 py-2 border rounded-md bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 w-full md:w-auto"
-        >
-          <option value="all">All</option>
-          <option value="asc">Low to High</option>
-          <option value="desc">High to Low</option>
-        </select>
-      </div>
-
-      {displayedDeposits.length === 0 ? (
-        <div className="text-center text-gray-500 text-xl mt-6">
-          No deposit history
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="table-auto w-full border-collapse border border-gray-300">
-            <thead className="bg-teal-500 text-white">
-              <tr>
-                <th className="px-4 py-2">ID</th>
-                <th className="px-4 py-2">Description</th>
-                <th className="px-4 py-2">Amount</th>
-                <th className="px-4 py-2">Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {displayedDeposits.map((deposit) => (
-                <tr key={deposit._id} className="bg-white hover:bg-gray-100">
-                  <td className="px-4 py-2 border">{deposit.order_code}</td>
-                  <td className="px-4 py-2 border">{deposit.description}</td>
-                  <td className="px-4 py-2 border">
-                    {deposit.payment_amount} VNĐ
-                  </td>
-                  <td className="px-4 py-2 border">
-                    {new Date(deposit.payment_date).toLocaleString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      <div className="mt-4 text-xl font-bold text-right text-gray-700">
-        Total: <span className="text-green-600">{totalPaymentAmount} VNĐ</span>
-      </div>
-
-      <div className="flex justify-center mt-4 space-x-2 flex-wrap">
-        {Array.from({ length: totalPages }, (_, i) => (
-          <button
-            key={i}
-            onClick={() => setCurrentPage(i + 1)}
-            className={`px-4 py-2 rounded-lg ${
-              currentPage === i + 1
-                ? "bg-teal-500 text-white"
-                : "bg-gray-200 hover:bg-gray-300"
-            }`}
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+            className="px-4 py-2 border rounded-md bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 w-full md:w-auto"
           >
-            {i + 1}
-          </button>
-        ))}
+            <option value="all">All</option>
+            <option value="asc">Low to High</option>
+            <option value="desc">High to Low</option>
+          </select>
+        </div>
+
+        {displayedDeposits.length === 0 ? (
+          <div className="text-center text-gray-500 text-xl mt-6">
+            No deposit history
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="table-auto w-full border-collapse border border-gray-300">
+              <thead className="bg-teal-500 text-white">
+                <tr>
+                  <th className="px-4 py-2">ID</th>
+                  <th className="px-4 py-2">Description</th>
+                  <th className="px-4 py-2">Amount</th>
+                  <th className="px-4 py-2">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {displayedDeposits.map((deposit) => (
+                  <tr key={deposit._id} className="bg-white hover:bg-gray-100">
+                    <td className="px-4 py-2 border">{deposit.order_code}</td>
+                    <td className="px-4 py-2 border">{deposit.description}</td>
+                    <td className="px-4 py-2 border">
+                      {deposit.payment_amount} VNĐ
+                    </td>
+                    <td className="px-4 py-2 border">
+                      {new Date(deposit.payment_date).toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <div className="mt-4 text-xl font-bold text-right text-gray-700">
+          Total:{" "}
+          <span className="text-green-600">{totalPaymentAmount} VNĐ</span>
+        </div>
+
+        <div className="flex justify-center mt-4 space-x-2 flex-wrap">
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentPage(i + 1)}
+              className={`px-4 py-2 rounded-lg ${
+                currentPage === i + 1
+                  ? "bg-teal-500 text-white"
+                  : "bg-gray-200 hover:bg-gray-300"
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

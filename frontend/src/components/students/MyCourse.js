@@ -186,33 +186,36 @@ const MyCourses = () => {
     return <div className="text-red-500 text-center mt-4">{error}</div>;
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold text-center mb-6 text-blue-700">
+    <div className="p-8 min-h-screen bg-gradient-to-br from-[#14b8a6] to-indigo-200">
+      <h1 className="text-4xl font-extrabold text-center mb-8 text-black drop-shadow-md">
         My Courses
       </h1>
+
       {orders.length === 0 ? (
-        <p className="text-center text-gray-600">No successful orders found.</p>
+        <p className="text-center text-gray-200 text-lg">
+          No successful orders found.
+        </p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {orders.map((order) =>
             order.order_items.map((item) => (
               <div
                 key={item._id}
-                className="bg-white shadow-lg rounded-2xl overflow-hidden transition duration-300 hover:shadow-2xl cursor-pointer relative"
+                className="bg-white shadow-md rounded-xl overflow-hidden transform transition duration-300 hover:shadow-2xl hover:scale-105 relative"
                 onClick={() => handleCourseClick(item.course._id)}
               >
                 <img
                   src={item.course.image || ""}
                   alt={item.course.title}
-                  className="w-full h-48 object-cover"
+                  className="w-full h-52 object-cover"
                 />
-                <div className="p-4 flex flex-col">
-                  <h2 className="text-xl font-semibold text-gray-800 truncate">
+                <div className="p-5">
+                  <h2 className="text-lg font-bold text-gray-800 truncate">
                     {item.course.title}
                   </h2>
                   {isEnrolled(item.course._id) ? (
                     <div className="mt-4">
-                      <div className="w-full bg-gray-200 rounded-full h-3">
+                      <div className="w-full bg-gray-300 rounded-full h-3">
                         <div
                           className="bg-green-500 h-3 rounded-full transition-all duration-500"
                           style={{
@@ -220,7 +223,7 @@ const MyCourses = () => {
                           }}
                         ></div>
                       </div>
-                      <p className="text-sm text-gray-600 mt-1 text-center">
+                      <p className="text-sm text-gray-600 mt-2 text-center">
                         Progress:{" "}
                         {getProgressForCourse(item.course._id).toFixed(0)}%
                       </p>
@@ -231,7 +234,7 @@ const MyCourses = () => {
                         e.stopPropagation();
                         handleEnroll(item.course._id);
                       }}
-                      className="mt-4 w-full py-2 rounded-xl transition duration-300 bg-blue-500 text-white hover:bg-blue-600"
+                      className="mt-4 w-full py-2 rounded-lg bg-blue-500 text-white font-semibold hover:bg-blue-600 transition duration-300"
                     >
                       Enroll
                     </button>
@@ -245,7 +248,7 @@ const MyCourses = () => {
                   <img
                     src={require("../../assets/passed44.png")}
                     alt="Passed"
-                    className="absolute top-2 right-2 w-12 h-12"
+                    className="absolute top-3 right-3 w-14 h-14"
                   />
                 )}
               </div>
@@ -256,7 +259,7 @@ const MyCourses = () => {
 
       {modalContent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-xl shadow-xl text-center w-96">
+          <div className="bg-white p-6 rounded-xl shadow-xl text-center w-96 transform scale-95 transition duration-200 ease-in-out">
             <h2 className="text-xl font-bold text-blue-600 mb-4">
               {modalContent.title}
             </h2>

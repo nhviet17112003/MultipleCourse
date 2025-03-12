@@ -312,8 +312,8 @@ const WalletManage = () => {
   }
 
   return (
-    <div className="min-h-screen flex justify-start items-start bg-gradient-to-b from-[#14b8a6] to-indigo-200">
-      <div className="max-w-4xl w-full mx-auto bg-white rounded-xl shadow-xl p-6">
+    <div className="min-h-screen flex justify-start items-start bg-gradient-to-b from-[#14b8a6] to-indigo-200 pt-10">
+      <div className="max-w-4xl w-full mx-auto bg-white rounded-xl shadow-xl p-6 py-6">
         <h1 className="text-3xl font-bold text-black-700 text-center mb-8">
           Wallet Manage
         </h1>

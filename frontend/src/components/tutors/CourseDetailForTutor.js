@@ -207,17 +207,29 @@ const CourseDetailForTutor = () => {
         );
 
         if (incomeResponse.status === 200) {
-          const courseIncome = incomeResponse.data.find(
-            (income) => income.course_id === courseId
-          );
-          if (courseIncome) {
-            setTotalIncome(courseIncome.totalIncome);
-            setTotalSales(courseIncome.totalSales);
+          const incomeData = incomeResponse.data;
+
+          // Kiểm tra incomeData có phải là mảng hay không
+          if (Array.isArray(incomeData)) {
+            const courseIncome = incomeData.find(
+              (income) => income.course_id === courseId
+            );
+            if (courseIncome) {
+              setTotalIncome(courseIncome.totalIncome);
+              setTotalSales(courseIncome.totalSales);
+            }
+          } else {
+            console.warn("Expected array but received:", incomeData);
           }
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
-        setErrorMessage("An error occurred while fetching course details.");
+        if (axios.isAxiosError(error) && error.response?.status === 404) {
+          console.log("Course not found, showing alternative UI.");
+          setCourse(null);
+        } else {
+          console.error("Error fetching data:", error);
+          setErrorMessage("An error occurred while fetching course details.");
+        }
       } finally {
         setLoading(false);
       }
