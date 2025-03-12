@@ -302,6 +302,14 @@ const UserProfile = () => {
         >
           Logout
         </button>
+        {userData?.role === "Tutor" && (
+          <button
+            className="ml-4 px-6 py-2 bg-green-500 text-white rounded-full hover:bg-green-600 focus:outline-none"
+            onClick={() => navigate("/certificate")}
+          >
+            Certificate
+          </button>
+        )}
       </div>
 
       {/* Change password pop-up */}
