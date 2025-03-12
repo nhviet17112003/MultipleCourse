@@ -165,6 +165,7 @@ const Login = () => {
         }
 
         localStorage.setItem("authToken", token);
+        localStorage.setItem("userId", user_id); 
         setSuccessMessage("Login successfully!");
         setTimeout(() => {
           if (

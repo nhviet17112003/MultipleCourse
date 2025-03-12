@@ -53,9 +53,9 @@ import DepositHistory from "./components/students/wallet/DepositHistory";
 import HomeScreen from "./components/HomeScreen";
 import Footer from "./components/Footer";
 import Students from "./components/tutors/Students";
-
 import { useState } from "react";
 import CourseDetailForAdmin from "./components/admins/CourseDetailForAdmin";
+import ViewCertificate from "./components/tutors/ViewCertificate";
 function Layout() {
   const location = useLocation();
   const [navbarKey, setNavbarKey] = useState(0);
@@ -178,6 +178,8 @@ function Layout() {
             <Route path="/buyer-history-list" element={<BuyerHistory />} />
             <Route path="/statistic-tutor" element={<StatisticForTutor />} />
             <Route path="/student-list" element={<Students />} />
+            <Route path="/certificate" element={<ViewCertificate />} />
+
           </Routes>
         </div>
       </div>
