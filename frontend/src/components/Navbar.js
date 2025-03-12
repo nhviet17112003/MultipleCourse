@@ -114,14 +114,13 @@ const Navbar = () => {
       }
     }
 
-    
-  if (token) {
-    setIsLoggedIn(true);
-    fetchUserProfile();
-    fetchBalance();
-  } else {
-    setIsLoggedIn(false);
-  }
+    if (token) {
+      setIsLoggedIn(true);
+      fetchUserProfile();
+      fetchBalance();
+    } else {
+      setIsLoggedIn(false);
+    }
 
     const protectedRoutes = ["/userprofile", "/cart"];
     if (protectedRoutes.includes(location.pathname) && !token) {
