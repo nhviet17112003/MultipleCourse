@@ -84,7 +84,10 @@ const WalletStudent = () => {
           </div>
 
           <div className="grid grid-cols-3 gap-3 mb-6 w-full">
-            {[50000, 100000, 200000, 300000, 500000, 1000000].map((value) => (
+            {[
+              50000, 100000, 200000, 300000, 500000, 1000000, 2000000, 5000000,
+              10000000,
+            ].map((value) => (
               <button
                 key={value}
                 onClick={() => setAmount(value)}

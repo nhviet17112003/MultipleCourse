@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer, toast } from "react-toastify";
 
 import "rc-slider/assets/index.css";
-import 'react-toastify/dist/ReactToastify.css';
+import "react-toastify/dist/ReactToastify.css";
 const DetailCourse = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -11,13 +11,12 @@ const DetailCourse = () => {
   const [loading, setLoading] = useState(true);
   const [fullname, setFullname] = useState(""); // Thêm phần tên người dùng
   const [isAuthenticated, setIsAuthenticated] = useState(false); // Xác định người dùng đã đăng nhập hay chưa
-const [cartCount, setCartCount] = useState(0);
-const [newRating, setNewRating] = useState(5); 
-const [hasCommented, setHasCommented] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+  const [newRating, setNewRating] = useState(5);
+  const [hasCommented, setHasCommented] = useState(false);
 
-
-const [comments, setComments] = useState([]); 
-const [newComment, setNewComment] = useState("");
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState("");
 
   // Kiểm tra đăng nhập và lấy thông tin fullname
   useEffect(() => {
@@ -49,9 +48,13 @@ const [newComment, setNewComment] = useState("");
         const data = await response.json();
         if (response.ok) {
           setCourse(data.courseDetail);
-  
-         //comment nhe
-          if (data.courseDetail.comments.some(comment => comment.author === fullname)) {
+
+          //comment nhe
+          if (
+            data.courseDetail.comments.some(
+              (comment) => comment.author === fullname
+            )
+          ) {
             setHasCommented(true);
           }
         } else {
@@ -65,9 +68,8 @@ const [newComment, setNewComment] = useState("");
     };
     fetchCourseDetail();
   }, [id, fullname]);
-  
 
- const handleAddToCart = async (courseId) => {
+  const handleAddToCart = async (courseId) => {
     const newCartCount = cartCount + 1;
     setCartCount(newCartCount);
     localStorage.setItem("cartCount", newCartCount);
@@ -110,21 +112,18 @@ const [newComment, setNewComment] = useState("");
     }
   };
 
-
-
-
   const handleCommentSubmit = async () => {
     if (!newComment.trim()) {
       toast.warn("Comments cannot be left blank!");
       return;
     }
-  
+
     const commentData = {
       courseId: id,
       rating: newRating,
       comment: newComment,
     };
-  
+
     try {
       const response = await fetch(
         `http://localhost:3000/api/comments/create-course-comment`,
@@ -137,7 +136,7 @@ const [newComment, setNewComment] = useState("");
           body: JSON.stringify(commentData),
         }
       );
-  
+
       const data = await response.json();
       if (response.ok) {
         setCourse((prevCourse) => ({
@@ -152,10 +151,10 @@ const [newComment, setNewComment] = useState("");
             },
           ],
         }));
-  
-        setNewComment(""); 
-        setNewRating(5); 
-        setHasCommented(true); 
+
+        setNewComment("");
+        setNewRating(5);
+        setHasCommented(true);
         toast.success("Comment has been added!");
       } else {
         toast.error(`Lỗi: ${data.message}`);
@@ -164,152 +163,151 @@ const [newComment, setNewComment] = useState("");
       toast.error("An error occurred while submitting the comment.!");
     }
   };
-  
-
-
 
   return (
-    <div className="min-h-screen bg-gray-100">
-       <ToastContainer />
-    <div className="container mx-auto px-4 py-8">
-      {/* Hiển thị loading nếu dữ liệu chưa sẵn sàng */}
-      {loading ? (
-        <p className="text-center text-teal-600 text-xl">Loading data...</p>
-      ) : course ? (
-        // Nội dung chi tiết khóa học
-        <div className="bg-white shadow-lg rounded-lg overflow-hidden md:grid md:grid-cols-2 md:gap-8 p-6">
-          <div className="md:flex md:justify-center md:items-center">
-            <img
-              src={course.image}
-              alt={course.title}
-              className="w-full h-72 object-cover rounded-xl shadow-lg transform hover:scale-105 transition duration-300"
-            />
-          </div>
-          <div className="mt-4 md:mt-0">
-            <h2 className="text-3xl font-semibold text-teal-600">{course.title}</h2>
-            <p className="text-lg text-gray-600 mt-2 italic">
-              Category: {course.category}
-            </p>
-            <p className="mt-4 text-gray-700 leading-relaxed">{course.description}</p>
-            <div className="mt-6 flex justify-between items-center">
-              <p className="text-3xl text-teal-800 font-bold">${course.price}</p>
-             
-              <p className="text-sm text-gray-500 italic">
-              Date created: {new Date(course.createAt).toLocaleDateString()}
-              </p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <ToastContainer />
+      <div className="container mx-auto px-6 py-10">
+        {loading ? (
+          <p className="text-center text-teal-600 text-xl font-semibold">
+            Loading data...
+          </p>
+        ) : course ? (
+          <div className="bg-white shadow-2xl rounded-xl overflow-hidden md:grid md:grid-cols-2 md:gap-8 p-8 transition-transform duration-300 hover:shadow-lg hover:scale-105">
+            <div className="relative group">
+              <img
+                src={course.image}
+                alt={course.title}
+                className="w-full h-80 object-cover rounded-xl shadow-md transition duration-500 group-hover:scale-105 group-hover:shadow-lg"
+              />
+              <div className="absolute top-2 left-2 bg-teal-600 text-white px-3 py-1 rounded-full text-xs uppercase font-semibold shadow-md">
+                {course.category}
+              </div>
             </div>
-            {/* Nút Thêm vào giỏ hàng */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleAddToCart(course._id);
-              }}
-              className="mt-4 bg-teal-600 text-white py-2 px-6 rounded-lg hover:bg-teal-700 transition duration-300"
-            >
-              Add to cart
-            </button>
+            <div className="mt-6 md:mt-0">
+              <h2 className="text-4xl font-extrabold text-teal-700">
+                {course.title}
+              </h2>
+              <p className="mt-4 text-gray-700 text-lg leading-relaxed">
+                {course.description}
+              </p>
+
+              <div className="mt-6 flex justify-between items-center">
+                <p className="text-3xl text-teal-800 font-semibold">
+                  {course.price} VNĐ
+                </p>
+                <p className="text-sm text-gray-500 italic">
+                  Created on: {new Date(course.createAt).toLocaleDateString()}
+                </p>
+              </div>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAddToCart(course._id);
+                }}
+                className="mt-6 bg-gradient-to-r from-teal-500 to-teal-700 text-white py-3 px-8 rounded-lg text-lg font-semibold shadow-md hover:shadow-lg transition-transform transform hover:scale-105"
+              >
+                Add to Cart
+              </button>
+            </div>
           </div>
-        </div>
-      ) : (
-        // Hiển thị nếu không tìm thấy dữ liệu khóa học
-        <p className="text-center text-red-600 text-xl">
-         No course information found.
-        </p>
-      )}
+        ) : (
+          <p className="text-center text-red-600 text-xl font-medium">
+            No course information found.
+          </p>
+        )}
 
-      
-
-      {/* 🆕 Khu vực bình luận */}
-      <div className="mt-8 bg-white shadow-lg p-6 rounded-lg">
-        
-          <h3 className="text-2xl font-semibold text-teal-600">Comments</h3>
-
+        <div className="mt-10 bg-white shadow-lg p-6 rounded-lg">
+          <h3 className="text-3xl font-bold text-teal-700">Comments</h3>
 
           {isAuthenticated && !hasCommented && (
-  <div className="mt-6 p-4 bg-gray-100 rounded-lg shadow">
-    <h4 className="text-lg font-semibold text-teal-700">Write your comment</h4>
+            <div className="mt-6 p-5 bg-gray-100 rounded-lg shadow-lg transition-all hover:shadow-2xl">
+              <h4 className="text-lg font-semibold text-teal-700">
+                Write your comment
+              </h4>
+              <textarea
+                className="w-full mt-2 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                rows="3"
+                placeholder="Nhập bình luận..."
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+              ></textarea>
 
-    <textarea
-      className="w-full mt-2 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-      rows="3"
-      placeholder="Nhập bình luận..."
-      value={newComment}
-      onChange={(e) => setNewComment(e.target.value)}
-    ></textarea>
+              <div className="mt-4 flex items-center space-x-2">
+                <span className="text-gray-700 font-medium">Evaluate:</span>
+                {[...Array(5)].map((_, i) => (
+                  <button key={i} onClick={() => setNewRating(i + 1)}>
+                    <span
+                      className={`text-2xl ${
+                        i < newRating ? "text-yellow-400" : "text-gray-300"
+                      }`}
+                    >
+                      ★
+                    </span>
+                  </button>
+                ))}
+              </div>
 
-    <div className="mt-3 flex items-center space-x-2">
-      <span className="text-gray-700 font-medium">Evaluate:</span>
-      {[...Array(5)].map((_, i) => (
-        <button key={i} onClick={() => setNewRating(i + 1)}>
-          <span className={`text-2xl ${i < newRating ? "text-yellow-400" : "text-gray-300"}`}>★</span>
-        </button>
-      ))}
+              <button
+                onClick={handleCommentSubmit}
+                className="mt-4 bg-teal-600 text-white py-2 px-6 rounded-lg hover:bg-teal-700 transition duration-300"
+              >
+                Submit a comment
+              </button>
+            </div>
+          )}
+
+          {hasCommented && (
+            <p className="text-gray-600 mt-4 italic">
+              You have commented on this course.
+            </p>
+          )}
+
+          {course?.comments?.length > 0 ? (
+            <ul className="mt-6 space-y-6">
+              {course.comments.map((comment, index) => (
+                <li
+                  key={index}
+                  className="flex space-x-4 p-4 bg-gray-50 rounded-lg shadow-md hover:shadow-xl"
+                >
+                  <div className="w-12 h-12 bg-teal-500 text-white font-bold rounded-full flex items-center justify-center text-xl">
+                    {comment.author?.charAt(0).toUpperCase()}
+                  </div>
+
+                  <div className="flex-1">
+                    <p className="font-semibold text-teal-700">
+                      {comment.author || "Người dùng ẩn danh"}
+                    </p>
+                    <div className="flex items-center mt-1">
+                      {[...Array(5)].map((_, i) => (
+                        <span
+                          key={i}
+                          className={`text-xl ${
+                            i < comment.rating
+                              ? "text-yellow-400"
+                              : "text-gray-300"
+                          }`}
+                        >
+                          ★
+                        </span>
+                      ))}
+                    </div>
+                    <p className="text-gray-700 mt-2">{comment.comment}</p>
+                    <p className="text-gray-500 text-sm mt-1">
+                      {new Date(comment.date).toLocaleDateString()}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-500 mt-2">No comments yet.</p>
+          )}
+        </div>
+      </div>
     </div>
-
-    <button
-      onClick={handleCommentSubmit}
-      className="mt-4 bg-teal-600 text-white py-2 px-6 rounded-lg hover:bg-teal-700 transition duration-300"
-    >
-     Submit a comment
-    </button>
-  </div>
-)}
-
-{hasCommented && (
-  <p className="text-gray-600 mt-4 italic">You have commented on this course.</p>
-)}
-
-
-
-{course?.comments?.length > 0 ? (
-  <ul className="mt-6 space-y-6">
-    {course.comments.map((comment, index) => (
-      <li key={index} className="flex space-x-4 p-4 bg-gray-50 rounded-lg shadow-md">
-        {/* avt */}
-        <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-white font-bold">
-          {comment.author?.charAt(0).toUpperCase()}
-        </div>
-        
-        {/* cmt */}
-        <div className="flex-1">
-          <p className="font-semibold text-teal-700">{comment.author || "Người dùng ẩn danh"}</p>
-          
-          {/* rati */}
-          <div className="flex items-center mt-1">
-            {[...Array(5)].map((_, i) => (
-              <span key={i} className={`text-xl ${i < comment.rating ? "text-yellow-400" : "text-gray-300"}`}>
-                ★
-              </span>
-            ))}
-          </div>
-
-          <p className="text-gray-700 mt-2">{comment.comment}</p>
-          <p className="text-gray-500 text-sm mt-1">{new Date(comment.date).toLocaleDateString()}</p>
-        </div>
-      </li>
-    ))}
-  </ul>
-) : (
-  <p className="text-gray-500 mt-2">No comments yet.</p>
-)}
-
-
-
-
-        </div>
-  
-      {/* Nút quay lại */}
-      {/* <div className="mt-6 text-center">
-        <button
-          onClick={() => navigate(-1)} // Quay lại trang trước
-          className="bg-gray-600 text-white py-2 px-6 rounded-lg hover:bg-gray-700 transition duration-300"
-        >
-          Quay lại
-        </button>
-      </div> */}
-    </div>
-  </div>
-    );
+  );
 };
 
 export default DetailCourse;

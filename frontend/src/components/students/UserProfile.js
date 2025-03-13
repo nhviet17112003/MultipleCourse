@@ -169,7 +169,6 @@ const UserProfile = () => {
 
       // Chuyển về trang login
       navigate("/login");
-     
     } catch (error) {
       console.error("Đăng xuất thất bại:", error);
       alert("Có lỗi xảy ra khi đăng xuất. Vui lòng thử lại!");
@@ -178,12 +177,15 @@ const UserProfile = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white shadow-xl rounded-lg transition-all hover:shadow-2xl">
-      <h2 className="text-3xl font-bold text-gray-800 mb-6">
-        User Information
+      <h2 className="text-4xl font-extrabold text-gray-800 mb-6 text-center relative">
+        <span className="bg-gradient-to-r from-teal-500 to-blue-500 text-transparent bg-clip-text">
+          User Information
+        </span>
+        <div className="w-16 h-1 bg-teal-500 mx-auto mt-2 rounded-full"></div>
       </h2>
 
       {userData ? (
-        <div className="flex items-center mb-6 space-x-6">
+        <div className="flex flex-col items-center mb-6 space-y-4">
           <label htmlFor="avatar-upload" className="cursor-pointer relative">
             {/* Hiển thị spinner khi loading */}
             {loading && (
@@ -210,14 +212,13 @@ const UserProfile = () => {
             onChange={handleAvatarChange}
             className="hidden"
           />
-          <div>
-            <p className="text-xl font-semibold text-gray-700">
+
+          {/* Thông tin người dùng */}
+          <div className="text-center space-y-2">
+            <p className="text-2xl font-bold text-gray-800">
               {userData.fullname || "User's Name"}
             </p>
-            <p className="text-gray-500">
-              {userData.email || "email@example.com"}
-            </p>
-            <p className="text-gray-500">
+            <p className="text-lg text-gray-500">
               {userData.birthday
                 ? new Date(userData.birthday).toLocaleDateString()
                 : "DD/MM/YYYY"}
@@ -229,29 +230,54 @@ const UserProfile = () => {
       )}
 
       {userData && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <p>
-              <strong>Email:</strong> {userData.email}
-            </p>
-            <p>
-              <strong>Phone number:</strong> {userData.phone || "Not updated"}
-            </p>
-            <p>
-              <strong>Gender:</strong> {userData.gender}
-            </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6 rounded-lg shadow-md">
+          {/* Cột 1 */}
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <span className="font-semibold text-gray-700">📧 Email:</span>
+              <span className="text-gray-600">{userData.email}</span>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <span className="font-semibold text-gray-700">📞 Phone:</span>
+              <span className="text-gray-600">
+                {userData.phone || "Not updated"}
+              </span>
+            </div>
+
+            <div className="ml-1 flex items-center space-x-2">
+              <span className="text-2xl">⚥</span>{" "}
+              <span className="font-semibold text-gray-700">Gender:</span>
+              <span className="text-gray-600">
+                {userData.gender || "Not specified"}
+              </span>
+            </div>
           </div>
 
-          <div>
-            <p>
-              <strong>Address:</strong> {userData.address || "Not updated"}
-            </p>
-            <p>
-              <strong>Role:</strong> {userData.role}
-            </p>
-            <p>
-              <strong>Status:</strong> {userData.status ? "Active" : "Inactive"}
-            </p>
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <span className="font-semibold text-gray-700">🔰 Role:</span>
+              <span className="text-gray-600">{userData.role || "N/A"}</span>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <span className="font-semibold text-gray-700">⚡ Status:</span>
+              <span
+                className={`${
+                  userData.status ? "text-green-600" : "text-red-600"
+                } font-semibold`}
+              >
+                {userData.status ? "Active" : "Inactive"}
+              </span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="font-semibold text-gray-700 whitespace-nowrap">
+                📍 Address:
+              </span>
+              <span className="text-gray-600 break-words">
+                {userData.address || "Not updated"}
+              </span>
+            </div>
           </div>
         </div>
       )}
