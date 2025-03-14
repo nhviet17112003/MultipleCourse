@@ -16,19 +16,23 @@ function Sidebar() {
   const location = useLocation();
 
   useEffect(() => {
-    // Lấy thông tin từ localStorage khi component được mount hoặc token/role thay đổi
-    const authToken = localStorage.getItem("authToken");
-    const currentRole = localStorage.getItem("role");
-    if (authToken && currentRole) {
-      setToken(authToken);
+    const updateRole = () => {
+      const currentRole = localStorage.getItem("role") || "Student"; // Nếu không có role thì mặc định là Student
       setRole(currentRole);
-
-      console.log("Role:", currentRole);
-    } else {
-      setToken(null);
-      setRole("Student"); // Reset lại role khi không có token
-    }
-  }, [location]);
+      console.log("Updated Role:", currentRole);
+    };
+  
+    // Gọi ngay khi component mount
+    updateRole();
+  
+    // Lắng nghe sự kiện thay đổi localStorage (dùng để cập nhật role khi đăng nhập)
+    window.addEventListener("storage", updateRole);
+  
+    return () => {
+      window.removeEventListener("storage", updateRole);
+    };
+  }, []);
+  
 
   const onClick = (e) => {
     console.log("click ", e);
