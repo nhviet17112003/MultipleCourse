@@ -109,6 +109,7 @@ const Cart = () => {
         if (errorData.message === "Not enough balance") {
           toast.error("Not enough balance! ");
         } else {
+          console.log(errorData.message);
           toast.error("Payment failed!");
         }
       }

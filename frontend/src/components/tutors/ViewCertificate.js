@@ -65,13 +65,13 @@ const ViewCertificate = () => {
 
   const deleteCertificate = async (id) => {
     const confirmDelete = window.confirm(
-      "Are you sure you want to delete this certificate?"
+      "Bạn có chắc chắn muốn xóa chứng chỉ này không?"
     );
     if (!confirmDelete) return;
 
     const token = localStorage.getItem("authToken");
     if (!token) {
-      toast.error("Token not found! Please log in again.");
+      toast.error("Token không tồn tại! Vui lòng đăng nhập lại.");
       return;
     }
 
@@ -83,10 +83,9 @@ const ViewCertificate = () => {
         }
       );
       setCertificates(certificates.filter((cert) => cert._id !== id));
-      toast.success("Certificate deleted successfully!");
+      toast.success("Xóa chứng chỉ thành công!");
     } catch (error) {
-      console.error("❌ Error deleting certificate:", error);
-      toast.error("Could not delete certificate. Please try again!");
+      toast.error("Không thể xóa chứng chỉ, vui lòng thử lại!");
     }
   };
 
