@@ -7,10 +7,13 @@ const UserProfile = () => {
   const [userData, setUserData] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [fullname, setFullname] = useState("User");
+  const [avatarUrl, setAvatarUrl] = useState(""); // Đường dẫn avatar
   const navigate = useNavigate();
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
   const recaptchaRef = useRef(null);
 
@@ -137,10 +140,24 @@ const UserProfile = () => {
   const deleteCookie = (name) => {
     document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost; secure; SameSite=None;`;
   };
-
+  useEffect(() => {
+    const role = localStorage.getItem("role");
+    if (!role) {
+      setUserData(null);
+      setFullname("User");
+      setAvatarUrl("");
+      setIsLoggedIn(false);
+    }
+  }, []);
   const logout = async () => {
     try {
       const token = localStorage.getItem("authToken");
+      const role = localStorage.getItem("role");
+
+      console.log("Trước khi xóa:");
+      console.log("Token:", token);
+      console.log("Role:", role);
+
       if (token) {
         await axios.post(
           "http://localhost:3000/api/users/logout",
@@ -158,15 +175,15 @@ const UserProfile = () => {
       localStorage.removeItem("fullname");
       localStorage.removeItem("role");
       localStorage.removeItem("avatar");
+      localStorage.removeItem("userId");
 
       // Xóa cookie Token
       deleteCookie("Token");
-
-      // Reset reCAPTCHA khi đăng xuất
-      if (recaptchaRef.current) {
-        recaptchaRef.current.reset();
-      }
-
+      // Cập nhật state để re-render component
+      setIsLoggedIn(false);
+      setUserData(null);
+      setFullname("User");
+      setAvatarUrl("");
       // Chuyển về trang login
       navigate("/login");
     } catch (error) {
