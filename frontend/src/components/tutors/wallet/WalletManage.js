@@ -314,12 +314,12 @@ const WalletManage = () => {
   return (
     <div className="min-h-screen flex justify-start items-start bg-gradient-to-b from-[#14b8a6] to-indigo-200 pt-10">
       <div className="max-w-4xl w-full mx-auto bg-white rounded-xl shadow-xl p-6 py-6">
-        <h1 className="text-3xl font-bold text-black-700 text-center mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-black-700 text-center mb-6 sm:mb-8">
           Wallet Manage
         </h1>
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 sm:mb-8">
           <p className="text-lg font-semibold text-gray-800">Current Balance</p>
-          <p className="text-3xl font-bold text-green-600">
+          <p className="text-2xl sm:text-3xl font-bold text-green-600">
             {balance?.toLocaleString("vi-VN")} ₫
           </p>
         </div>
@@ -341,7 +341,7 @@ const WalletManage = () => {
 
         {isWithdrawFormVisible && (
           <div className="mt-6">
-            <div className="grid grid-cols-1 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="relative w-full">
                 <input
                   type="number"
@@ -393,7 +393,7 @@ const WalletManage = () => {
             </div>
 
             <div className="mb-8 mt-8">
-              <h2 className="text-3xl font-semibold text-indigo-700 mb-4">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-indigo-700 mb-4">
                 Bank Information
               </h2>
 
@@ -401,7 +401,7 @@ const WalletManage = () => {
                 bankData.map((bank, index) => (
                   <div
                     key={index}
-                    className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 my-4 flex items-center justify-between"
+                    className="bg-white p-4 sm:p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col"
                   >
                     <div className="flex flex-col">
                       <div className="flex items-center mb-3">
@@ -458,15 +458,15 @@ const WalletManage = () => {
         )}
         {isConfirmVisible && (
           <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
-            <div className="bg-white p-6 rounded-xl shadow-xl text-center">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            <div className="bg-white p-6 rounded-xl shadow-xl text-center max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
                 Withdrawal Confirmation
               </h2>
               <p className="text-gray-600 mb-6">
                 Are you sure you want to withdraw{" "}
                 {withdrawAmount.toLocaleString("vi-VN")} ₫ ?
               </p>
-              <div className="flex justify-center space-x-4">
+              <div className="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-4">
                 <button
                   onClick={handleWithdraw}
                   className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"

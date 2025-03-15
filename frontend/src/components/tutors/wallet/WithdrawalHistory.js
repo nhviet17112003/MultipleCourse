@@ -156,7 +156,6 @@ const WithdrawalHistory = () => {
       </h1>
 
       <div className="flex justify-between items-center mb-4">
-        {/* Bộ lọc Status (nằm bên trái) */}
         <select
           className="border px-3 py-2 rounded-md"
           value={filterStatus}
@@ -168,9 +167,7 @@ const WithdrawalHistory = () => {
           <option value="Approved">Approved</option>
         </select>
 
-        {/* Các bộ lọc và nút nằm bên phải */}
-        <div className="flex items-center gap-2">
-          {/* Bộ lọc sắp xếp */}
+        <div className="flex flex-wrap items-center gap-2">
           <select
             className="border px-3 py-2 rounded-md"
             value={sortField}
@@ -180,7 +177,6 @@ const WithdrawalHistory = () => {
             <option value="amount">Amount</option>
           </select>
 
-          {/* Nút sắp xếp tăng/giảm */}
           <button
             className="border px-3 py-2 rounded-md bg-gray-200 hover:bg-gray-300"
             onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
@@ -188,7 +184,6 @@ const WithdrawalHistory = () => {
             {sortOrder === "asc" ? "▲ Ascending" : "▼ Descending"}
           </button>
 
-          {/* Bộ lọc theo ngày */}
           <div className="flex items-center gap-2">
             <label className="text-gray-700">Filter by Date:</label>
             <input
@@ -199,7 +194,6 @@ const WithdrawalHistory = () => {
             />
           </div>
 
-          {/* Nút Reset */}
           <button
             className="border px-4 py-2 rounded-md bg-red-500 text-white hover:bg-red-600"
             onClick={() => {
@@ -291,17 +285,18 @@ const WithdrawalHistory = () => {
 
         <div className="flex items-center gap-2">
           <button
-            className="px-4 py-2 border rounded-md"
+            className="w-full sm:w-auto px-4 py-2 border rounded-md"
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
           >
             Previous
           </button>
-          <span className="text-sm font-medium">
+          <span className="text-xs sm:text-sm md:text-base font-medium text-center w-full">
             Page {currentPage} of {totalPages}
           </span>
+
           <button
-            className="px-4 py-2 border rounded-md"
+            className="w-full sm:w-auto px-4 py-2 border rounded-md"
             onClick={() =>
               setCurrentPage((prev) => Math.min(prev + 1, totalPages))
             }
