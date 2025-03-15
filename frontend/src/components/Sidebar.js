@@ -17,7 +17,7 @@ function Sidebar() {
 
   useEffect(() => {
     const updateRole = () => {
-      const currentRole = localStorage.getItem("role") || "Student"; // Nếu không có role thì mặc định là Student
+      const currentRole = localStorage.getItem("role") || "Guest"; // Nếu không có role thì mặc định là Student
       setRole(currentRole);
       console.log("Updated Role:", currentRole);
     };
