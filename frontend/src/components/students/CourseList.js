@@ -26,6 +26,7 @@ const CourseList = () => {
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [activeFilters, setActiveFilters] = useState([]);
+  const [studentsCount, setStudentsCount] = useState({});
 
   const categories = {
     "Business & Economics": [
@@ -163,7 +164,6 @@ const CourseList = () => {
     const fetchCourses = async () => {
       try {
         setLoading(true);
-        console.log("Fetching courses...");
 
         const authToken = localStorage.getItem("authToken");
 
@@ -179,8 +179,6 @@ const CourseList = () => {
         );
 
         const coursesData = await coursesResponse.json();
-
-        console.log("Courses data received:", coursesData);
 
         if (!coursesResponse.ok) {
           console.error("Error fetching courses:", coursesData.message);
@@ -204,7 +202,6 @@ const CourseList = () => {
           const ordersData = await ordersResponse.json();
 
           if (!ordersResponse.ok) {
-            console.error("Error fetching orders:", ordersData.message);
             return;
           }
 
@@ -220,7 +217,26 @@ const CourseList = () => {
         }
 
         setCourses(filteredCourses);
-        console.log("Courses data received 111:", filteredCourses);
+        const studentCounts = {};
+        await Promise.all(
+          filteredCourses.map(async (course) => {
+            const studentResponse = await fetch(
+              `http://localhost:3000/api/courses/student-of-course/${course._id}`
+            );
+            const studentData = await studentResponse.json();
+
+            if (studentResponse.ok) {
+              studentCounts[course._id] = studentData.students.length;
+            } else {
+              console.error(
+                `Error fetching students for course ${course._id}:`,
+                studentData.message
+              );
+            }
+          })
+        );
+
+        setStudentsCount(studentCounts);
         const uniqueTutorIds = [
           ...new Set(filteredCourses.map((course) => course.tutorId)),
         ];
@@ -237,10 +253,6 @@ const CourseList = () => {
               );
               const tutorData = await tutorResponse.json();
               if (tutorResponse.ok) {
-                console.log(
-                  `Tutor data received for ID ${tutorId}:`,
-                  tutorData
-                );
                 tutorsData[tutorId] = tutorData.fullname;
               } else {
                 console.error(
@@ -252,12 +264,10 @@ const CourseList = () => {
           })
         );
 
-        console.log("Tutors data:", tutorsData);
         setTutors(tutorsData);
       } catch (error) {
         console.error("Error:", error);
       } finally {
-        console.log("Fetch process completed.");
         setLoading(false);
       }
     };
@@ -311,7 +321,6 @@ const CourseList = () => {
       });
     }
   };
-  console.log("Selected Category:", selectedCategory);
 
   const filteredCourses = courses
     .filter((course) => {
@@ -560,13 +569,32 @@ const CourseList = () => {
                       <p className="text-sm text-gray-500 mt-1 italic">
                         {course.category}
                       </p>
-                      <p className="text-sm text-gray-600 mt-2">
-                        Tutor: {course.tutor?.fullname}
-                      </p>
                       <p className="text-yellow-500 flex items-center">
                         {renderStars(course.average_rating)} (
                         {course.comments.length})
                       </p>
+
+                      {course.tutor && (
+                        <div className="flex items-center gap-4 mt-4 p-3 bg-gray-100 rounded-lg shadow-sm">
+                          <img
+                            src={course.tutor?.avatar}
+                            alt={course.tutor.fullname}
+                            className="w-14 h-14 rounded-full border-2 border-gray-300 shadow-md object-cover"
+                          />
+                          <div className="flex flex-col">
+                            <p
+                              className="text-lg font-semibold text-gray-900 truncate max-w-[150px] cursor-pointer"
+                              title={course.tutor.fullname}
+                            >
+                              {course.tutor.fullname}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              🎓 {studentsCount[course._id] || 0} student
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
                       <div className="mt-4 flex items-center justify-between">
                         <span className="text-cyan-700 font-bold">
                           ${course.price}

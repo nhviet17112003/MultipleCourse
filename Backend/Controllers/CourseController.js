@@ -43,7 +43,7 @@ async function uploadFileToStorage(file, folderPath) {
 exports.getActiveCourses = async (req, res) => {
   try {
     const activeCourses = await Course.find({ status: true })
-      .populate("tutor", "fullname")
+      .populate("tutor", "fullname avatar")
       .exec();
     res.json(activeCourses);
   } catch (err) {
