@@ -12,6 +12,14 @@ const admin = require("firebase-admin");
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: config.email || "datnptce171966@fpt.edu.vn",
+    pass: config.password || "ivqm xtbu vfvu wdyk",
+  },
+});
+
 async function uploadFileToStorage(file, folderPath) {
   const bucket = admin.storage().bucket();
   const blob = bucket.file(folderPath + file.originalname);
@@ -403,6 +411,7 @@ exports.uploadCertificate = async (req, res) => {
 
 exports.banAndUnbanUser = async (req, res) => {
   try {
+    const message = req.body.message;
     const user = await Users.findOne({ _id: req.params.id });
     if (!user) {
       return res.status(400).json({ message: "User not found" });
@@ -423,8 +432,60 @@ exports.banAndUnbanUser = async (req, res) => {
     await user.save();
     await newAdminActivity.save();
     if (user.status) {
+      // Gửi email thông báo
+      let mailOptions;
+
+      mailOptions = {
+        to: user.email,
+        from: config.email,
+        subject: `You have been unbanned`,
+        html: `
+            <p>Dear ${user.fullname},</p>
+              <p>We are pleased to inform you that your account has been unbanned.</p>
+              <p>If you have any questions, please contact us.</p>
+              <p>Thank you for your understanding.</p>
+            <p>Best regards,</p>
+            <p>Multi Course Team</p>
+          `,
+      };
+
+      // Gửi email thông báo
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.log("Error sending email: ", error);
+        } else {
+          console.log("Email sent: ", info.response);
+        }
+      });
       res.status(200).json({ message: "User unbanned" });
     } else {
+      // Gửi email thông báo
+      let mailOptions;
+
+      mailOptions = {
+        to: user.email,
+        from: config.email,
+        subject: `You have been banned`,
+        html: `
+            <p>Dear ${user.fullname},</p>
+              <p>We regret to inform you that your account has been banned.</p>
+                <p><strong>Reason:</strong> ${message || "Not specified"}</p>
+              <p>If you have any questions, please contact us.</p>
+              <p>Thank you for your understanding.</p>
+            <p>Best regards,</p>
+            <p>Multi Course Team</p>
+          `,
+      };
+
+      // Gửi email thông báo
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.log("Error sending email: ", error);
+        } else {
+          console.log("Email sent: ", info.response);
+        }
+      });
+
       res.status(200).json({ message: "User banned" });
     }
   } catch (err) {

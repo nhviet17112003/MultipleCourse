@@ -71,8 +71,6 @@ const Navbar = () => {
       localStorage.setItem("role", response.data.role);
       setAvatarUrl(response.data.avatar);
       setFullname(response.data.fullname || "User");
-      console.log("User data:", response.data);
-      console.log("Role từ APIssssss:", response.data.role);  
     } catch (err) {
       setError("Your session has expired. Please log in again.");
       localStorage.removeItem("authToken"); // Remove token
@@ -98,7 +96,7 @@ const Navbar = () => {
           },
         }
       );
-      console.log("Phản hồi từ API:", response.data);
+      // console.log("Phản hồi từ API:", response.data);
       setBalance(response.data.current_balance);
     } catch (error) {
       console.error("Lỗi khi lấy balance:", error);
@@ -135,7 +133,7 @@ const Navbar = () => {
   const logout = async () => {
     try {
       const token = localStorage.getItem("authToken");
-  
+
       if (token) {
         await axios.post(
           "http://localhost:3000/api/users/logout",
@@ -147,27 +145,27 @@ const Navbar = () => {
           }
         );
       }
-  
+
       // Xóa token và thông tin trong localStorage
       localStorage.removeItem("authToken");
       localStorage.removeItem("fullname");
       localStorage.removeItem("role");
       localStorage.removeItem("avatar");
       localStorage.removeItem("userId");
-  
+
       // Xóa cookie Token
       deleteCookie("Token");
-  
+
       // **Kích hoạt sự kiện storage để Sidebar cập nhật ngay lập tức**
       window.dispatchEvent(new Event("storage"));
-  
+
       // Cập nhật state để re-render component
       setIsLoggedIn(false);
       setUserData(null);
       setFullname("User");
       setAvatarUrl("");
       setRole("Student"); // Nếu bạn có state role, cập nhật lại
-  
+
       // Chuyển về trang login
       debouncedNavigate("/login");
     } catch (error) {
@@ -175,7 +173,6 @@ const Navbar = () => {
       alert("Có lỗi xảy ra khi đăng xuất. Vui lòng thử lại!");
     }
   };
-  
 
   // Danh sách các trang không muốn hiển thị Navbar
   const hideNavbarRoutes = ["/login", "/signup", "/uploadtutorcertificate"];
