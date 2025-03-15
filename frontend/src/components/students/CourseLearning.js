@@ -54,7 +54,7 @@ const CourseLearningPage = () => {
 
   const handleEditComment = async (commentId, newComment) => {
     try {
-      const lessonId = currentLesson._id; // Lấy ID bài học
+      const lessonId = currentLesson._id;
       const response = await fetch(
         "http://localhost:3000/api/comments/update-lesson-comment",
         {
@@ -187,6 +187,10 @@ const CourseLearningPage = () => {
 
         setLessons(updatedLessons);
         setProgressData(progressData);
+
+        if (updatedLessons.length > 0) {
+          setCurrentLesson(updatedLessons[0]);
+        }
       } catch (err) {
         setError("Failed to fetch lessons or progress.");
       } finally {
@@ -371,21 +375,12 @@ const CourseLearningPage = () => {
       <div className="w-full md:w-2/3 p-6 bg-white shadow-xl rounded-lg">
         {currentLesson ? (
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
+            <h1 className="text-3xl font-bold text-gray-800 flex justify-center items-center gap-2">
               {currentLesson.title}
               {currentLesson.status === "Completed" && (
                 <CheckCircleIcon className="w-6 h-6 text-green-500" />
               )}
             </h1>
-            {/* <div className="mt-3 text-sm text-gray-500 flex items-center gap-2">
-              <span className="text-blue-500">
-                <i className="fas fa-calendar-alt"></i>
-              </span>
-              <strong>Created At:</strong>{" "}
-              <span className="text-gray-600">
-                {new Date(currentLesson.created_at).toLocaleString()}
-              </span>
-            </div> */}
             {currentLesson?.type === "exam" &&
             currentLesson.title === "Final Exam" ? (
               <div className="mt-6 flex flex-col justify-center">
@@ -540,19 +535,20 @@ const CourseLearningPage = () => {
                           value={note}
                           onChange={(e) => setNote(e.target.value)}
                         ></textarea>
-                        <button
-                          onClick={() => {
-                            if (note.trim()) {
-                              handleCommentSubmit();
-                            }
-                          }}
-                          className="py-3 px-6 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105"
-                        >
-                          Post Comment
-                        </button>
+                        <div className="flex justify-end">
+                          <button
+                            onClick={() => {
+                              if (note.trim()) {
+                                handleCommentSubmit();
+                              }
+                            }}
+                            className="py-3 px-6 bg-blue-600  text-white rounded-lg shadow-md hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105"
+                          >
+                            Post Comment
+                          </button>
+                        </div>
                       </div>
 
-                      {/* Hiển thị danh sách comment */}
                       {currentLesson.comments &&
                       currentLesson.comments.length > 0 ? (
                         currentLesson.comments.map((comment) => (
@@ -565,7 +561,6 @@ const CourseLearningPage = () => {
                               {new Date(comment.date).toLocaleString()}
                             </div>
 
-                            {/* Chỉnh sửa và xóa comment */}
                             <div className="flex gap-2 mt-2">
                               <button
                                 onClick={() => {
@@ -604,31 +599,51 @@ const CourseLearningPage = () => {
           </p>
         )}
       </div>
-      <div className="w-full md:w-1/3 bg-white p-6 border-l shadow-lg">
-        <h2 className="text-2xl font-semibold mb-4 text-gray-800">
-          List of lessons
+      <div className="w-full md:w-1/3 bg-white p-6 border-l shadow-xl rounded-lg">
+        <h2 className="text-2xl font-bold mb-4 text-gray-900 tracking-wide flex items-center justify-between">
+          📚 List of Lessons{" "}
+          <span className="text-blue-600 text-lg">({lessons.length})</span>
         </h2>
-        <ul className="space-y-3">
-          {lessons.map((lesson, index) => (
-            <li
-              key={lesson._id}
-              className={`p-4 rounded-lg flex items-center justify-between transition duration-300 shadow-sm ${
-                canAccessLesson(index)
-                  ? "cursor-pointer bg-gray-100 hover:bg-gray-200"
-                  : "bg-gray-300 cursor-not-allowed opacity-70"
-              }`}
-              onClick={() => canAccessLesson(index) && setCurrentLesson(lesson)}
-            >
-              <span className="text-gray-700 font-medium">{lesson.title}</span>
-              {lesson._id === "exam_final" && isCompleted ? (
-                <CheckCircleIcon className="h-6 w-6 text-green-500" />
-              ) : isLessonCompleted(lesson._id) ? (
-                <CheckCircleIcon className="h-6 w-6 text-green-500" />
-              ) : !canAccessLesson(index) ? (
-                <LockClosedIcon className="h-6 w-6 text-gray-500" />
-              ) : null}
-            </li>
-          ))}
+        <ul className="space-y-4">
+          {lessons.map((lesson, index) => {
+            const isFinalExam = lesson._id === "exam_final";
+            const completedLessons = lessons.filter((l) =>
+              isLessonCompleted(l._id)
+            );
+            const onlyFinalExamLeft =
+              completedLessons.length === lessons.length - 1 &&
+              !isLessonCompleted("exam_final");
+
+            return (
+              <li
+                key={lesson._id}
+                className={`p-4 rounded-lg flex items-center justify-between transition-all duration-300 shadow-md border relative ${
+                  canAccessLesson(index)
+                    ? "cursor-pointer bg-gradient-to-r from-gray-100 to-gray-50 hover:from-gray-200 hover:to-gray-100 transform hover:scale-105"
+                    : "bg-gray-200 cursor-not-allowed opacity-70"
+                }`}
+                onClick={() =>
+                  canAccessLesson(index) && setCurrentLesson(lesson)
+                }
+              >
+                <span className="text-gray-800 font-medium text-lg">
+                  {lesson.title}
+                </span>
+                {isFinalExam && isCompleted ? (
+                  <CheckCircleIcon className="h-6 w-6 text-green-500" />
+                ) : isLessonCompleted(lesson._id) ? (
+                  <CheckCircleIcon className="h-6 w-6 text-green-500" />
+                ) : !canAccessLesson(index) ? (
+                  <LockClosedIcon className="h-6 w-6 text-gray-500" />
+                ) : (
+                  <div className="absolute top-[-40px] left-1/2 transform -translate-x-1/2 bg-yellow-200 text-yellow-900 text-sm px-3 py-2 rounded-lg shadow-lg animate-bounce">
+                    🎉 Wow! You completed all the lessons! Take the Final Exam
+                    to complete the course. 🎯
+                  </div>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </div>
     </div>

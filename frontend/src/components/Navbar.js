@@ -12,7 +12,6 @@ import {
 } from "@ant-design/icons";
 import Cookies from "js-cookie";
 import ReCAPTCHA from "react-google-recaptcha";
-
 const Navbar = () => {
   const navigate = useNavigate();
   const [fullname, setFullname] = useState("User");
@@ -23,7 +22,7 @@ const Navbar = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const location = useLocation();
   const [balance, setBalance] = useState(0);
-  const role = localStorage.getItem("role");
+  const [role, setRole] = useState(localStorage.getItem("role") || null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const recaptchaRef = useRef(null);
   const isHome = location.pathname === "/";
@@ -72,7 +71,6 @@ const Navbar = () => {
       localStorage.setItem("role", response.data.role);
       setAvatarUrl(response.data.avatar);
       setFullname(response.data.fullname || "User");
-      // console.log("User data:", response.data);
     } catch (err) {
       setError("Your session has expired. Please log in again.");
       localStorage.removeItem("authToken"); // Remove token
@@ -114,14 +112,13 @@ const Navbar = () => {
       }
     }
 
-    
-  if (token) {
-    setIsLoggedIn(true);
-    fetchUserProfile();
-    fetchBalance();
-  } else {
-    setIsLoggedIn(false);
-  }
+    if (token) {
+      setIsLoggedIn(true);
+      fetchUserProfile();
+      fetchBalance();
+    } else {
+      setIsLoggedIn(false);
+    }
 
     const protectedRoutes = ["/userprofile", "/cart"];
     if (protectedRoutes.includes(location.pathname) && !token) {
@@ -136,6 +133,7 @@ const Navbar = () => {
   const logout = async () => {
     try {
       const token = localStorage.getItem("authToken");
+
       if (token) {
         await axios.post(
           "http://localhost:3000/api/users/logout",
@@ -153,15 +151,21 @@ const Navbar = () => {
       localStorage.removeItem("fullname");
       localStorage.removeItem("role");
       localStorage.removeItem("avatar");
+      localStorage.removeItem("userId");
 
       // Xóa cookie Token
       deleteCookie("Token");
 
-      // Reset reCAPTCHA khi đăng xuất
-      if (recaptchaRef.current) {
-        recaptchaRef.current.reset();
-      }
-      // Reload Navbar sau 2 giây
+      // **Kích hoạt sự kiện storage để Sidebar cập nhật ngay lập tức**
+      window.dispatchEvent(new Event("storage"));
+
+      // Cập nhật state để re-render component
+      setIsLoggedIn(false);
+      setUserData(null);
+      setFullname("User");
+      setAvatarUrl("");
+      setRole("Student"); // Nếu bạn có state role, cập nhật lại
+
       // Chuyển về trang login
       debouncedNavigate("/login");
     } catch (error) {

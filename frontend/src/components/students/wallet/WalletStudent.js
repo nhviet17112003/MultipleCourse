@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { FaWallet, FaQuestionCircle } from "react-icons/fa";
 
 const WalletStudent = () => {
   const [amount, setAmount] = useState(0);
@@ -10,8 +11,8 @@ const WalletStudent = () => {
     setLoading(true);
     setResponseMessage("");
 
-    if (amount < 2000) {
-      setResponseMessage("Deposit amount must be greater than 2,000.");
+    if (amount < 50000) {
+      setResponseMessage("The deposit amount must be greater than 50,000 VND.");
       setLoading(false);
       return;
     }
@@ -34,7 +35,6 @@ const WalletStudent = () => {
           },
         }
       );
-      console.log("Phản hồi từ server:", response.data);
 
       if (
         typeof response.data === "string" &&
@@ -44,9 +44,9 @@ const WalletStudent = () => {
         setAmount(0);
       }
     } catch (error) {
-      console.error("Lỗi khi gửi yêu cầu thanh toán:", error);
+      console.error("Error sending payment request:", error);
       setResponseMessage(
-        error.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại."
+        error.response?.data?.message || "An error occurred, please try again."
       );
     } finally {
       setLoading(false);
@@ -54,61 +54,54 @@ const WalletStudent = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-100  h-screen">
-      <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-2xl">
-        <h2 className="text-2xl font-bold mb-4 text-center text-blue-500">
-          Deposit money into wallet
+    <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-r from-[#14b8a6] to-indigo-200">
+      <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-lg">
+        <h2 className="text-3xl font-bold mb-6 text-center text-[#14b8a6] flex items-center justify-center">
+          <FaWallet className="mr-2" /> Deposit Wallet
         </h2>
-        <div className="flex flex-col items-center">
-          <input
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(Number(e.target.value))}
-            className="w-full p-2 border border-gray-300 rounded-md mb-4"
-            placeholder="Enter amount.."
-          />
-          <div className="flex mb-4">
-            <button
-              onClick={() => setAmount(50000)}
-              className="bg-gray-100 text-gray-600 p-2 rounded-md hover:bg-gray-200 transition duration-300 ease-in-out mr-2"
-            >
-              50.000
-            </button>
-            <button
-              onClick={() => setAmount(100000)}
-              className="bg-gray-100 text-gray-600 p-2 rounded-md hover:bg-gray-200 transition duration-300 ease-in-out mr-2"
-            >
-              100.000
-            </button>
-            <button
-              onClick={() => setAmount(200000)}
-              className="bg-gray-100 text-gray-600 p-2 rounded-md hover:bg-gray-200 transition duration-300 ease-in-out mr-2"
-            >
-              200.000
-            </button>
-            <button
-              onClick={() => setAmount(300000)}
-              className="bg-gray-100 text-gray-600 p-2 rounded-md hover:bg-gray-200 transition duration-300 ease-in-out mr-2"
-            >
-              300.000
-            </button>
-            <button
-              onClick={() => setAmount(500000)}
-              className="bg-gray-100 text-gray-600 p-2 rounded-md hover:bg-gray-200 transition duration-300 ease-in-out mr-2"
-            >
-              500.000
-            </button>
-            <button
-              onClick={() => setAmount(1000000)}
-              className="bg-gray-100 text-gray-600 p-2 rounded-md hover:bg-gray-200 transition duration-300 ease-in-out"
-            >
-              1.000.000
-            </button>
+        <div className="flex flex-col items-center w-full">
+          <div className="relative w-full">
+            <input
+              type="number"
+              value={amount === 0 ? "" : amount}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === "") {
+                  setAmount("");
+                } else {
+                  setAmount(Number(value));
+                }
+              }}
+              className="w-full p-2 border border-gray-300 rounded-md mb-4 pr-10"
+              placeholder="Enter amount..."
+            />
+            <div className="absolute inset-y-0 right-2 flex items-center group">
+              <FaQuestionCircle className="text-gray-400 hover:text-gray-600 cursor-pointer text-2xl mb-4" />
+              <div className="absolute bottom-8 right-0 w-48 p-2 text-sm text-white bg-gray-700 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                Deposit amount must be greater than 50,000 VND
+              </div>
+            </div>
           </div>
+
+          <div className="grid grid-cols-3 gap-3 mb-6 w-full">
+            {[
+              50000, 100000, 200000, 300000, 500000, 1000000, 2000000, 5000000,
+              10000000,
+            ].map((value) => (
+              <button
+                key={value}
+                onClick={() => setAmount(value)}
+                className="bg-gray-200 text-gray-700 py-2 px-4 rounded-lg shadow-md hover:bg-blue-500 hover:text-white transition w-full"
+              >
+                {value.toLocaleString()}
+              </button>
+            ))}
+          </div>
+
           <button
             onClick={handlePayment}
             disabled={loading}
-            className=" bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition duration-300 ease-in-out"
+            className="w-full bg-[#14b8a6] text-white py-3 rounded-lg shadow-md hover:bg-blue-700 transition flex items-center justify-center"
           >
             {loading ? (
               <div className="flex items-center justify-center">
@@ -132,6 +125,7 @@ const WalletStudent = () => {
               "Deposit"
             )}
           </button>
+
           {responseMessage && (
             <p className="mt-4 text-center text-sm text-gray-700">
               {responseMessage}

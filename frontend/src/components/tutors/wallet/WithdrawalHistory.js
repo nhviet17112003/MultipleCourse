@@ -1,4 +1,13 @@
 import React, { useEffect, useState } from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 const WithdrawalHistory = () => {
   const [withdrawalHistory, setWithdrawalHistory] = useState([]);
@@ -10,6 +19,8 @@ const WithdrawalHistory = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [totalWithdrawals, setTotalWithdrawals] = useState(0);
+  const [showChart, setShowChart] = useState(false);
+  const [selectedDate, setSelectedDate] = useState("");
 
   useEffect(() => {
     const fetchWithdrawalHistory = async () => {
@@ -42,10 +53,13 @@ const WithdrawalHistory = () => {
     fetchWithdrawalHistory();
   }, []);
 
-  const filteredData = withdrawalHistory.filter((item) =>
-    filterStatus ? item.status === filterStatus : true
-  );
-
+  const filteredData = withdrawalHistory.filter((item) => {
+    const itemDate = new Date(item.date).toISOString().split("T")[0];
+    return (
+      (!filterStatus || item.status === filterStatus) &&
+      (!selectedDate || itemDate === selectedDate)
+    );
+  });
   const sortedData = [...filteredData].sort((a, b) => {
     if (sortField === "amount") {
       return sortOrder === "asc" ? a.amount - b.amount : b.amount - a.amount;
@@ -59,6 +73,67 @@ const WithdrawalHistory = () => {
   const totalApprovedAmount = sortedData
     .filter((item) => item.status === "Approved")
     .reduce((acc, item) => acc + item.amount, 0);
+
+  const totalRejectedAmount = withdrawalHistory
+    .filter((item) => item.status === "Rejected")
+    .reduce((acc, item) => acc + item.amount, 0);
+
+  const totalAmount = withdrawalHistory.reduce(
+    (acc, item) => acc + item.amount,
+    0
+  );
+
+  const chartData = [
+    {
+      name: "Approved",
+      amount: withdrawalHistory
+        .filter((item) => item.status === "Approved")
+        .reduce((acc, item) => acc + item.amount, 0),
+    },
+    {
+      name: "Rejected",
+      amount: withdrawalHistory
+        .filter((item) => item.status === "Rejected")
+        .reduce((acc, item) => acc + item.amount, 0),
+    },
+    {
+      name: "Pending",
+      amount: withdrawalHistory
+        .filter((item) => item.status === "Pending")
+        .reduce((acc, item) => acc + item.amount, 0),
+    },
+    {
+      name: "Total",
+      amount: withdrawalHistory.reduce((acc, item) => acc + item.amount, 0),
+    },
+  ];
+
+  const getTotalAmountByStatus = () => {
+    if (filterStatus === "Approved") {
+      return {
+        label: "Total Approved Amount",
+        amount: filteredData.reduce((acc, item) => acc + item.amount, 0),
+      };
+    }
+    if (filterStatus === "Rejected") {
+      return {
+        label: "Total Rejected Amount",
+        amount: filteredData.reduce((acc, item) => acc + item.amount, 0),
+      };
+    }
+    if (filterStatus === "Pending") {
+      return {
+        label: "Total Pending Amount",
+        amount: filteredData.reduce((acc, item) => acc + item.amount, 0),
+      };
+    }
+    return {
+      label: "Total Amount Request",
+      amount: withdrawalHistory.reduce((acc, item) => acc + item.amount, 0),
+    };
+  };
+
+  const { label, amount } = getTotalAmountByStatus();
 
   const totalPages = Math.ceil(sortedData.length / itemsPerPage);
   const paginatedData = sortedData.slice(
@@ -81,6 +156,7 @@ const WithdrawalHistory = () => {
       </h1>
 
       <div className="flex justify-between items-center mb-4">
+        {/* Bộ lọc Status (nằm bên trái) */}
         <select
           className="border px-3 py-2 rounded-md"
           value={filterStatus}
@@ -92,7 +168,9 @@ const WithdrawalHistory = () => {
           <option value="Approved">Approved</option>
         </select>
 
-        <div className="flex gap-4">
+        {/* Các bộ lọc và nút nằm bên phải */}
+        <div className="flex items-center gap-2">
+          {/* Bộ lọc sắp xếp */}
           <select
             className="border px-3 py-2 rounded-md"
             value={sortField}
@@ -102,23 +180,49 @@ const WithdrawalHistory = () => {
             <option value="amount">Amount</option>
           </select>
 
+          {/* Nút sắp xếp tăng/giảm */}
           <button
             className="border px-3 py-2 rounded-md bg-gray-200 hover:bg-gray-300"
             onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
           >
             {sortOrder === "asc" ? "▲ Ascending" : "▼ Descending"}
           </button>
+
+          {/* Bộ lọc theo ngày */}
+          <div className="flex items-center gap-2">
+            <label className="text-gray-700">Filter by Date:</label>
+            <input
+              type="date"
+              className="border px-3 py-2 rounded-md"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+            />
+          </div>
+
+          {/* Nút Reset */}
+          <button
+            className="border px-4 py-2 rounded-md bg-red-500 text-white hover:bg-red-600"
+            onClick={() => {
+              setFilterStatus("");
+              setSelectedDate("");
+              setSortField("date");
+              setSortOrder("desc");
+              setCurrentPage(1);
+            }}
+          >
+            Reset
+          </button>
         </div>
       </div>
 
       <p className="text-sm text-gray-500 italic mb-4">
-        Number of withdrawal orders: {totalWithdrawals}
+        Number of withdrawal orders: {filteredData.length}
       </p>
 
       <div className="overflow-x-auto">
         <table className="min-w-full table-auto bg-gray-50 shadow-md rounded-lg">
           <thead>
-            <tr className="text-left bg-gray-200 text-gray-700">
+            <tr className="text-left bg-[#14b8a6] text-white">
               <th className="py-3 px-6">Date & Time</th>
               <th className="py-3 px-6">Amount</th>
               <th className="py-3 px-6">Status</th>
@@ -168,10 +272,23 @@ const WithdrawalHistory = () => {
       </div>
 
       <div className="flex justify-between items-center mt-4">
-        <span className="text-lg font-semibold">
-          Total Approved Amount: {totalApprovedAmount.toLocaleString("vi-VN")}{" "}
-          VNĐ
+        <span className="text-lg font-semibold text-gray-800 bg-green-200 px-3 py-1 rounded-lg shadow-sm">
+          {label}:{" "}
+          <span
+            className={`${
+              filterStatus === "Approved"
+                ? "text-green-600"
+                : filterStatus === "Rejected"
+                ? "text-red-600"
+                : filterStatus === "Pending"
+                ? "text-yellow-600"
+                : "text-blue-600"
+            }`}
+          >
+            {amount.toLocaleString("vi-VN")} VNĐ
+          </span>
         </span>
+
         <div className="flex items-center gap-2">
           <button
             className="px-4 py-2 border rounded-md"
@@ -194,6 +311,35 @@ const WithdrawalHistory = () => {
           </button>
         </div>
       </div>
+
+      <div className="flex justify-center my-8">
+        <button
+          onClick={() => setShowChart(!showChart)}
+          className="px-6 py-3 bg-[#14b8a6] text-white font-semibold rounded-lg shadow-md hover:bg-[#0e9488] transition duration-300"
+        >
+          {showChart ? "Hide Withdrawal Summary" : "View Withdrawal Summary"}
+        </button>
+      </div>
+
+      {showChart && (
+        <div className="my-8">
+          <h2 className="text-xl font-semibold text-gray-700 mb-4">
+            Withdrawal Summary
+          </h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart
+              data={chartData}
+              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            >
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="amount" fill="#14b8a6" barSize={60} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { FaWallet, FaQuestionCircle } from "react-icons/fa";
 
 const WalletManage = () => {
   const [balance, setBalance] = useState(null);
@@ -69,6 +70,13 @@ const WalletManage = () => {
     "Vietnam International Bank (VIB)",
     "Keppel Bank",
   ];
+
+  const handleUpdateClick = (bank) => {
+    setNewBankName(bank.bank_name);
+    setNewAccountNumber(bank.account_number);
+    setNewAccountHolder(bank.account_name);
+    setIsUpdateFormVisible(true);
+  };
 
   const handleAccountHolderChange = (e) => {
     const value = e.target.value;
@@ -304,9 +312,9 @@ const WalletManage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-indigo-100 to-white p-8">
-      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-xl p-6">
-        <h1 className="text-3xl font-bold text-indigo-700 text-center mb-8">
+    <div className="min-h-screen flex justify-start items-start bg-gradient-to-b from-[#14b8a6] to-indigo-200 pt-10">
+      <div className="max-w-4xl w-full mx-auto bg-white rounded-xl shadow-xl p-6 py-6">
+        <h1 className="text-3xl font-bold text-black-700 text-center mb-8">
           Wallet Manage
         </h1>
         <div className="flex justify-between items-center mb-8">
@@ -324,7 +332,7 @@ const WalletManage = () => {
           !isWithdrawFormVisible && (
             <button
               onClick={() => setIsWithdrawFormVisible(true)}
-              className="w-full py-3 bg-blue-600 text-white rounded-lg shadow-lg hover:bg-blue-700 transition-all ease-in-out"
+              className="w-full py-3 bg-[#14b8a6] text-white rounded-lg shadow-lg hover:bg-green-700 transition-all ease-in-out"
             >
               Withdrawal Request
             </button>
@@ -334,24 +342,38 @@ const WalletManage = () => {
         {isWithdrawFormVisible && (
           <div className="mt-6">
             <div className="grid grid-cols-1 gap-6">
-              <input
-                type="number"
-                value={withdrawAmount}
-                onChange={(e) => {
-                  const inputAmount = Number(e.target.value);
-                  if (inputAmount > balance) {
-                    setMessageBalance(
-                      "The withdrawal amount cannot exceed the current balance."
-                    );
-                  } else {
-                    setMessageBalance("");
-                    toast.clearWaitingQueue();
-                  }
-                  setWithdrawAmount(inputAmount);
-                }}
-                className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="Số tiền muốn rút"
-              />
+              <div className="relative w-full">
+                <input
+                  type="number"
+                  value={withdrawAmount}
+                  onChange={(e) => {
+                    const inputAmount = Number(e.target.value);
+                    if (inputAmount > balance) {
+                      setMessageBalance(
+                        "The withdrawal amount cannot exceed the current balance."
+                      );
+                    } else {
+                      setMessageBalance("");
+                      toast.clearWaitingQueue();
+                    }
+                    setWithdrawAmount(inputAmount);
+                  }}
+                  className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="Số tiền muốn rút"
+                />
+                <div className="absolute inset-y-0 right-2 flex items-center group">
+                  <FaQuestionCircle className="text-gray-400 hover:text-gray-600 cursor-pointer text-2xl" />
+                  <div className="absolute bottom-12 right-0 w-52 p-3 text-sm text-white bg-gray-700 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                    <p className="font-semibold">To withdraw money you must:</p>
+                    <ul className="list-disc list-inside mt-1">
+                      <li>Add the bank</li>
+                      <li>Amount must be greater than 0</li>
+                      <li>Amount must be less than the current balance</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
               {messageBalance && (
                 <p className="mt-6 text-center text-red-600 font-semibold">
                   {messageBalance}
@@ -397,7 +419,7 @@ const WalletManage = () => {
                     </div>
 
                     <button
-                      onClick={() => setIsUpdateFormVisible((prev) => !prev)}
+                      onClick={() => handleUpdateClick(bank)}
                       className="py-2 px-6 bg-yellow-500 text-white rounded-full hover:bg-yellow-600 transition-all ease-in-out flex items-center"
                     >
                       <svg
@@ -414,7 +436,7 @@ const WalletManage = () => {
                           d="M13 3l-7 7V3h14v14H7V10m3-4l4 4"
                         />
                       </svg>
-                      <span>{isUpdateFormVisible ? "Update" : "Update"}</span>{" "}
+                      <span>Update</span>
                     </button>
                   </div>
                 ))

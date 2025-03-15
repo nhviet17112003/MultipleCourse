@@ -110,7 +110,7 @@ const UploadTutorCertificate = () => {
           {loading ? "Uploading..." : "Upload Certificates"}
         </button>
         <button
-        onClick={() => navigate("/login")} // Điều hướng về trang login
+        onClick={() => navigate("/courses-list-tutor")} // Điều hướng về trang login
         className="mb-4 py-2 px-4 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-600"
       >
         Skip

@@ -1,3 +1,4 @@
+import { Table } from "antd";
 import React, { useEffect, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -39,14 +40,40 @@ const StatisticForAdmin = () => {
 
     setLoading(false);
   }, []);
+  console.log(orders);
 
   if (loading) {
     return <p className="text-center text-gray-600">Loading data...</p>;
   }
 
+  const columns = [
+    {
+      title: "Buyer",
+      dataIndex: "buyer",
+      key: "buyer",
+    },
+    {
+      title: "Amount",
+      dataIndex: "amount",
+      key: "amount",
+    },
+    {
+      title: "Order",
+      dataIndex: "order",
+      key: "order",
+    },
+  ];
+
+  const data = orders.map((order) => ({
+    key: order._id,
+    buyer: order.user?.fullname || "Anonymous",
+    amount: order.total_price + " VND",
+    order: new Date(order.order_date).toLocaleDateString(),
+  }));
+
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-semibold text-teal-600">Revenue Statistics</h1>
+    <div className="container mx-auto p-6 max-h-screen">
+      <h1 className="text-3xl font-bold text-center mb-6">Revenue Statistics</h1>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
         <div className="bg-white p-6 shadow rounded-lg text-center">
           <h2 className="text-xl font-semibold text-gray-700">Total revenue</h2>
@@ -74,28 +101,29 @@ const StatisticForAdmin = () => {
         </ResponsiveContainer>
       </div>
 
-      <h2 className="text-2xl font-semibold text-gray-700 mt-8">Order List</h2>
+      <h2 className="text-3xl font-bold text-center mb-6 mt-8">Order List</h2>
       <div className="overflow-x-auto">
-        <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+        <Table columns={columns} dataSource={data} />
+        {/* <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
           <thead className="bg-teal-600 text-white">
             <tr>
-              <th className="p-4">ID</th>
-              <th className="p-4">Buyer</th>
-              <th className="p-4">Amount</th>
-              <th className="p-4">Order</th>
+            
+              <th className="border border-gray-300 px-4 py-2">Buyer</th>
+              <th className="border border-gray-300 px-4 py-2">Amount</th>
+              <th className="border border-gray-300 px-4 py-2">Order</th>
             </tr>
           </thead>
           <tbody>
             {orders.map((order) => (
               <tr key={order._id} className="border-b text-center">
-                <td className="p-4">{order._id}</td>
-                <td className="p-4">{order.user?.fullname || "Anonymous"}</td>
-                <td className="p-4">{order.total_price} VND</td>
-                <td className="p-4">{new Date(order.order_date).toLocaleDateString()}</td>
+              
+                <td className="border border-gray-300 px-4 py-2">{order.user?.fullname || "Anonymous"}</td>
+                <td className="border border-gray-300 px-4 py-2">{order.total_price} VND</td>
+                <td className="border border-gray-300 px-4 py-2">{new Date(order.order_date).toLocaleDateString()}</td>
               </tr>
             ))}
           </tbody>
-        </table>
+        </table> */}
       </div>
     </div>
   );
