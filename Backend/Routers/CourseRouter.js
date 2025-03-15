@@ -19,12 +19,7 @@ router.get(
   auth.verifyTutor,
   courseController.getCourseOfTutor
 );
-router.get(
-  "/detail/:id",
-  cors.corsWithOptions,
-  auth.verifyUser,
-  courseController.getCourseById
-);
+router.get("/detail/:id", cors.corsWithOptions, courseController.getCourseById);
 //Request to create course
 router.post(
   "/create-course",
@@ -99,7 +94,6 @@ router.get(
 //5 tutor có sức ảnh hưởng nhất
 router.get("/top-tutors", cors.corsWithOptions, courseController.getTop5Tutor);
 
-
 //course bán chạy nhất
 router.get(
   "/best-seller",
@@ -117,4 +111,3 @@ router.get(
 );
 
 module.exports = router;
-

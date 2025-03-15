@@ -64,7 +64,6 @@ const Cart = () => {
             (item) => item.course._id !== itemId
           );
 
-          // Tính lại tổng tiền
           const updatedTotalPrice = updatedItems.reduce(
             (total, item) => total + item.course.price,
             0
@@ -100,14 +99,19 @@ const Cart = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setIsModalOpen(true); // Mở modal khi thanh toán thành công
+        setIsModalOpen(true);
       } else {
         const errorData = await response.json();
         console.error(
           "Lỗi khi tạo đơn hàng:",
           errorData.message || "Không rõ lỗi"
         );
-        toast.error("Payment failed!");
+        if (errorData.message === "Not enough balance") {
+          toast.error("Not enough balance! ");
+        } else {
+          console.log(errorData.message);
+          toast.error("Payment failed!");
+        }
       }
     } catch (error) {
       console.error("Lỗi khi tạo đơn hàng:", error);
@@ -115,69 +119,91 @@ const Cart = () => {
     }
   };
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-gray-700 mb-4">Giỏ Hàng</h1>
+    <div className="min-h-screen bg-gray-50">
+      <ToastContainer position="top-right" autoClose={3000} />
+
+      <div className="container mx-auto px-6 py-10">
+        <h1 className="text-3xl font-bold text-gray-800 mb-6">🛒 My Cart</h1>
+
         <button
-          onClick={() => navigate("/")} // Quay lại HomeScreen
-          className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
+          onClick={() => navigate("/")}
+          className="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-300 transition"
         >
-          Back
+          ← Back to Home
         </button>
 
         {cartItems.length === 0 ? (
-          <p>Your cart is empty.</p>
+          <div className="mt-10 flex flex-col items-center">
+            <p className="text-lg text-gray-600">Your cart is empty. 🛍️</p>
+          </div>
         ) : (
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <ul>
+          <div className="bg-white p-6 rounded-xl shadow-lg mt-6">
+            <ul className="divide-y divide-gray-200">
               {cartItems.map((item) => (
                 <li
                   key={item._id}
-                  className="flex items-center justify-between mb-4"
+                  className="flex items-center justify-between py-4"
                 >
                   <div className="flex items-center">
                     <img
                       src={item.course.image}
                       alt={item.course.title}
-                      className="w-16 h-16 object-cover mr-4"
+                      className="w-16 h-16 object-cover rounded-lg shadow-sm mr-4"
                     />
-                    <span>{item.course.title}</span>
+                    <div>
+                      <p className="text-gray-800 text-lg font-medium">
+                        {item.course.title}
+                      </p>
+                      <p className="text-gray-500 text-sm">
+                        Price:{" "}
+                        <span className="text-teal-600 font-semibold">
+                          {item.course.price} VND
+                        </span>
+                      </p>
+                    </div>
                   </div>
                   <button
-                    onClick={() => handleRemoveItem(item.course._id)} // Sử dụng item.course._id
-                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                    onClick={() => handleRemoveItem(item.course._id)}
+                    className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
                   >
                     Delete
                   </button>
                 </li>
               ))}
             </ul>
-            <div className="flex justify-between mt-6">
-              <p className="text-xl font-bold">TOTAL: {totalPrice} VND</p>
+
+            <div className="flex justify-between items-center mt-6 border-t pt-4">
+              <p className="text-xl font-semibold text-gray-800">
+                Total: <span className="text-teal-600">{totalPrice} VND</span>
+              </p>
               <button
                 onClick={handlePayment}
-                className="bg-teal-500 text-white px-6 py-2 rounded hover:bg-teal-600"
+                className="bg-teal-500 text-white px-6 py-3 rounded-lg hover:bg-teal-600 transition shadow-lg"
               >
-                Pay
+                Pay Now
               </button>
             </div>
           </div>
         )}
       </div>
+
       {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-            <h2 className="text-xl font-semibold mb-4">
-              You have successfully purchased this course!
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-8 rounded-lg shadow-2xl text-center transform scale-105">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">
+              🎉 Purchase Successful!
             </h2>
+            <p className="text-gray-600 mb-6">
+              You have successfully purchased this course. 🎓
+            </p>
             <button
               onClick={() => {
                 setIsModalOpen(false);
                 navigate("/my-courses");
               }}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              className="bg-blue-500 text-white px-5 py-2 rounded-lg hover:bg-blue-600 transition"
             >
-              OK
+              🎯 Go to My Courses
             </button>
           </div>
         </div>

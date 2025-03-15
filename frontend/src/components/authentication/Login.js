@@ -20,6 +20,8 @@ const Login = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [captcha, setCaptcha] = useState(generateCaptcha());
   const [userCaptcha, setUserCaptcha] = useState("");
+  const [role, setRole] = useState(localStorage.getItem("role") || null);
+  
   const navigate = useNavigate();
   const timeoutRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -165,6 +167,10 @@ const Login = () => {
         }
         localStorage.setItem("role", role);
         localStorage.setItem("authToken", token);
+        localStorage.setItem("userId", user_id); 
+        localStorage.setItem("role", role);
+        setRole(role); // Cập nhật role ngay để sidebar re-render
+
         setSuccessMessage("Login successfully!");
         setTimeout(() => {
           if (

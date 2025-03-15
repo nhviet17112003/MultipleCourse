@@ -3,7 +3,7 @@ import { useTheme } from "../context/ThemeContext";
 import { toast, ToastContainer } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { Dropdown, Spin, Table, Tag } from "antd";
-import { EllipsisOutlined } from "@ant-design/icons";
+import { EllipsisOutlined, CheckOutlined, StopOutlined } from "@ant-design/icons";
 
 export default function RequestList() {
   const [requests, setRequests] = useState([]);
@@ -193,7 +193,7 @@ export default function RequestList() {
   }));
 
   return (
-    <div className="container mx-auto p-6 max-h-screen">
+    <div className="container mx-auto p-6 ">
        <Spin spinning={spinning} percent={percent} fullscreen />
       <h1 className="text-3xl font-bold text-center mb-6">Request List</h1>
       {loading && <p className="text-blue-500">Loading...</p>}
@@ -285,25 +285,42 @@ const DropDownMenu = ({record ,handleProcessRequest, setIsModalOpen , setSelecte
       {
         key: '1',
         label: (
-            <div  onClick={() => {
-              handleProcessRequest(record.key, "Approved", record.request_type)
-            }}>{record.status === "Pending" && "Approve"}</div>
+          <div
+            onClick={() => {
+              handleProcessRequest(record.key, "Approved", record.request_type);
+            }}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-green-600 hover:bg-green-50 rounded-md transition-colors duration-150 cursor-pointer"
+          >
+            {record.status === "Pending" && (
+              <>
+                <CheckOutlined className="h-4 w-4" />
+                <span>Approve</span>
+              </>
+            )}
+          </div>
         ),
-  
-  
       },
       {
         key: '2',
         label: (
-            <div  onClick={() => { 
+          <div
+            onClick={() => {
               setIsModalOpen(true);
               setSelectedRequest(record);
-            }}>{record.status === "Pending" && "Reject"}</div>
+            }}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md transition-colors duration-150 cursor-pointer"
+          >
+            {record.status === "Pending" && (
+              <>
+                <StopOutlined className="h-4 w-4" />
+                <span>Reject</span>
+              </>
+            )}
+          </div>
         ),
-  
-  
       },
-    ]
+    ];
+
     return(
       <div>
   

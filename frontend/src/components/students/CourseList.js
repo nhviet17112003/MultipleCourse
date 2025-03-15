@@ -19,7 +19,7 @@ const CourseList = () => {
   const [tutors, setTutors] = useState({});
   const [filter, setFilter] = useState("");
   const [sortOption, setSortOption] = useState("default");
-  const [priceRange, setPriceRange] = useState([0, 100000]);
+  const [priceRange, setPriceRange] = useState([0, 10000000]);
   const [ratingFilter, setRatingFilter] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -51,16 +51,19 @@ const CourseList = () => {
         console.log("Fetching courses...");
   
         const authToken = localStorage.getItem("authToken");
-  
+
         // Fetch danh sách khóa học mà không cần token
-        const coursesResponse = await fetch("http://localhost:3000/api/courses/active-courses", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}), // Chỉ thêm nếu có token
-          },
-        });
-  
+        const coursesResponse = await fetch(
+          "http://localhost:3000/api/courses/active-courses",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}), // Chỉ thêm nếu có token
+            },
+          }
+        );
+
         const coursesData = await coursesResponse.json();
   
         console.log("Courses data received:", coursesData);
@@ -69,38 +72,45 @@ const CourseList = () => {
           console.error("Error fetching courses:", coursesData.message);
           return;
         }
-  
+
         let filteredCourses = coursesData;
-  
+
         if (authToken) {
-          // Nếu có token, fetch đơn hàng
-          const ordersResponse = await fetch("http://localhost:3000/api/orders/my-orders", {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${authToken}`,
-            },
-          });
-  
+          const ordersResponse = await fetch(
+            "http://localhost:3000/api/orders/my-orders",
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${authToken}`,
+              },
+            }
+          );
+
           const ordersData = await ordersResponse.json();
-  
+
           if (!ordersResponse.ok) {
             console.error("Error fetching orders:", ordersData.message);
             return;
           }
-  
+
           const purchasedCourseIds = new Set(
-            ordersData.flatMap((order) => order.order_items.map((item) => item.course._id))
+            ordersData.flatMap((order) =>
+              order.order_items.map((item) => item.course._id)
+            )
           );
-  
-          // Lọc bỏ khóa học đã mua
-          filteredCourses = coursesData.filter((course) => !purchasedCourseIds.has(course._id));
+
+          filteredCourses = coursesData.filter(
+            (course) => !purchasedCourseIds.has(course._id)
+          );
         }
-  
+
         setCourses(filteredCourses);
-  
-        const uniqueTutorIds = [...new Set(filteredCourses.map((course) => course.tutorId))];
-  
+        console.log("Courses data received 111:", filteredCourses);
+        const uniqueTutorIds = [
+          ...new Set(filteredCourses.map((course) => course.tutorId)),
+        ];
+
         console.log("Unique tutor IDs:", uniqueTutorIds);
   
         const tutorsData = {};
@@ -203,6 +213,7 @@ const CourseList = () => {
         return (b.average_rating ?? 0) - (a.average_rating ?? 0);
       return 0;
     });
+  console.log("Final filtered courses before rendering:", filteredCourses);
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -253,17 +264,17 @@ const CourseList = () => {
             <div className="flex-1">
               <p className="text-gray-800 text-center font-semibold mb-2">
                 Price: {priceRange[0]} -{" "}
-                {priceRange[1] >= 100000 ? "All" : priceRange[1]}
+                {priceRange[1] >= 1000000 ? "All" : priceRange[1]}
               </p>
               <Slider
                 range
                 min={0}
-                max={100000}
-                step={1000}
+                max={1000000}
+                step={10000}
                 value={priceRange}
                 onChange={(value) => {
-                  if (value[1] >= 100000) {
-                    setPriceRange([value[0], 100000]);
+                  if (value[1] >= 1000000) {
+                    setPriceRange([value[0], 1000000]);
                   } else {
                     setPriceRange(value);
                   }
@@ -278,7 +289,7 @@ const CourseList = () => {
               onClick={() => {
                 setFilter("");
                 setSortOption("default");
-                setPriceRange([0, 100000]);
+                setPriceRange([0, 1000000]);
                 setRatingFilter(0);
               }}
               className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
