@@ -49,83 +49,77 @@ const CourseList = () => {
       try {
         setLoading(true);
         console.log("Fetching courses...");
-
+  
         const authToken = localStorage.getItem("authToken");
-
-        const coursesResponse = await fetch(
-          "http://localhost:3000/api/courses/active-courses",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${authToken}`,
-            },
-          }
-        );
+  
+        // Fetch danh sách khóa học mà không cần token
+        const coursesResponse = await fetch("http://localhost:3000/api/courses/active-courses", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}), // Chỉ thêm nếu có token
+          },
+        });
+  
         const coursesData = await coursesResponse.json();
-
+  
         console.log("Courses data received:", coursesData);
-
+  
         if (!coursesResponse.ok) {
           console.error("Error fetching courses:", coursesData.message);
           return;
         }
-        const ordersResponse = await fetch(
-          "http://localhost:3000/api/orders/my-orders",
-          {
+  
+        let filteredCourses = coursesData;
+  
+        if (authToken) {
+          // Nếu có token, fetch đơn hàng
+          const ordersResponse = await fetch("http://localhost:3000/api/orders/my-orders", {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${authToken}`,
             },
+          });
+  
+          const ordersData = await ordersResponse.json();
+  
+          if (!ordersResponse.ok) {
+            console.error("Error fetching orders:", ordersData.message);
+            return;
           }
-        );
-        const ordersData = await ordersResponse.json();
-        if (!ordersResponse.ok) {
-          console.error("Error fetching orders:", ordersData.message);
-          return;
+  
+          const purchasedCourseIds = new Set(
+            ordersData.flatMap((order) => order.order_items.map((item) => item.course._id))
+          );
+  
+          // Lọc bỏ khóa học đã mua
+          filteredCourses = coursesData.filter((course) => !purchasedCourseIds.has(course._id));
         }
-        const purchasedCourseIds = new Set(
-          ordersData.flatMap((order) =>
-            order.order_items.map((item) => item.course._id)
-          )
-        );
-        const filteredCourses = coursesData.filter(
-          (course) => !purchasedCourseIds.has(course._id)
-        );
-
+  
         setCourses(filteredCourses);
-        const uniqueTutorIds = [
-          ...new Set(filteredCourses.map((course) => course.tutorId)),
-        ];
-
+  
+        const uniqueTutorIds = [...new Set(filteredCourses.map((course) => course.tutorId))];
+  
         console.log("Unique tutor IDs:", uniqueTutorIds);
-
+  
         const tutorsData = {};
         await Promise.all(
           uniqueTutorIds.map(async (tutorId) => {
             if (tutorId) {
               console.log(`Fetching tutor data for ID: ${tutorId}`);
-              const tutorResponse = await fetch(
-                `http://localhost:3000/api/tutors/${tutorId}`
-              );
+              const tutorResponse = await fetch(`http://localhost:3000/api/tutors/${tutorId}`);
               const tutorData = await tutorResponse.json();
               if (tutorResponse.ok) {
-                console.log(
-                  `Tutor data received for ID ${tutorId}:`,
-                  tutorData
-                );
+                console.log(`Tutor data received for ID ${tutorId}:`, tutorData);
                 tutorsData[tutorId] = tutorData.fullname;
               } else {
-                console.error(
-                  `Error fetching tutor ${tutorId}:`,
-                  tutorData.message
-                );
+                console.error(`Error fetching tutor ${tutorId}:`, tutorData.message);
               }
             }
           })
         );
-
+  
         console.log("Tutors data:", tutorsData);
         setTutors(tutorsData);
       } catch (error) {
@@ -135,7 +129,7 @@ const CourseList = () => {
         setLoading(false);
       }
     };
-
+  
     fetchCourses();
   }, []);
 

@@ -53,13 +53,12 @@ import DepositHistory from "./components/students/wallet/DepositHistory";
 import HomeScreen from "./components/HomeScreen";
 import Footer from "./components/Footer";
 import Students from "./components/tutors/Students";
-import { AuthContext } from "./components/authentication/AuthContext";
-import { useState, useContext } from "react";
+
+import { useState } from "react";
 import CourseDetailForAdmin from "./components/admins/CourseDetailForAdmin";
 function Layout() {
   const location = useLocation();
   const [navbarKey, setNavbarKey] = useState(0);
-  const { user } = useContext(AuthContext); // Lấy user từ AuthContext
   // Hàm reload Navbar khi có thay đổi
   const reloadNavbar = () => {
     setNavbarKey((prevKey) => prevKey + 1);
@@ -77,8 +76,7 @@ function Layout() {
   ];
 
   // Kiểm tra nếu đang ở một trong các trang trên thì không hiển thị Sidebar
-  // const hideSidebar = noSidebarPages.includes(location.pathname);
-  const hideSidebar = noSidebarPages.includes(location.pathname) || !user?.role;
+  const hideSidebar = noSidebarPages.includes(location.pathname);
 
   return (
     <div className="bg-white dark:bg-black w-screen min-h-screen flex flex-col">

@@ -1,17 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-
+import { Badge, Dropdown, Table, Tag } from 'antd';
+import { toast, ToastContainer } from "react-toastify";
+import { useTheme } from "../context/ThemeContext";
+import { EllipsisOutlined, CheckOutlined, StopOutlined } from "@ant-design/icons";
+import { Navigate } from 'react-router-dom';
 
 export default function ManageReview() {
-  const [comment, setComment] = useState([]);
+
   const [comments, setComments] = useState([]);
   const token = localStorage.getItem('authToken'); // Assuming token is stored in localStorage
-
+  const { theme } = useTheme();
   useEffect(() => {
     fetchComments();
     
  
-  }, []);
+  }, [token]);
 
   const fetchComments = async () => {
 
@@ -29,6 +33,99 @@ export default function ManageReview() {
     }
   };
 
+  // const toggleCommentStatus = async (type, commentId) => {
+    
+ 
+  //   try {
+  //     console.log('Toggling comment status:', type, commentId);
+  //     const url = type === 'course' 
+  //       ? `http://localhost:3000/api/comments/change-course-comment-status/${commentId}`
+  //       : `http://localhost:3000/api/comments/change-lesson-comment-status/${commentId}`;
+  //     await axios.put(url, {}, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     });
+  //  fetchComments();
+  //     console.log('Comment status updated successfully');
+  //     toast.success('Comment status updated successfully');
+  //   } catch (error) {
+  //     console.error('Error updating comment status:', error);
+  //     toast.error('Error updating comment status');
+  //   }
+  // };
+  
+
+  const columns = [
+    {
+      title: 'Type',
+      dataIndex: 'type',
+      key: 'type',
+    },
+    {
+      title: 'Full Name',
+      dataIndex: 'author',
+      key: 'author',
+    },
+    {
+      title: 'Course Name',
+      dataIndex: 'courseTitle',
+      key: 'courseTitle',
+    },
+    {
+      title: 'Content',
+      dataIndex: 'comment',
+      key: 'comment',
+    },
+    {
+      title: 'Rating',
+      dataIndex: 'rating',
+      key: 'rating',
+      render: (rating) => '⭐'.repeat(rating),
+    },
+     {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status) => status ? <Tag color='green'>Active</Tag>: <Tag color='red'>Inactive</Tag>,
+    },
+    {
+      title: 'Action',
+      key: 'action',
+      render: (text, record) => (
+        // <button
+        //   onClick={() => toggleCommentStatus(record.type, record.commentId)}
+        //   className={`px-4 py-2 rounded-md text-white ${
+        //     record.status ? 'bg-red-500' : 'bg-green-500'
+        //   }`}
+        // >
+        //   {record.status ? 'Deactivate' : 'Activate'}
+        // </button>
+        <DropDownMenu  record={record} fetchComments={fetchComments}/>  
+      ),
+    },
+  ];
+  const data = comments.map((comment) => ({
+    key: comment.commentId,
+    author: comment.author,
+    courseTitle: comment.type === 'course' ? comment.courseTitle : comment.lessonTitle,
+    comment: comment.comment,
+    rating: comment.rating,
+    status: comment.status,
+    type: comment.type,
+    commentId: comment.commentId,
+  }));
+  return (
+    <div className="container mx-auto p-6 max-h-screen">
+    <h1 className="text-3xl font-bold text-center mb-6">Manage Reviews</h1>
+
+     <Table columns={columns} dataSource={data} />
+        <ToastContainer theme={theme === "dark" ? "dark" : "light"} />
+  </div>
+  
+  );
+}
+
+const DropDownMenu = ({record, fetchComments}) =>{
+const token = localStorage.getItem('authToken'); // Assuming token is stored in localStorage
   const toggleCommentStatus = async (type, commentId) => {
     
  
@@ -40,37 +137,50 @@ export default function ManageReview() {
       await axios.put(url, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      fetchComments();
+   fetchComments();
       console.log('Comment status updated successfully');
+      toast.success('Comment status updated successfully');
     } catch (error) {
       console.error('Error updating comment status:', error);
+      toast.error('Error updating comment status');
     }
   };
 
-  return (
-    <div className="p-6 max-w-4xl mx-auto bg-white shadow-lg rounded-lg">
-      <h1 className="text-2xl font-bold text-center mb-6">Manage Reviews</h1>
-      {comments.length > 0 ? (
-        <ul>
-          {comments.map((comment) => (
-            <li key={comment.commentId} className="p-4 border-b flex justify-between items-center">
-              <div>
-                <p className="text-gray-800"><strong>{comment.author}</strong> ({comment.type === 'course' ? comment.courseTitle : comment.lessonTitle})</p>
-                <p className="text-gray-600 italic">{comment.comment}</p>
-                <p className="text-sm text-gray-500">Rating: {comment.rating} | Status: {comment.status ? 'Active' : 'Inactive'}</p>
-              </div>
-              <button 
-                onClick={() => toggleCommentStatus(comment.type, comment.commentId)}
+ const items = [
+  {
+    key: '1',
+    label: (
+      <div 
+        onClick={() => toggleCommentStatus(record.type, record.commentId)}
+        className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 rounded-md transition-colors duration-150"
+      >
+        {record.status ? (
+          <>
+         
+            <StopOutlined className="h-4 w-4 text-red-500"/>
+            <span>Ban</span>
+          </>
+        ) : (
+          <>
+            <CheckOutlined className="h-4 w-4 text-green-500" />
+            
+            <span>Unban</span>
+          </>
+        )}
+      </div>
+    ),
+  },
+];
+  return(
+    <div>
+
+<Dropdown menu={{items}}>
+          <EllipsisOutlined />
+        </Dropdown>
+
  
-                className={`px-4 py-2 rounded-md text-white ${comment.status ? 'bg-red-500' : 'bg-green-500'}`}>
-                {comment.status ? 'Deactivate' : 'Activate'}
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-center text-gray-600">No comments available.</p>
-      )}
     </div>
-  );
+   
+        
+  )
 }
