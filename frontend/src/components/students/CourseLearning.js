@@ -599,7 +599,7 @@ const CourseLearningPage = () => {
           </p>
         )}
       </div>
-      <div className="w-full md:w-1/3 bg-white p-6 border-l shadow-xl rounded-lg">
+      <div className="w-full lg:w-1/4 bg-white p-6 border-l shadow-xl rounded-lg">
         <h2 className="text-2xl font-bold mb-4 text-gray-900 tracking-wide flex items-center justify-between">
           📚 List of Lessons{" "}
           <span className="text-blue-600 text-lg">({lessons.length})</span>

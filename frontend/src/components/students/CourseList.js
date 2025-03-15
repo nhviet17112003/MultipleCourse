@@ -164,7 +164,7 @@ const CourseList = () => {
       try {
         setLoading(true);
         console.log("Fetching courses...");
-  
+
         const authToken = localStorage.getItem("authToken");
 
         const coursesResponse = await fetch(
@@ -179,9 +179,9 @@ const CourseList = () => {
         );
 
         const coursesData = await coursesResponse.json();
-  
+
         console.log("Courses data received:", coursesData);
-  
+
         if (!coursesResponse.ok) {
           console.error("Error fetching courses:", coursesData.message);
           return;
@@ -226,24 +226,32 @@ const CourseList = () => {
         ];
 
         console.log("Unique tutor IDs:", uniqueTutorIds);
-  
+
         const tutorsData = {};
         await Promise.all(
           uniqueTutorIds.map(async (tutorId) => {
             if (tutorId) {
               console.log(`Fetching tutor data for ID: ${tutorId}`);
-              const tutorResponse = await fetch(`http://localhost:3000/api/tutors/${tutorId}`);
+              const tutorResponse = await fetch(
+                `http://localhost:3000/api/tutors/${tutorId}`
+              );
               const tutorData = await tutorResponse.json();
               if (tutorResponse.ok) {
-                console.log(`Tutor data received for ID ${tutorId}:`, tutorData);
+                console.log(
+                  `Tutor data received for ID ${tutorId}:`,
+                  tutorData
+                );
                 tutorsData[tutorId] = tutorData.fullname;
               } else {
-                console.error(`Error fetching tutor ${tutorId}:`, tutorData.message);
+                console.error(
+                  `Error fetching tutor ${tutorId}:`,
+                  tutorData.message
+                );
               }
             }
           })
         );
-  
+
         console.log("Tutors data:", tutorsData);
         setTutors(tutorsData);
       } catch (error) {
@@ -253,7 +261,7 @@ const CourseList = () => {
         setLoading(false);
       }
     };
-  
+
     fetchCourses();
   }, []);
 
@@ -466,11 +474,11 @@ const CourseList = () => {
                           </svg>
                         </button>
 
-                        <div className="absolute left-full top-0 mt-0 ml-0 w-56 bg-white border border-gray-300 rounded-lg shadow-lg hidden group-hover:block z-20 max-h-[200px] overflow-y-auto">
+                        <div className="absolute left-full top-0 mt-0 ml-0 w-96 bg-white border border-gray-300 rounded-lg shadow-lg hidden group-hover:block z-20 max-h-[500px] overflow-y-auto">
                           {subCategories.map((subCategory) => (
                             <button
                               key={subCategory}
-                              className="w-full text-left px-4 py-2 hover:bg-gray-200"
+                              className="w-full text-left px-8 py-4 hover:bg-gray-200 text-lg"
                               onClick={() => {
                                 setSelectedCategory(subCategory);
                                 setShowCategoryDropdown(false);
