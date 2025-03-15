@@ -279,7 +279,7 @@ exports.updateCommentStatusById = async (req, res) => {
     if (comment.status === false) {
       const adminActivity = new AdminActivityHistory({
         admin: req.user._id,
-        activity: `Change comment status of user ${comment.author} to inactive\n
+        description: `Change comment status of user ${comment.author} to inactive\n
       Comment: ${comment.comment}`,
       });
       await adminActivity.save();
@@ -287,7 +287,7 @@ exports.updateCommentStatusById = async (req, res) => {
     } else {
       const adminActivity = new AdminActivityHistory({
         admin: req.user._id,
-        activity: `Change comment status of user ${comment.author} to active\n
+        description: `Change comment status of user ${comment.author} to active\n
       Comment: ${comment.comment}`,
       });
       await adminActivity.save();
@@ -324,7 +324,7 @@ exports.updateLessonCommentStatusById = async (req, res) => {
     if (comment.status === false) {
       const adminActivity = new AdminActivityHistory({
         admin: req.user._id,
-        activity: `Change comment status of user ${comment.author} to inactive\n
+        description: `Change comment status of user ${comment.author} to inactive\n
       Comment: ${comment.comment}`,
       });
       await adminActivity.save();
@@ -332,7 +332,7 @@ exports.updateLessonCommentStatusById = async (req, res) => {
     } else {
       const adminActivity = new AdminActivityHistory({
         admin: req.user._id,
-        activity: `Change comment status of user ${comment.author} to active\n
+        description: `Change comment status of user ${comment.author} to active\n
       Comment: ${comment.comment}`,
       });
       await adminActivity.save();
