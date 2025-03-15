@@ -254,45 +254,33 @@ exports.showLessonComment = async (req, res) => {
 exports.updateCommentStatusById = async (req, res) => {
   try {
     const { comment_id } = req.params;
-
-    // Tìm khóa học chứa comment theo ID
     const course = await Course.findOne({ "comments._id": comment_id });
 
     if (!course) {
       return res.status(404).json({ message: "Comment not found" });
     }
 
-    // Tìm comment trong khóa học
     const comment = course.comments.id(comment_id);
     if (!comment) {
       return res.status(404).json({ message: "Comment not found" });
     }
 
-    // Toggle trạng thái comment
     comment.status = !comment.status;
     await course.save();
 
+    const adminActivity = new AdminActivityHistory({
+      admin: req.user._id,
+      description: `Change comment status of user ${comment.author} to ${
+        comment.status ? "active" : "inactive"
+      }\nComment: ${comment.comment}`,
+    });
+
+    await adminActivity.save();
+
     res.status(200).json({
       message: `Comment is now ${comment.status ? "active" : "inactive"}`,
-      comment: comment,
+      comment,
     });
-    if (comment.status === false) {
-      const adminActivity = new AdminActivityHistory({
-        admin: req.user._id,
-        activity: `Change comment status of user ${comment.author} to inactive\n
-      Comment: ${comment.comment}`,
-      });
-      await adminActivity.save();
-      res.status(200).json({ message: "Comment is now inactive" });
-    } else {
-      const adminActivity = new AdminActivityHistory({
-        admin: req.user._id,
-        activity: `Change comment status of user ${comment.author} to active\n
-      Comment: ${comment.comment}`,
-      });
-      await adminActivity.save();
-      res.status(200).json({ message: "Comment is now active" });
-    }
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Internal Server Error" });
@@ -324,7 +312,7 @@ exports.updateLessonCommentStatusById = async (req, res) => {
     if (comment.status === false) {
       const adminActivity = new AdminActivityHistory({
         admin: req.user._id,
-        activity: `Change comment status of user ${comment.author} to inactive\n
+        description: `Change comment status of user ${comment.author} to inactive\n
       Comment: ${comment.comment}`,
       });
       await adminActivity.save();
@@ -332,7 +320,7 @@ exports.updateLessonCommentStatusById = async (req, res) => {
     } else {
       const adminActivity = new AdminActivityHistory({
         admin: req.user._id,
-        activity: `Change comment status of user ${comment.author} to active\n
+        description: `Change comment status of user ${comment.author} to active\n
       Comment: ${comment.comment}`,
       });
       await adminActivity.save();

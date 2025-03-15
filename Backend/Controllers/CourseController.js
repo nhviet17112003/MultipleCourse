@@ -734,6 +734,7 @@ exports.updateCourseImage = async (req, res) => {
 //Update Course status
 exports.changeCourseStatus = async (req, res) => {
   try {
+    const message = req.body.message;
     const course = await Course.findById(req.params.course_id);
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
@@ -750,8 +751,79 @@ exports.changeCourseStatus = async (req, res) => {
     await course.save();
     await newAdminActivity.save();
     if (course.status == false) {
+      // Gửi email thông báo cho tutor
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: config.email || "datnptce171966@fpt.edu.vn",
+          pass: config.password || "ivqm xtbu vfvu wdyk",
+        },
+      });
+
+      let mailOptions;
+
+      mailOptions = {
+        to: tutor.email,
+        from: config.email,
+        subject: `Your course "${course.title}" has been Deactivated`,
+        html: `
+      <p>Dear ${tutor.fullname},</p>
+        <p>We regret to inform you that your course, "<strong>${
+          course.title
+        }</strong>," has been deactivated by the Admin.</p>
+          <p><strong>Reason:</strong> ${message || "Not specified"}</p>
+        <p>Your course is no longer visible on the platform, and students cannot view or enroll in it.</p>
+        <p>If you have any questions or need further clarification, please do not hesitate to contact us.</p>
+        <p>Thank you for your understanding.</p>
+      <p>Best regards,</p>
+      <p>Multi Course Team</p>
+    `,
+      };
+
+      // Gửi email thông báo
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.log("Error sending email: ", error);
+        } else {
+          console.log("Email sent: ", info.response);
+        }
+      });
+
       res.status(200).json({ message: "Course now is not available" });
     } else {
+      // Gửi email thông báo cho tutor
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: config.email || "datnptce171966@fpt.edu.vn",
+          pass: config.password || "ivqm xtbu vfvu wdyk",
+        },
+      });
+
+      let mailOptions;
+
+      mailOptions = {
+        to: tutor.email,
+        from: config.email,
+        subject: `Your course "${course.title}" has been Deactivated`,
+        html: `
+      <p>Dear ${tutor.fullname},</p>
+       <p>We are pleased to inform you that your course, "<strong>${course.title}</strong>," has been successfully activated by the Admin.</p>
+        <p>Your course is now visible on the platform, and students can view and enroll in it.</p>
+        <p>You can check your course on the platform and track student enrollments. If you have any questions, feel free to contact us.</p>
+        <p>Thank you for contributing high-quality content to our platform!</p>
+      <p>Best regards,</p>
+      <p>Multi Course Team</p>
+    `,
+      };
+      // Gửi email thông báo
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.log("Error sending email: ", error);
+        } else {
+          console.log("Email sent: ", info.response);
+        }
+      });
       res.status(200).json({ message: "Course now is available" });
     }
   } catch (err) {
