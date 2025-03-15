@@ -270,7 +270,9 @@ exports.updateCommentStatusById = async (req, res) => {
 
     const adminActivity = new AdminActivityHistory({
       admin: req.user._id,
-      description: `Change comment status of user ${comment.author} to ${comment.status ? "active" : "inactive"}\nComment: ${comment.comment}`,
+      description: `Change comment status of user ${comment.author} to ${
+        comment.status ? "active" : "inactive"
+      }\nComment: ${comment.comment}`,
     });
 
     await adminActivity.save();
@@ -284,7 +286,6 @@ exports.updateCommentStatusById = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
 
 // Update Lesson Comment Status (toggle status) without Lesson ID
 exports.updateLessonCommentStatusById = async (req, res) => {
