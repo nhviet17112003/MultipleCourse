@@ -23,6 +23,122 @@ const CourseList = () => {
   const [ratingFilter, setRatingFilter] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [activeFilters, setActiveFilters] = useState([]);
+  const [studentsCount, setStudentsCount] = useState({});
+
+  const categories = {
+    "Business & Economics": [
+      "Digital Marketing (SEO, Google Ads, Facebook Ads)",
+      "Entrepreneurship & Startups",
+      "E-commerce (Shopify, Amazon, Shopee)",
+      "Financial Management & Investment",
+      "Human Resources (HR) & Recruitment",
+      "Project Management (Agile, Scrum, PMP)",
+      "Business Strategy & Consulting",
+      "Supply Chain & Logistics",
+      "Stock Market & Cryptocurrency",
+      "Marketing",
+      "Others",
+    ],
+    "Design & Multimedia": [
+      "Graphic Design (Photoshop, Illustrator)",
+      "UI/UX Design (Figma, Adobe XD)",
+      "3D Modeling & Animation",
+      "Video Editing & Production",
+      "Motion Graphics",
+      "Interior Design",
+      "Fashion Design",
+      "Game Design",
+      "Design",
+      "Others",
+    ],
+    "Languages & Linguistics": [
+      "English for Business & Communication",
+      "TOEIC, IELTS, TOEFL Preparation",
+      "French, German, Spanish, Japanese, Chinese",
+      "Vietnamese for Foreigners",
+      "Translation & Interpretation",
+      "Academic Writing & Research Skills",
+      "Others",
+    ],
+    "Soft Skills": [
+      "Communication Skills",
+      "Public Speaking & Presentation",
+      "Leadership & Management",
+      "Emotional Intelligence",
+      "Time Management",
+      "Negotiation & Persuasion",
+      "Teamwork & Collaboration",
+      "Critical Thinking & Problem-Solving",
+      "Stress Management & Resilience",
+      "Creativity & Innovation",
+      "Others",
+    ],
+    "Engineering & Technology": [
+      "Software Development",
+      "Web Development",
+      "Mobile App Development",
+      "Artificial Intelligence & Machine Learning",
+      "Data Science & Big Data",
+      "Cybersecurity",
+      "Cloud Computing",
+      "Blockchain Technology",
+      "Electrical & Electronics Engineering",
+      "Mechanical Engineering",
+      "Civil Engineering",
+      "Robotics & Automation",
+      "Networking & IT Security",
+      "Embedded Systems",
+      "Programming",
+      "Others",
+    ],
+  };
+
+  const updateFilters = (type, value) => {
+    setActiveFilters((prevFilters) => {
+      const existingFilterIndex = prevFilters.findIndex(
+        (filter) => filter.type === type
+      );
+
+      if (existingFilterIndex !== -1) {
+        const updatedFilters = [...prevFilters];
+        updatedFilters[existingFilterIndex] = { type, value };
+        return updatedFilters;
+      } else {
+        return [...prevFilters, { type, value }];
+      }
+    });
+  };
+
+  const removeFilter = (type, value) => {
+    setActiveFilters(
+      activeFilters.filter(
+        (filter) => !(filter.type === type && filter.value === value)
+      )
+    );
+
+    switch (type) {
+      case "search":
+        setFilter("");
+        break;
+      case "sort":
+        setSortOption("default");
+        break;
+      case "rating":
+        setRatingFilter(0);
+        break;
+      case "price":
+        setPriceRange([0, 1000000]);
+        break;
+      case "category":
+        setSelectedCategory("");
+        break;
+      default:
+        break;
+    }
+  };
 
   const renderStars = (rating) => {
     const stars = [];
@@ -48,26 +164,22 @@ const CourseList = () => {
     const fetchCourses = async () => {
       try {
         setLoading(true);
-        console.log("Fetching courses...");
-  
+
         const authToken = localStorage.getItem("authToken");
 
-        // Fetch danh sách khóa học mà không cần token
         const coursesResponse = await fetch(
           "http://localhost:3000/api/courses/active-courses",
           {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
-              ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}), // Chỉ thêm nếu có token
+              ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
             },
           }
         );
 
         const coursesData = await coursesResponse.json();
-  
-        console.log("Courses data received:", coursesData);
-  
+
         if (!coursesResponse.ok) {
           console.error("Error fetching courses:", coursesData.message);
           return;
@@ -90,7 +202,6 @@ const CourseList = () => {
           const ordersData = await ordersResponse.json();
 
           if (!ordersResponse.ok) {
-            console.error("Error fetching orders:", ordersData.message);
             return;
           }
 
@@ -106,40 +217,61 @@ const CourseList = () => {
         }
 
         setCourses(filteredCourses);
-        console.log("Courses data received 111:", filteredCourses);
+        const studentCounts = {};
+        await Promise.all(
+          filteredCourses.map(async (course) => {
+            const studentResponse = await fetch(
+              `http://localhost:3000/api/courses/student-of-course/${course._id}`
+            );
+            const studentData = await studentResponse.json();
+
+            if (studentResponse.ok) {
+              studentCounts[course._id] = studentData.students.length;
+            } else {
+              console.error(
+                `Error fetching students for course ${course._id}:`,
+                studentData.message
+              );
+            }
+          })
+        );
+
+        setStudentsCount(studentCounts);
         const uniqueTutorIds = [
           ...new Set(filteredCourses.map((course) => course.tutorId)),
         ];
 
         console.log("Unique tutor IDs:", uniqueTutorIds);
-  
+
         const tutorsData = {};
         await Promise.all(
           uniqueTutorIds.map(async (tutorId) => {
             if (tutorId) {
               console.log(`Fetching tutor data for ID: ${tutorId}`);
-              const tutorResponse = await fetch(`http://localhost:3000/api/tutors/${tutorId}`);
+              const tutorResponse = await fetch(
+                `http://localhost:3000/api/tutors/${tutorId}`
+              );
               const tutorData = await tutorResponse.json();
               if (tutorResponse.ok) {
-                console.log(`Tutor data received for ID ${tutorId}:`, tutorData);
                 tutorsData[tutorId] = tutorData.fullname;
               } else {
-                console.error(`Error fetching tutor ${tutorId}:`, tutorData.message);
+                console.error(
+                  `Error fetching tutor ${tutorId}:`,
+                  tutorData.message
+                );
               }
             }
           })
         );
-  
-        console.log("Tutors data:", tutorsData);
+
         setTutors(tutorsData);
       } catch (error) {
         console.error("Error:", error);
       } finally {
-        console.log("Fetch process completed.");
         setLoading(false);
       }
     };
-  
+
     fetchCourses();
   }, []);
 
@@ -201,8 +333,15 @@ const CourseList = () => {
       const priceMatch =
         course.price >= priceRange[0] && course.price <= priceRange[1];
       const ratingMatch = (course.average_rating ?? 0) >= ratingFilter;
+      const categoryMatch =
+        !selectedCategory ||
+        course.category === selectedCategory ||
+        (categories[selectedCategory] &&
+          categories[selectedCategory].includes(course.category));
 
-      return (titleMatch || tutorMatch) && priceMatch && ratingMatch;
+      return (
+        (titleMatch || tutorMatch) && priceMatch && ratingMatch && categoryMatch
+      );
     })
     .sort((a, b) => {
       if (sortOption === "asc") return a.price - b.price;
@@ -213,6 +352,7 @@ const CourseList = () => {
         return (b.average_rating ?? 0) - (a.average_rating ?? 0);
       return 0;
     });
+
   console.log("Final filtered courses before rendering:", filteredCourses);
 
   return (
@@ -229,14 +369,22 @@ const CourseList = () => {
                 type="text"
                 placeholder="🔍 Search by course or tutor name..."
                 value={filter}
-                onChange={(e) => setFilter(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setFilter(value);
+                  updateFilters("search", value);
+                }}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
               />
             </div>
             <div className="w-32">
               <select
                 value={sortOption}
-                onChange={(e) => setSortOption(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setSortOption(value);
+                  updateFilters("sort", value);
+                }}
                 className="w-full p-3 text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
               >
                 <option value="default">Sort by</option>
@@ -249,7 +397,11 @@ const CourseList = () => {
             <div className="w-32">
               <select
                 value={ratingFilter}
-                onChange={(e) => setRatingFilter(Number(e.target.value))}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  setRatingFilter(value);
+                  updateFilters("rating", `From ${value} ⭐`);
+                }}
                 className="w-full p-3 text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
               >
                 <option value={0}>All Rating</option>
@@ -275,8 +427,10 @@ const CourseList = () => {
                 onChange={(value) => {
                   if (value[1] >= 1000000) {
                     setPriceRange([value[0], 1000000]);
+                    updateFilters("price", `${value[0]} - All`);
                   } else {
                     setPriceRange(value);
+                    updateFilters("price", `${value[0]} - ${value[1]}`);
                   }
                 }}
                 className="w-full"
@@ -284,21 +438,110 @@ const CourseList = () => {
             </div>
           </div>
 
-          <div className="flex flex-row-reverse items-center mt-4 gap-4">
-            <button
-              onClick={() => {
-                setFilter("");
-                setSortOption("default");
-                setPriceRange([0, 1000000]);
-                setRatingFilter(0);
-              }}
-              className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
-            >
-              Reset
-            </button>
-            <p className="text-gray-800 text-sm italic">
-              The result has {filteredCourses.length} courses
-            </p>
+          <div className="flex flex-row justify-between items-center mt-4 gap-4">
+            <div className="relative w-64">
+              <button
+                className="w-full p-3 text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 flex justify-between items-center"
+                onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+              >
+                {selectedCategory || "Select Category"}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 text-gray-500"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+
+              {showCategoryDropdown && (
+                <div className="absolute left-0 mt-2 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-10">
+                  {Object.entries(categories).map(
+                    ([mainCategory, subCategories]) => (
+                      <div key={mainCategory} className="relative group">
+                        <button
+                          className="w-full flex justify-between items-center text-left px-4 py-2 hover:bg-gray-200"
+                          onClick={() => setSelectedCategory(mainCategory)}
+                        >
+                          {mainCategory}
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M7.293 5.293a1 1 0 011.414 0L13 9.586l-4.293 4.293a1 1 0 11-1.414-1.414L10.586 10 7.293 6.707a1 1 0 010-1.414z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </button>
+
+                        <div className="absolute left-full top-0 mt-0 ml-0 w-96 bg-white border border-gray-300 rounded-lg shadow-lg hidden group-hover:block z-20 max-h-[500px] overflow-y-auto">
+                          {subCategories.map((subCategory) => (
+                            <button
+                              key={subCategory}
+                              className="w-full text-left px-8 py-4 hover:bg-gray-200 text-lg"
+                              onClick={() => {
+                                setSelectedCategory(subCategory);
+                                setShowCategoryDropdown(false);
+                                updateFilters("category", subCategory);
+                              }}
+                            >
+                              {subCategory}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  )}
+                </div>
+              )}
+            </div>
+
+            {activeFilters.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-4">
+                {activeFilters.map((filter, index) => (
+                  <span
+                    key={index}
+                    className="flex items-center px-3 py-1 bg-green-200 text-blue-800 rounded-full"
+                  >
+                    {filter.value}
+                    <button
+                      className="ml-2 text-red-600 hover:text-red-900"
+                      onClick={() => removeFilter(filter.type, filter.value)}
+                    >
+                      ✕
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <div className="flex items-center gap-4">
+              <p className="text-gray-800 text-sm italic">
+                The result has {filteredCourses.length} courses
+              </p>
+              <button
+                onClick={() => {
+                  setFilter("");
+                  setSortOption("default");
+                  setPriceRange([0, 1000000]);
+                  setRatingFilter(0);
+                  setSelectedCategory("");
+                  setActiveFilters([]);
+                }}
+                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+              >
+                Reset
+              </button>
+            </div>
           </div>
         </div>
 
@@ -326,13 +569,32 @@ const CourseList = () => {
                       <p className="text-sm text-gray-500 mt-1 italic">
                         {course.category}
                       </p>
-                      <p className="text-sm text-gray-600 mt-2">
-                        Tutor: {course.tutor?.fullname}
-                      </p>
                       <p className="text-yellow-500 flex items-center">
                         {renderStars(course.average_rating)} (
                         {course.comments.length})
                       </p>
+
+                      {course.tutor && (
+                        <div className="flex items-center gap-4 mt-4 p-3 bg-gray-100 rounded-lg shadow-sm">
+                          <img
+                            src={course.tutor?.avatar}
+                            alt={course.tutor.fullname}
+                            className="w-14 h-14 rounded-full border-2 border-gray-300 shadow-md object-cover"
+                          />
+                          <div className="flex flex-col">
+                            <p
+                              className="text-lg font-semibold text-gray-900 truncate max-w-[150px] cursor-pointer"
+                              title={course.tutor.fullname}
+                            >
+                              {course.tutor.fullname}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              🎓 {studentsCount[course._id] || 0} student
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
                       <div className="mt-4 flex items-center justify-between">
                         <span className="text-cyan-700 font-bold">
                           ${course.price}

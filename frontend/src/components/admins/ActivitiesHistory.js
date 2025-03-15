@@ -50,7 +50,7 @@ export default function ActivitiesHistory() {
       
 
     return (
-        <div className="container mx-auto p-6 max-h-screen">
+        <div className="container mx-auto p-6">
             <h1 className="text-3xl font-bold text-center mb-6">Activities History</h1>
             <div className="overflow-x-auto">
                 <Table columns={columns} dataSource={data} />

@@ -114,7 +114,7 @@ export default function ManageReview() {
     commentId: comment.commentId,
   }));
   return (
-    <div className="container mx-auto p-6 max-h-screen">
+    <div className="container mx-auto p-6">
     <h1 className="text-3xl font-bold text-center mb-6">Manage Reviews</h1>
 
      <Table columns={columns} dataSource={data} />

@@ -76,7 +76,7 @@ const PurchaseHistoryForAdmin = () => {
   }));
 
   return (
-    <div className="container mx-auto p-6 max-h-screen">
+    <div className="container mx-auto p-6 ">
       <h2 className="text-3xl font-bold text-center mb-6">Purchase History</h2>
       <Table columns={columns} dataSource={data} />
       {/* <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">

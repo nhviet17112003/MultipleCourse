@@ -83,7 +83,7 @@ const WalletStudent = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 mb-6 w-full">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6 w-full">
             {[
               50000, 100000, 200000, 300000, 500000, 1000000, 2000000, 5000000,
               10000000,
@@ -91,7 +91,7 @@ const WalletStudent = () => {
               <button
                 key={value}
                 onClick={() => setAmount(value)}
-                className="bg-gray-200 text-gray-700 py-2 px-4 rounded-lg shadow-md hover:bg-blue-500 hover:text-white transition w-full"
+                className="bg-gray-200 text-gray-700 text-sm md:text-base py-2 px-4 rounded-lg shadow-md hover:bg-blue-500 hover:text-white transition w-full"
               >
                 {value.toLocaleString()}
               </button>
