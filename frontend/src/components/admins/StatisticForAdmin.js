@@ -1,7 +1,7 @@
 import { Table } from "antd";
 import React, { useEffect, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-
+import { useTheme } from "../context/ThemeContext";
 const StatisticForAdmin = () => {
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [revenueToday, setRevenueToday] = useState(0);
@@ -9,6 +9,7 @@ const StatisticForAdmin = () => {
   const [monthlyRevenue, setMonthlyRevenue] = useState([]);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { theme } = useTheme();
 
   const fetchData = async (url, setState) => {
     try {
@@ -72,10 +73,10 @@ const StatisticForAdmin = () => {
   }));
 
   return (
-    <div className="container mx-auto p-6 max-h-screen">
+    <div className={`container mx-auto p-6 ${theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-gray-900"}`}>
       <h1 className="text-3xl font-bold text-center mb-6">Revenue Statistics</h1>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-        <div className="bg-white p-6 shadow rounded-lg text-center">
+        <div className={`bg-white p-6 shadow rounded-lg text-center ${theme === "dark" ? "bg-gray-800" : "bg-white"}`}>
           <h2 className="text-xl font-semibold text-gray-700">Total revenue</h2>
           <p className="text-2xl text-teal-600">{totalRevenue} VND</p>
         </div>

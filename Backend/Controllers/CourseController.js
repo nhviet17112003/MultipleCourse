@@ -740,6 +740,11 @@ exports.changeCourseStatus = async (req, res) => {
       return res.status(404).json({ message: "Course not found" });
     }
 
+    const tutor = await User.findById(course.tutor);
+    if (!tutor) {
+      return res.status(404).json({ message: "Tutor not found" });
+    }
+
     const newAdminActivity = new AdminActivityHistory({
       admin: req.user._id,
       description: `Changed the status of course with ID: ${
