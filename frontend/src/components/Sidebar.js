@@ -11,7 +11,7 @@ import { useTheme } from "./context/ThemeContext";
 function Sidebar() {
   const { theme } = useTheme();
   const [current, setCurrent] = useState("1");
-  const [role, setRole] = useState("Student"); // Default to "Student"
+  const [role, setRole] = useState(null); // Default to "Student"
   const [token, setToken] = useState(null);
   const location = useLocation();
 
@@ -80,27 +80,27 @@ function Sidebar() {
           { key: "6", label: <Link to="/createcourse">Create Course</Link> },
         ],
       },
-      {
-        key: "sub3",
-        label: "Manage Students",
-        icon: <AppstoreOutlined />,
-        children: [
-          {
-            key: "8",
-            label: <Link to="/student-list">Student List</Link>,
-          },
-        ],
-      },
+      // {
+      //   key: "sub3",
+      //   label: "Manage Students",
+      //   icon: <AppstoreOutlined />,
+      //   children: [
+      //     {
+      //       key: "8",
+      //       label: <Link to="/student-list">Student List</Link>,
+      //     },
+      //   ],
+      // },
 
       {
         key: "sub4",
         label: " Manage Wallet",
         icon: <AppstoreOutlined />,
         children: [
-          {
-            key: "9",
-            label: <Link to="tutor/courses-list">Buyer History</Link>,
-          },
+          // {
+          //   key: "9",
+          //   label: <Link to="tutor/courses-list">Buyer History</Link>,
+          // },
           {
             key: "10",
             label: <Link to="/withdrawal-history">Withdrawal History</Link>,
@@ -130,8 +130,8 @@ function Sidebar() {
             key: "13",
             label: <Link to="/course-list-for-admin">Manage Courses</Link>,
           },
-          { key: "14", label: "Reports" },
-          { key: "15", label: "System Settings" },
+          // { key: "14", label: "Reports" },
+          // { key: "15", label: "System Settings" },
           {
             key: "16",
             label: <Link to="/wallet-manage-for-admin">Manage Withdrawal</Link>,
@@ -178,7 +178,7 @@ function Sidebar() {
   return (
     <div
       className={
-        theme === "dark" ? "bg-gray-800 text-white" : "bg-gray-200 text-black"
+        theme === "dark" ? "bg-gray-800 text-white" : "bg-gray-200 text-black max-h-screen"
       }
     >
       <Menu

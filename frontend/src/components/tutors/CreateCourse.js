@@ -73,7 +73,7 @@ const CreateCourse = () => {
       formData.append("description", data.description);
       formData.append("price", data.price);
       formData.append("category", data.category);
-      formData.append("image", data.image[0]); // Chắc chắn rằng có hình
+      formData.append("image", data.image[0]);
   
       await axios.post(
         "http://localhost:3000/api/courses/create-course",

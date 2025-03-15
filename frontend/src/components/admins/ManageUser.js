@@ -1,5 +1,8 @@
+import { Dropdown, Table, Tag } from "antd";
 import { useEffect, useState } from "react";
-
+import { EllipsisOutlined } from "@ant-design/icons";
+import { toast, ToastContainer } from "react-toastify";
+import { CheckOutlined, StopOutlined } from "@ant-design/icons";
 const ManageUser = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +38,124 @@ const ManageUser = () => {
     fetchUsers();
   }, []);
 
+  // const toggleUserStatus = async (id) => {
+ 
+  //   try {
+  //     const response = await fetch(
+  //       `http://localhost:3000/api/users/set-status-user/${id}`,
+  //       {
+  //         method: "PUT",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //           Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+  //         },
+  //       }
+  //     );
+
+  //     if (!response.ok) {
+  //       throw new Error("Failed to update user status");
+  //     }
+
+  //     const updatedUsers = users.map((user) =>
+  //       user._id === id ? { ...user, status: !user.status } : user
+  //     );
+  //     setUsers(updatedUsers);
+  //   } catch (err) {
+  //     setError(err.message);
+  //   }
+  // };
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p className="text-red-500">Error: {error}</p>;
+
+  const columns = [
+    {
+      title: "Avatar",
+      dataIndex: "avatar",
+      key: "avatar",
+      render: (avatar, record) => (
+        <img
+        src={avatar || "https://via.placeholder.com/150"} 
+          alt="avatar"
+          className="w-10 h-10 rounded-full mx-auto"
+        />
+      ),
+    },
+    {
+      title: "Full Name",
+      dataIndex: "fullname",
+      key: "fullname",
+    },
+    {
+      title: "Email",
+      dataIndex: "email",
+      key: "email",
+    },
+    {
+      title: "Phone",
+      dataIndex: "phone",
+      key: "phone",
+    },
+    {
+      title: "Role",
+      dataIndex: "role",
+      key: "role",
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (status) => (
+        
+         
+            status
+              ? <Tag color='green'>Active</Tag>: <Tag color='red'>Inactive</Tag>
+          
+        
+      
+      
+      ),
+    },
+    {
+      title: "Action",
+      key: "action",
+      render: (record) => (
+        // <button
+        //   onClick={() => {
+        //     if (record.role !== "Admin") toggleUserStatus(record.key);  
+        //   }}
+        //   className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-700"
+        // >
+        //   {record.status ? "Ban" : "Unban"}
+        // </button>
+        <DropDownMenu  record={record} setUsers={setUsers} users={users}/>  
+      ),
+    },
+  ];
+  const data = users.map((user) => ({
+    key: user._id,
+    avatar: user.avatar,
+    fullname: user.fullname,
+    email: user.email,
+    phone: user.phone || "N/A",
+    role: user.role,
+    status: user.status,
+  }));
+
+  return (
+    <div className="p-4">
+      <h2 className="text-3xl font-bold text-center mb-6">Manage Users</h2>
+      <Table columns={columns} dataSource={data} />
+      <ToastContainer />
+    </div>
+  );
+};
+
+export default ManageUser;
+
+const DropDownMenu = ({record, setUsers, users}) =>{
   const toggleUserStatus = async (id) => {
+ 
     try {
       const response = await fetch(
         `http://localhost:3000/api/users/set-status-user/${id}`,
@@ -56,78 +176,49 @@ const ManageUser = () => {
         user._id === id ? { ...user, status: !user.status } : user
       );
       setUsers(updatedUsers);
+      toast.success("User status updated successfully");
     } catch (err) {
-      setError(err.message);
+    toast.error("Error changing user status.");
     }
   };
+  const items = [
+    
+    {
+      key: '1',
+      label: (
+        <div 
+          onClick={() => toggleUserStatus(record.key)}
+          className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 rounded-md transition-colors duration-150"
+        >
+          {record.status ? (
+            <>
+           
+              <StopOutlined className="h-4 w-4 text-red-500"/>
+              <span>Ban</span>
+            </>
+          ) : (
+            <>
+              <CheckOutlined className="h-4 w-4 text-green-500" />
+              
+              <span>Unban</span>
+            </>
+          )}
+        </div>
+      ),
+    },
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p className="text-red-500">Error: {error}</p>;
+  ];
 
-  return (
-    <div className="p-4">
-      <h2 className="text-2xl font-bold mb-4">Manage Users</h2>
-      <table className="w-full border-collapse border border-gray-300">
-        <thead>
-          <tr className="bg-gray-200">
-            <th className="border border-gray-300 px-4 py-2">Avatar</th>
-            <th className="border border-gray-300 px-4 py-2">Full Name</th>
-            <th className="border border-gray-300 px-4 py-2">Email</th>
-            <th className="border border-gray-300 px-4 py-2">Phone</th>
-            <th className="border border-gray-300 px-4 py-2">Role</th>
-            <th className="border border-gray-300 px-4 py-2">Status</th>
-            <th className="border border-gray-300 px-4 py-2">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((user) => (
-            <tr key={user._id} className="text-center border-b border-gray-300">
-              <td className="border border-gray-300 px-4 py-2">
-                {user.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt={user.fullname}
-                    className="w-10 h-10 rounded-full mx-auto"
-                  />
-                ) : (
-                  "No Avatar"
-                )}
-              </td>
-              <td className="border border-gray-300 px-4 py-2">
-                {user.fullname}
-              </td>
-              <td className="border border-gray-300 px-4 py-2">{user.email}</td>
-              <td className="border border-gray-300 px-4 py-2">
-                {user.phone || "N/A"}
-              </td>
-              <td className="border border-gray-300 px-4 py-2">{user.role}</td>
-              <td className="border border-gray-300 px-4 py-2">
-                <span
-                  className={
-                    user.status
-                      ? "bg-green-200 text-green-600 px-2 py-1 rounded"
-                      : "bg-red-200 text-red-600 px-2 py-1 rounded"
-                  }
-                >
-                  {user.status ? "Active" : "Inactive"}
-                </span>
-              </td>
-              <td className="border border-gray-300 px-4 py-2">
-                {user.role !== "Admin" && (
-                  <button
-                    onClick={() => toggleUserStatus(user._id)}
-                    className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-700"
-                  >
-                    {user.status ? "Ban" : "Unban"}
-                  </button>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+  return(
+    <div>
+
+<Dropdown menu={{items}}>
+          <EllipsisOutlined />
+        </Dropdown>
+
+ 
     </div>
-  );
-};
-
-export default ManageUser;
+   
+        
+  )
+}

@@ -49,7 +49,7 @@ const CourseList = () => {
       try {
         setLoading(true);
         console.log("Fetching courses...");
-
+  
         const authToken = localStorage.getItem("authToken");
 
         // Fetch danh sách khóa học mà không cần token
@@ -65,9 +65,9 @@ const CourseList = () => {
         );
 
         const coursesData = await coursesResponse.json();
-
+  
         console.log("Courses data received:", coursesData);
-
+  
         if (!coursesResponse.ok) {
           console.error("Error fetching courses:", coursesData.message);
           return;
@@ -112,32 +112,24 @@ const CourseList = () => {
         ];
 
         console.log("Unique tutor IDs:", uniqueTutorIds);
-
+  
         const tutorsData = {};
         await Promise.all(
           uniqueTutorIds.map(async (tutorId) => {
             if (tutorId) {
               console.log(`Fetching tutor data for ID: ${tutorId}`);
-              const tutorResponse = await fetch(
-                `http://localhost:3000/api/tutors/${tutorId}`
-              );
+              const tutorResponse = await fetch(`http://localhost:3000/api/tutors/${tutorId}`);
               const tutorData = await tutorResponse.json();
               if (tutorResponse.ok) {
-                console.log(
-                  `Tutor data received for ID ${tutorId}:`,
-                  tutorData
-                );
+                console.log(`Tutor data received for ID ${tutorId}:`, tutorData);
                 tutorsData[tutorId] = tutorData.fullname;
               } else {
-                console.error(
-                  `Error fetching tutor ${tutorId}:`,
-                  tutorData.message
-                );
+                console.error(`Error fetching tutor ${tutorId}:`, tutorData.message);
               }
             }
           })
         );
-
+  
         console.log("Tutors data:", tutorsData);
         setTutors(tutorsData);
       } catch (error) {
@@ -147,7 +139,7 @@ const CourseList = () => {
         setLoading(false);
       }
     };
-
+  
     fetchCourses();
   }, []);
 
