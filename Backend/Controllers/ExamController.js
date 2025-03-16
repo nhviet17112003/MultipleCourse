@@ -343,7 +343,7 @@ exports.deleteExam = async (req, res) => {
 };
 
 //Get exam for student
-exports.getExamForStudent = async (req, res) => {
+exports.getExamScoreForStudent = async (req, res) => {
   try {
     const course_id = req.params.course_id;
     const student_id = req.user._id;
