@@ -59,8 +59,9 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
 
   useEffect(() => {
     if (
-      isCompleted ||
-      (currentLesson?.type === "exam" && currentLesson.title === "Final Exam")
+      isCompleted &&
+      currentLesson?.type === "exam" &&
+      currentLesson.title === "Final Exam"
     ) {
       confetti({
         particleCount: 150,
