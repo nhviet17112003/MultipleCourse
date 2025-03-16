@@ -49,7 +49,6 @@ const DetailCourse = () => {
         if (response.ok) {
           setCourse(data.courseDetail);
 
-          //comment nhe
           if (
             data.courseDetail.comments.some(
               (comment) => comment.author === fullname

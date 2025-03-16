@@ -105,8 +105,6 @@ router.get(
 router.get(
   "/student-of-course/:course_id",
   cors.corsWithOptions,
-  auth.verifyUser,
-  auth.verifyAdminOrTutor,
   courseController.getListStudentOfCourses
 );
 

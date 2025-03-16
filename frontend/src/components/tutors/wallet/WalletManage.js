@@ -317,12 +317,15 @@ const WalletManage = () => {
         <h1 className="text-3xl font-bold text-black-700 text-center mb-8">
           Wallet Manage
         </h1>
-        <div className="flex justify-between items-center mb-8">
-          <p className="text-lg font-semibold text-gray-800">Current Balance</p>
-          <p className="text-3xl font-bold text-green-600">
+        <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start mb-6 sm:mb-8 text-center sm:text-left">
+          <p className="text-base sm:text-lg font-semibold text-gray-800">
+            Current Balance
+          </p>
+          <p className="text-2xl sm:text-3xl font-bold text-green-600 transition-all">
             {balance?.toLocaleString("vi-VN")} ₫
           </p>
         </div>
+
         {hasPendingRequest ? (
           <p className="text-red-500 font-semibold">
             You have a pending withdrawal request. Please wait and try again
@@ -391,9 +394,8 @@ const WalletManage = () => {
                 Withdrawal Confirmation
               </button>
             </div>
-
-            <div className="mb-8 mt-8">
-              <h2 className="text-3xl font-semibold text-indigo-700 mb-4">
+            <div className="mb-8 mt-8 px-4">
+              <h2 className="text-2xl sm:text-3xl font-semibold text-indigo-700 mb-4 text-center sm:text-left">
                 Bank Information
               </h2>
 
@@ -401,18 +403,18 @@ const WalletManage = () => {
                 bankData.map((bank, index) => (
                   <div
                     key={index}
-                    className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 my-4 flex items-center justify-between"
+                    className="bg-white p-4 sm:p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 my-4 flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4"
                   >
-                    <div className="flex flex-col">
-                      <div className="flex items-center mb-3">
-                        <p className="text-lg font-medium text-gray-700">
+                    <div className="flex flex-col text-center sm:text-left">
+                      <div className="flex items-center justify-center sm:justify-start mb-2">
+                        <p className="text-lg sm:text-xl font-medium text-gray-700">
                           <strong>{bank.bank_name}</strong>
                         </p>
                       </div>
-                      <p className="text-gray-600 mb-2">
+                      <p className="text-gray-600 text-sm sm:text-base">
                         <strong>Account Number:</strong> {bank.account_number}
                       </p>
-                      <p className="text-gray-600 mb-4">
+                      <p className="text-gray-600 text-sm sm:text-base">
                         <strong>Account Holder Name:</strong>{" "}
                         {bank.account_name}
                       </p>
@@ -420,7 +422,7 @@ const WalletManage = () => {
 
                     <button
                       onClick={() => handleUpdateClick(bank)}
-                      className="py-2 px-6 bg-yellow-500 text-white rounded-full hover:bg-yellow-600 transition-all ease-in-out flex items-center"
+                      className="py-2 px-4 sm:px-6 bg-yellow-500 text-white rounded-full hover:bg-yellow-600 transition-all flex items-center justify-center w-full sm:w-auto"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -430,9 +432,9 @@ const WalletManage = () => {
                         stroke="currentColor"
                       >
                         <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
                           d="M13 3l-7 7V3h14v14H7V10m3-4l4 4"
                         />
                       </svg>
@@ -441,13 +443,13 @@ const WalletManage = () => {
                   </div>
                 ))
               ) : (
-                <div>
+                <div className="text-center">
                   <p className="text-gray-600">
                     No bank information available.
                   </p>
                   <button
                     onClick={() => setIsUpdateFormVisible(true)}
-                    className="mt-4 py-2 px-6 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-all"
+                    className="mt-4 py-2 px-6 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-all w-full sm:w-auto"
                   >
                     Add Bank
                   </button>
@@ -457,25 +459,28 @@ const WalletManage = () => {
           </div>
         )}
         {isConfirmVisible && (
-          <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
-            <div className="bg-white p-6 rounded-xl shadow-xl text-center">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center px-4">
+            <div className="bg-white p-6 rounded-xl shadow-xl text-center w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg transform scale-95 transition-all duration-300 ease-in-out">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
                 Withdrawal Confirmation
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 mb-6 text-sm sm:text-base">
                 Are you sure you want to withdraw{" "}
-                {withdrawAmount.toLocaleString("vi-VN")} ₫ ?
+                <span className="font-bold text-gray-800">
+                  {withdrawAmount.toLocaleString("vi-VN")} ₫
+                </span>
+                ?
               </p>
-              <div className="flex justify-center space-x-4">
+              <div className="flex flex-col sm:flex-row justify-center sm:space-x-4 space-y-3 sm:space-y-0">
                 <button
                   onClick={handleWithdraw}
-                  className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+                  className="w-full sm:w-auto px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
                 >
                   Confirm
                 </button>
                 <button
                   onClick={() => setIsConfirmVisible(false)}
-                  className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                  className="w-full sm:w-auto px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
                 >
                   Cancel
                 </button>
@@ -485,56 +490,59 @@ const WalletManage = () => {
         )}
 
         {isUpdateFormVisible && (
-          <div className="mt-6">
-            <div className="grid grid-cols-1 gap-6">
-              <div className="relative w-full">
+          <div className="mt-6 bg-white p-6 rounded-lg shadow-lg">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="relative w-full">
+                  <input
+                    type="text"
+                    value={newBankName}
+                    onChange={handleBankNameChange}
+                    className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Bank Name"
+                  />
+                  {newBankName && (
+                    <ul className="absolute mt-2 w-full bg-white rounded-lg shadow-md max-h-60 overflow-y-auto z-10">
+                      {filteredBanks.map((bank, index) => (
+                        <li
+                          key={index}
+                          onClick={() => handleBankSelection(bank)}
+                          className="p-2 cursor-pointer hover:bg-gray-200"
+                        >
+                          {bank}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
                 <input
                   type="text"
-                  value={newBankName}
-                  onChange={handleBankNameChange}
+                  value={newAccountNumber}
+                  onChange={(e) => setNewAccountNumber(e.target.value)}
                   className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="Bank Name"
+                  placeholder="Account Number"
                 />
-                {newBankName && (
-                  <ul className="absolute mt-2 w-full bg-white  rounded-lg shadow-md max-h-60 overflow-y-auto z-10">
-                    {filteredBanks.map((bank, index) => (
-                      <li
-                        key={index}
-                        onClick={() => handleBankSelection(bank)}
-                        className="p-2 cursor-pointer hover:bg-gray-200"
-                      >
-                        {bank}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+
+                <input
+                  type="text"
+                  value={newAccountHolder}
+                  onChange={handleAccountHolderChange}
+                  placeholder="Account Holder Name"
+                  className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
               </div>
 
-              <input
-                type="text"
-                value={newAccountNumber}
-                onChange={(e) => setNewAccountNumber(e.target.value)}
-                className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="Account Number"
-              />
-              <input
-                type="text"
-                value={newAccountHolder}
-                onChange={handleAccountHolderChange}
-                placeholder="Account Holder Name"
-                className="w-full p-2 border rounded"
-              />
-
-              <div className="flex gap-4">
+              <div className="flex flex-col justify-center md:items-end gap-4">
                 <button
                   onClick={handleUpdateBank}
-                  className="w-full py-3 bg-green-600 text-white rounded-lg shadow-lg hover:bg-green-700 transition-all ease-in-out"
+                  className="w-full md:w-48 py-3 bg-green-600 text-white rounded-lg shadow-lg hover:bg-green-700 transition-all ease-in-out"
                 >
-                  Bank Update
+                  Update Bank
                 </button>
                 <button
                   onClick={handleCancelUpdate}
-                  className="w-full py-3 bg-gray-600 text-white rounded-lg shadow-lg hover:bg-gray-700 transition-all ease-in-out"
+                  className="w-full md:w-48 py-3 bg-gray-600 text-white rounded-lg shadow-lg hover:bg-gray-700 transition-all ease-in-out"
                 >
                   Cancel
                 </button>
