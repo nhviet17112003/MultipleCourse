@@ -3,10 +3,11 @@ import { useParams, useLocation } from "react-router-dom";
 import { CheckCircleIcon, LockClosedIcon } from "@heroicons/react/24/solid";
 import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import confetti from "canvas-confetti";
 
-const CourseLearningPage = () => {
+const CourseLearningPage = ({ isCourseCompleted }) => {
   const { courseId } = useParams();
-  console.log(courseId);
   const [lessons, setLessons] = useState([]);
   const [currentLesson, setCurrentLesson] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -22,6 +23,54 @@ const CourseLearningPage = () => {
   const navigate = useNavigate();
   const [isCompleted, setIsCompleted] = useState(false);
   const [examScore, setExamScore] = useState(0);
+
+  useEffect(() => {
+    const fetchProgress = async () => {
+      if (!progressId) return;
+
+      try {
+        const response = await fetch(
+          `http://localhost:3000/api/progress/${progressId}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            },
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          setProgressData(data);
+
+          if (data.final_exam?.status === "Completed") {
+            setIsCompleted(true);
+          }
+        } else {
+          setError("Failed to fetch progress data.");
+        }
+      } catch (error) {
+        setError("Failed to fetch progress data.");
+      }
+    };
+
+    fetchProgress();
+  }, [progressId]);
+
+  useEffect(() => {
+    if (
+      isCompleted ||
+      (currentLesson?.type === "exam" && currentLesson.title === "Final Exam")
+    ) {
+      confetti({
+        particleCount: 150,
+        spread: 80,
+        startVelocity: 40,
+        origin: { y: 0.6 },
+      });
+    }
+  }, [isCompleted, currentLesson]);
+
   const fetchExamScore = async () => {
     try {
       const response = await fetch(
@@ -395,10 +444,22 @@ const CourseLearningPage = () => {
                   </div>
                 )}
                 {isCompleted ? (
-                  <div className="bg-green-100 p-8 rounded-lg shadow-md mb-8 flex flex-col items-center">
-                    <svg
+                  <motion.div
+                    initial={{ opacity: 0, y: 50 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                    className="bg-gradient-to-r from-green-100 to-green-200 p-10 rounded-2xl shadow-xl mb-8 flex flex-col items-center border border-green-300/50 backdrop-blur-md"
+                  >
+                    <motion.svg
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{
+                        duration: 0.5,
+                        type: "spring",
+                        stiffness: 100,
+                      }}
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-24 w-24 text-green-600"
+                      className="h-28 w-28 text-green-700 drop-shadow-lg"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -409,22 +470,27 @@ const CourseLearningPage = () => {
                         strokeWidth="2"
                         d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.431-1.307 12.02 12.02 0 002.643 2.679a1 1 0 001-1.51l-1.214-1.214 3.5-3.5a1 1 0 001.5 1.5l-1.5 1.5-3.5-3.5a3.42 3.42 0 00-1.43 1.306"
                       />
-                    </svg>
-                    <h3 className="text-green-600 font-bold mb-4 text-2xl">
-                      Congratulations!
+                    </motion.svg>
+
+                    <h3 className="text-green-700 font-extrabold mb-4 text-3xl tracking-wide">
+                      🎉 Congratulations! 🎉
                     </h3>
-                    <p className="text-gray-600 text-center mb-8 text-xl">
-                      You have completed the course...
+
+                    <p className="text-gray-700 text-center mb-6 text-lg">
+                      You have successfully completed the course!
                     </p>
-                    <a
+
+                    <motion.a
                       href="http://localhost:3001/my-certificate"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-lg shadow-md transition duration-300 ease-in-out"
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition duration-300 ease-in-out text-lg"
+                      whileHover={{ scale: 1.08, rotate: 1 }}
+                      whileTap={{ scale: 0.95 }}
                     >
-                      View your certificate here
-                    </a>
-                  </div>
+                      🎓 View Certificate
+                    </motion.a>
+                  </motion.div>
                 ) : examScore > 0 && examScore < 8 ? (
                   <button
                     onClick={() => navigate(`/final-exam/${courseId}`)}
@@ -607,12 +673,14 @@ const CourseLearningPage = () => {
         <ul className="space-y-4">
           {lessons.map((lesson, index) => {
             const isFinalExam = lesson._id === "exam_final";
+            const isFinalExamCompleted =
+              isFinalExam && isLessonCompleted("exam_final");
             const completedLessons = lessons.filter((l) =>
               isLessonCompleted(l._id)
             );
             const onlyFinalExamLeft =
               completedLessons.length === lessons.length - 1 &&
-              !isLessonCompleted("exam_final");
+              !isFinalExamCompleted;
 
             return (
               <li
@@ -626,21 +694,31 @@ const CourseLearningPage = () => {
                   canAccessLesson(index) && setCurrentLesson(lesson)
                 }
               >
+                {index === lessons.length - 1 &&
+                  progressData &&
+                  progressData.lesson.every(
+                    (lesson) => lesson.status === "Completed"
+                  ) &&
+                  progressData.final_exam?.status !== "Completed" && (
+                    <div className="absolute top-[-40px] left-1/2 transform -translate-x-1/2 bg-yellow-200 text-yellow-900 text-sm px-3 py-2 rounded-lg shadow-lg animate-bounce">
+                      🎉 Wow! You completed all the lessons! Take the Final Exam
+                      to complete the course. 🎯
+                    </div>
+                  )}
+
                 <span className="text-gray-800 font-medium text-lg">
                   {lesson.title}
                 </span>
-                {isFinalExam && isCompleted ? (
-                  <CheckCircleIcon className="h-6 w-6 text-green-500" />
-                ) : isLessonCompleted(lesson._id) ? (
+                {lesson.type === "exam" &&
+                index === lessons.length - 1 &&
+                isCompleted ? (
+                  <CheckCircleIcon className="w-6 h-6 text-green-500" />
+                ) : null}
+                {isLessonCompleted(lesson._id) ? (
                   <CheckCircleIcon className="h-6 w-6 text-green-500" />
                 ) : !canAccessLesson(index) ? (
                   <LockClosedIcon className="h-6 w-6 text-gray-500" />
-                ) : (
-                  <div className="absolute top-[-40px] left-1/2 transform -translate-x-1/2 bg-yellow-200 text-yellow-900 text-sm px-3 py-2 rounded-lg shadow-lg animate-bounce">
-                    🎉 Wow! You completed all the lessons! Take the Final Exam
-                    to complete the course. 🎯
-                  </div>
-                )}
+                ) : null}
               </li>
             );
           })}

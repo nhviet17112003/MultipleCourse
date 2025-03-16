@@ -606,7 +606,7 @@ const CourseList = () => {
                           }}
                           className="bg-cyan-500 text-white px-4 py-2 rounded hover:bg-cyan-600"
                         >
-                          Thêm vào giỏ
+                          Add to cart
                         </button>
                       </div>
                     </div>
