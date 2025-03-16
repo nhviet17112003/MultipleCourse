@@ -1,10 +1,58 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useTheme } from "../context/ThemeContext";
-import UpdateLessonModal from "./lesson/UpdateLessonModal";
+
+import { 
+  Layout, 
+  Typography, 
+  Tag, 
+  Button, 
+  Spin, 
+  Table, 
+  Card, 
+  Avatar, 
+  Modal, 
+  Collapse, 
+  Progress, 
+  Image, 
+  Divider, 
+  Statistic, 
+  Space, 
+  Alert,
+  List,
+  Rate,
+  Result
+} from "antd";
+import { Comment } from '@ant-design/compatible';
+import { 
+  ArrowLeftOutlined, 
+  EditOutlined, 
+  DeleteOutlined, 
+  EyeOutlined, 
+  FileAddOutlined, 
+  PlusOutlined, 
+  DollarOutlined, 
+  UserOutlined, 
+  BookOutlined, 
+  FileExcelOutlined, 
+  WarningOutlined,
+  CommentOutlined,
+  EyeInvisibleOutlined,
+  StarFilled,
+  MessageFilled,
+  LikeFilled,
+  ClockCircleFilled,
+  NumberOutlined
+} from "@ant-design/icons";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import UpdateLessonModal from "./lesson/UpdateLessonModal";
+import { useTheme } from "../context/ThemeContext";
+
+const { Title, Text, Paragraph } = Typography;
+const { Header, Content } = Layout;
+const { Panel } = Collapse;
+const { Meta } = Card;
 
 const CourseDetailForTutor = () => {
   const [course, setCourse] = useState(null);
@@ -25,13 +73,12 @@ const CourseDetailForTutor = () => {
   const token = localStorage.getItem("authToken");
   const [error, setError] = useState(null);
   const [role, setRole] = useState(null);
-
   const [totalIncome, setTotalIncome] = useState(0);
   const [totalSales, setTotalSales] = useState(0);
-
-  // comment ne
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
   const [selectedComments, setSelectedComments] = useState([]);
+
+  const isDarkMode = theme === "dark";
 
   const openCommentModal = () => {
     setSelectedComments(course.comments || []);
@@ -70,10 +117,11 @@ const CourseDetailForTutor = () => {
     };
 
     fetchStudents();
-  }, [courseId]);
+  }, [courseId, token]);
 
   const handleDeleteLesson = async () => {
     const token = localStorage.getItem("authToken");
+    setIsDeleting(true);
 
     try {
       await axios.delete(
@@ -87,13 +135,13 @@ const CourseDetailForTutor = () => {
       setLessons((prevLessons) =>
         prevLessons.filter((lesson) => lesson._id !== selectedLesson._id)
       );
-      toast.success("Lesson deleted successfully!", {
-        position: "top-right",
-        autoClose: 3000,
-      });
+      toast.success("Lesson deleted successfully!");
       setIsDeleteLessonOpen(false);
     } catch (err) {
+      toast.error("Failed to delete lesson");
       console.error("Failed to delete lesson", err);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -109,8 +157,11 @@ const CourseDetailForTutor = () => {
           },
         }
       );
-      window.location.reload();
+      toast.success("Exam deleted successfully!");
+      setIsDeleteModalOpen(false);
+      setExams(null);
     } catch (err) {
+      toast.error("Failed to delete exam");
       console.error("Failed to delete exam", err);
     }
   };
@@ -143,7 +194,7 @@ const CourseDetailForTutor = () => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data", // Chỉ định Content-Type
+            "Content-Type": "multipart/form-data",
           },
         }
       );
@@ -154,9 +205,11 @@ const CourseDetailForTutor = () => {
             lesson._id === selectedLesson._id ? response.data.lesson : lesson
           )
         );
+        toast.success("Lesson updated successfully!");
         closeModal();
       }
     } catch (error) {
+      toast.error("Failed to update lesson");
       console.error("Failed to update lesson", error);
     }
   };
@@ -194,10 +247,8 @@ const CourseDetailForTutor = () => {
 
         if (examResponse.ok) {
           const examData = await examResponse.json();
-          console.log("Exam Response:", examData);
           setExams(examData);
         } else if (examResponse.status === 404) {
-          console.log("No exam found for this course.");
           setExams(null);
         }
 
@@ -209,7 +260,6 @@ const CourseDetailForTutor = () => {
         if (incomeResponse.status === 200) {
           const incomeData = incomeResponse.data;
 
-          // Kiểm tra incomeData có phải là mảng hay không
           if (Array.isArray(incomeData)) {
             const courseIncome = incomeData.find(
               (income) => income.course_id === courseId
@@ -222,6 +272,17 @@ const CourseDetailForTutor = () => {
             console.warn("Expected array but received:", incomeData);
           }
         }
+        
+        // Fetch user role
+        const userResponse = await axios.get(
+          "http://localhost:3000/api/users/profile",
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        
+        if (userResponse.status === 200) {
+          setRole(userResponse.data.role);
+        }
+        
       } catch (error) {
         if (axios.isAxiosError(error) && error.response?.status === 404) {
           console.log("Course not found, showing alternative UI.");
@@ -238,430 +299,697 @@ const CourseDetailForTutor = () => {
     fetchCourseDetail();
   }, [courseId, navigate, token]);
 
+  // Student table columns
+  const studentColumns = [
+    {
+      title: "Avatar",
+      dataIndex: "student",
+      key: "avatar",
+      render: (student) => (
+        <Avatar src={student.avatar} size="large" />
+      ),
+    },
+    {
+      title: "Full Name",
+      dataIndex: "student",
+      key: "fullname",
+      render: (student) => <Text>{student.fullname}</Text>,
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (status) => (
+        <Tag color={status === "Enrolled" ? "green" : "red"}>
+          {status}
+        </Tag>
+      ),
+    },
+    {
+      title: "Progress",
+      dataIndex: "percent",
+      key: "progress",
+      render: (percent) => (
+        <Progress 
+          percent={parseFloat(percent).toFixed(2)} 
+          size="small" 
+          status={percent >= 100 ? "success" : "active"}
+        />
+      ),
+    },
+  ];
+
   if (loading) {
-    return <p>Loading course details...</p>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spin size="large" tip="Loading course details..." />
+      </div>
+    );
   }
 
   if (errorMessage) {
-    return <p className="text-red-500">{errorMessage}</p>;
+    return (
+      <Result
+        status="error"
+        title="Error"
+        subTitle={errorMessage}
+        extra={
+          <Button type="primary" onClick={() => navigate("/login")}>
+            Go to Login
+          </Button>
+        }
+      />
+    );
   }
 
+  // Lấy giá trị đánh giá trung bình nếu có các comment
+  const getAverageRating = (comments) => {
+    if (!comments || comments.length === 0) return 0;
+    const sum = comments.reduce((acc, comment) => acc + comment.rating, 0);
+    return (sum / comments.length).toFixed(1);
+  };
+
   return (
-    <div
-      className={`course-detail p-6 ${
-        theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-gray-900"
-      }`}
-    >
-      <button
-        onClick={() => navigate(-1)}
-        className="bg-gray-500 text-white px-4 py-2 rounded-lg mt-4"
-      >
-        Back
-      </button>
-      {course && (
-        <div className={`p-6 ${theme === "dark" ? "bg-gray-800" : "bg-white"}`}>
-          <div className="flex mt-8 justify-center items-center">
-            <p className=" text-yellow-600 bg-yellow-300 px-2 py-1 rounded-lg mr-2">
-              {course.category}
-            </p>
-            <p className="text-green-600 bg-green-300 px-2 py-1 rounded-lg mr-2">
-              {course.price.toLocaleString()} VND
-            </p>
-
-            <p
-              className={` mr-2 ${
-                course.status
-                  ? "text-green-600 bg-green-300"
-                  : "text-red-600 bg-red-300"
-              } px-2 py-1 rounded-lg`}
+    <Layout className={isDarkMode ? "bg-gray-900 text-white" : "bg-white"}>
+      <Header className="bg-transparent flex items-center p-4">
+        <Button 
+          icon={<ArrowLeftOutlined />} 
+          onClick={() => navigate(-1)}
+          className="mr-4"
+        >
+          Back
+        </Button>
+      </Header>
+      
+      <Content className="px-4 py-8">
+        {course ? (
+          <div className="space-y-8 max-w-7xl mx-auto">
+            {/* Course Header */}
+            <Card 
+              className={`w-full ${isDarkMode ? "bg-gray-800 text-white" : "bg-white"}`}
+              bordered={false}
+              headStyle={{ borderBottom: 0 }}
             >
-              {course.status ? "Available" : "Not Available"}
-            </p>
-            <p className="text-gray-500">
-              {new Date(course.createAt).toLocaleDateString("en-US", {
-                month: "long",
-
-                day: "2-digit",
-
-                year: "numeric",
-              })}
-            </p>
-          </div>
-
-          <div className="flex justify-center items-center mt-4">
-            <h2 className="text-[70px] text-center font-semibold">
-              {course.title}{" "}
-            </h2>
-          </div>
-          <div className="flex justify-center items-center mt-4 ml-4"></div>
-          <p className="mt-4 text-center mb-[60px]">{course.description}</p>
-          <div className=" justify-center items-center flex mb-8 mt-8">
-            {course.image && (
-              <img
-                src={course.image}
-                alt={course.title}
-                className="w-[1000px] h-[700px] object-contain rounded-lg"
-              />
-            )}
-          </div>
-          {/* comment nha ae */}
-          <div className="flex justify-center mt-4">
-            <button
-              onClick={openCommentModal}
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
-            >
-              View Comments
-            </button>
-          </div>
-
-          <div className="mt-6 p-4 border border-green-300 bg-green-200 rounded-lg text-center">
-            <h3 className="text-xl font-semibold">
-              💰 Total Income: ${totalIncome}
-            </h3>
-            <h3 className="text-lg text-gray-600">
-              📈 Total Sales: {totalSales}
-            </h3>
-            <div />
-          </div>
-        </div>
-      )}
-      <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center tracking-wide">
-        Students Enrolled
-      </h2>
-      {loading ? (
-        <p>Loading students...</p>
-      ) : error ? (
-        <p className="text-red-500">{error}</p>
-      ) : students.length > 0 ? (
-        <div className="overflow-x-auto mt-4">
-          <table className="min-w-full border border-gray-300">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="px-4 py-2 border">Avatar</th>
-                <th className="px-4 py-2 border">Full Name</th>
-                <th className="px-4 py-2 border">Status</th>
-                <th className="px-4 py-2 border">Progress</th>
-              </tr>
-            </thead>
-            <tbody>
-              {students.map((student) => (
-                <tr key={student.student._id} className="text-center">
-                  <td className="border px-4 py-2">
-                    <img
-                      src={student.student.avatar}
-                      alt={student.student.fullname}
-                      className="w-12 h-12 rounded-full mx-auto"
+              <div className="flex flex-col items-center">
+                <Title level={1} className={`text-center mb-6 ${isDarkMode ? "text-white" : ""}`}>
+                  {course.title}
+                </Title>
+                
+                <Space className="mb-4 flex flex-wrap justify-center">
+                  <Tag color="gold" className="m-1 px-3 py-1 text-base">{course.category}</Tag>
+                  <Tag color="green" className="m-1 px-3 py-1 text-base">{course.price.toLocaleString()} VND</Tag>
+                  <Tag color={course.status ? "green" : "red"} className="m-1 px-3 py-1 text-base">
+                    {course.status ? "Available" : "Not Available"}
+                  </Tag>
+                  <Tag color="blue" className="m-1 px-3 py-1 text-base">
+                    {new Date(course.createAt).toLocaleDateString("en-US", {
+                      month: "long",
+                      day: "2-digit",
+                      year: "numeric",
+                    })}
+                  </Tag>
+                </Space>
+                
+                <Paragraph className={`text-center max-w-3xl mx-auto mb-8 text-lg ${isDarkMode ? "text-gray-300" : ""}`}>
+                  {course.description}
+                </Paragraph>
+                
+                {course.image && (
+                  <div className="mb-6 w-full max-w-4xl mx-auto">
+                    <Image
+                      src={course.image}
+                      alt={course.title}
+                      className="rounded-lg shadow-lg"
+                      width="100%"
+                      height={500}
+                      style={{ objectFit: "cover" }}
                     />
-                  </td>
-                  <td className="border px-4 py-2">
-                    {student.student.fullname}
-                  </td>
-                  <td className="border px-4 py-2">
-                    <span
-                      className={`px-2 py-1 rounded ${
-                        student.status === "Enrolled"
-                          ? "bg-green-200 text-green-700"
-                          : "bg-red-200 text-red-700"
-                      }`}
+                  </div>
+                )}
+                
+                <div className="flex flex-col md:flex-row items-center justify-center gap-6 w-full max-w-4xl mt-8">
+                  <Card className={`w-full md:w-1/2 ${isDarkMode ? "bg-gradient-to-r from-blue-900 to-indigo-900" : "bg-gradient-to-r from-green-400 to-blue-500"} text-white shadow-lg`}>
+                    <Statistic
+                      title={<Text strong className="text-white text-lg">Total Income</Text>}
+                      value={totalIncome}
+                      prefix="$"
+                      className="mb-2"
+                      valueStyle={{ color: 'white', fontSize: '28px' }}
+                    />
+                    <Statistic
+                      title={<Text strong className="text-white text-lg">Total Sales</Text>}
+                      value={totalSales}
+                      suffix="orders"
+                      valueStyle={{ color: 'white', fontSize: '28px' }}
+                    />
+                  </Card>
+                  
+                  {course.comments && course.comments.length > 0 && (
+                    <Card className={`w-full md:w-1/2 ${isDarkMode ? "bg-gray-700" : "bg-gray-50"} shadow-lg`}>
+                      <div className="flex items-center justify-center gap-2 mb-3">
+                        <StarFilled className="text-yellow-400 text-xl" />
+                        <Text strong className="text-3xl">{getAverageRating(course.comments)}</Text>
+                      </div>
+                      <Rate disabled defaultValue={parseFloat(getAverageRating(course.comments))} className="flex justify-center mb-3" />
+                      <div className="text-center">
+                        <Text type="secondary">Based on {course.comments.length} {course.comments.length === 1 ? 'review' : 'reviews'}</Text>
+                      </div>
+                    </Card>
+                  )}
+                </div>
+              </div>
+            </Card>
+            
+            {/* Reviews Section - Hiển thị trực tiếp trên trang */}
+            <Card 
+              className={`w-full ${isDarkMode ? "bg-gray-800 text-white" : "bg-white"}`}
+              bordered={false}
+              title={
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <MessageFilled className="text-blue-500 mr-2" />
+                    <Title level={3} className={`m-0 ${isDarkMode ? "text-white" : "text-gray-800"}`}>
+                      Course Reviews
+                    </Title>
+                  </div>
+                </div>
+              }
+            >
+              {course.comments && course.comments.length > 0 ? (
+                <div className="space-y-6">
+                  {course.comments.slice(0, 3).map((comment, index) => (
+                    <div 
+                      key={index} 
+                      className={`p-6 rounded-lg ${isDarkMode ? "bg-gray-700" : "bg-gray-50"} transition-all hover:shadow-md`}
                     >
-                      {student.status}
-                    </span>
-                  </td>
-                  <td className="border px-4 py-2">
-                    {student.percent.toFixed(2)}%
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <p className="text-gray-500 mt-2">
-          No students enrolled in this course.
-        </p>
-      )}
+                      <div className="flex items-start">
+                        <Avatar 
+                          icon={<UserOutlined />} 
+                          size={50}
+                          className={`${isDarkMode ? "bg-blue-600" : "bg-blue-500"} flex-shrink-0`}
+                        />
+                        <div className="ml-4 flex-grow">
+                          <div className="flex items-center justify-between flex-wrap">
+                            <Text strong className={`text-lg ${isDarkMode ? "text-white" : ""}`}>
+                              {comment.author}
+                            </Text>
+                            <div className="flex items-center mt-1 sm:mt-0">
+                              <ClockCircleFilled className={`mr-1 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
+                              <Text type="secondary" className="text-sm">
+                                {new Date(comment.date).toLocaleDateString("en-US", {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric'
+                                })}
+                              </Text>
+                            </div>
+                          </div>
+                          
+                          <div className="mt-2 flex items-center">
+                            <Rate 
+                              disabled 
+                              defaultValue={comment.rating} 
+                              className="text-yellow-400 text-sm"
+                            />
+                            <Text strong className="ml-2">
+                              {comment.rating.toFixed(1)}
+                            </Text>
+                          </div>
+                          
+                          <Paragraph 
+                            className={`mt-3 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
+                            ellipsis={{ rows: 3, expandable: true, symbol: 'Read more' }}
+                          >
+                            {comment.comment}
+                          </Paragraph>
+                          
+                          <div className="mt-3 flex items-center">
+                            <Button 
+                              type="text" 
+                              size="small"
+                              icon={<LikeFilled />}
+                              className={isDarkMode ? "text-gray-400 hover:text-white" : "text-gray-500 hover:text-blue-500"}
+                            >
+                              Helpful
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {course.comments.length > 3 && (
+                    <div className="text-center mt-4">
+                      <Button 
+                        type="primary" 
+                        ghost
+                        onClick={openCommentModal}
+                        className={`rounded-full px-6 ${isDarkMode ? "border-blue-400 text-blue-400 hover:border-blue-300 hover:text-blue-300" : ""}`}
+                      >
+                        View All {course.comments.length} Reviews
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Alert
+                  message="No Reviews Yet"
+                  description="Be the first to review this course!"
+                  type="info"
+                  showIcon
+                  className="my-4"
+                />
+              )}
+            </Card>
+            
+            {/* Students Section */}
+            <Card 
+              title={
+                <Title level={3} className={`flex items-center ${isDarkMode ? "text-white" : ""}`}>
+                  <UserOutlined className="mr-2" /> Students Enrolled
+                </Title>
+              }
+              className={`w-full ${isDarkMode ? "bg-gray-800 text-white" : "bg-white"}`}
+              bordered={false}
+            >
+              {students.length > 0 ? (
+                <Table
+                  dataSource={students}
+                  columns={studentColumns}
+                  rowKey={(record) => record.student._id}
+                  pagination={{ pageSize: 10 }}
+                  className="w-full"
+                />
+              ) : (
+                <Alert
+                  message="No students enrolled"
+                  description="There are no students enrolled in this course yet."
+                  type="info"
+                  showIcon
+                />
+              )}
+            </Card>
+            
+            {/* Exams Section */}
+            <Card
+              title={
+                <Title level={3} className={`flex items-center ${isDarkMode ? "text-white" : ""}`}>
+                  <FileExcelOutlined className="mr-2" /> Course Exams
+                </Title>
+              }
+              className={`w-full ${isDarkMode ? "bg-gray-800 text-white" : "bg-white"}`}
+              bordered={false}
+              extra={
+                role !== "Admin" && !exams && (
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={() => navigate(`/create-exam/${courseId}`)}
+                  >
+                    Create Exam
+                  </Button>
+                )
+              }
+            >
+              {exams ? (
+                <div>
+                  <Card 
+                    className={`mb-4 ${isDarkMode ? "bg-gray-700 text-white" : "bg-gray-50"}`}
+                    bordered={false}
+                  >
+                    <Meta
+                      title={<Text strong className={isDarkMode ? "text-white text-lg" : "text-lg"}>{exams.title}</Text>}
+                      description={
+                        <Space direction="vertical" className="w-full mt-2">
+                          <Text className={isDarkMode ? "text-gray-300" : ""}><strong>Total Marks:</strong> {exams.totalMark}</Text>
+                          <Text className={isDarkMode ? "text-gray-300" : ""}><strong>Duration:</strong> {exams.duration} minutes</Text>
+                        </Space>
+                      }
+                    />
+                    
+                    <Divider className={isDarkMode ? "bg-gray-600" : ""} />
+                    
+                    <div>
+                      <Title level={5} className={`mb-4 ${isDarkMode ? "text-white" : ""}`}>Questions:</Title>
+                      <Collapse 
+                        defaultActiveKey={[]} 
+                        className={isDarkMode ? "bg-gray-700" : ""}
+                      >
+                        {(showAllQuestions
+                          ? exams.questions
+                          : exams.questions.slice(0, 3)
+                        ).map((question, index) => (
+                          <Panel
+                            header={`Question ${index + 1}: ${question.question}`}
+                            key={index}
+                            className={isDarkMode ? "bg-gray-600 border-gray-700" : ""}
+                            headerClass={isDarkMode ? "text-white" : ""}
+                          >
+                            <List
+                              dataSource={question.answers}
+                              renderItem={(answer) => (
+                                <List.Item
+                                  className={`py-2 px-4 rounded-md my-1 ${
+                                    answer.isCorrect
+                                      ? isDarkMode 
+                                        ? "bg-green-900 border-l-4 border-green-500 text-green-300"
+                                        : "bg-green-100 border-l-4 border-green-500 text-green-700"
+                                      : isDarkMode
+                                        ? "bg-red-900 border-l-4 border-red-500 text-red-300"
+                                        : "bg-red-50 border-l-4 border-red-300 text-red-500"
+                                  }`}
+                                >
+                                  {answer.answer}
+                                </List.Item>
+                              )}
+                            />
+                          </Panel>
+                        ))}
+                      </Collapse>
+                      
+                      {exams.questions.length > 3 && (
+                        <Button
+                          type="link"
+                          onClick={toggleShowQuestions}
+                          icon={showAllQuestions ? <EyeInvisibleOutlined /> : <EyeOutlined />}
+                          className={`mt-4 ${isDarkMode ? "text-blue-400" : ""}`}
+                        >
+                          {showAllQuestions ? "Show Less" : "Show More"}
+                        </Button>
+                      )}
+                    </div>
+                  </Card>
+                  
+                  {role !== "Admin" && (
+                    <Space>
+                      <Button
+                        type="primary"
+                        icon={<EditOutlined />}
+                        onClick={() => navigate(`/update-exam/${courseId}`)}
+                      >
+                        Update
+                      </Button>
+                      <Button
+                        danger
+                        icon={<DeleteOutlined />}
+                        onClick={() => setIsDeleteModalOpen(true)}
+                      >
+                        Delete
+                      </Button>
+                    </Space>
+                  )}
+                </div>
+              ) : (
+                <Alert
+                  message="No exams found"
+                  description="There are no exams created for this course yet."
+                  type="info"
+                  showIcon
+                />
+              )}
+            </Card>
+            
+            {/* Lessons Section */}
+            <Card
+              title={
+                <Title level={3} className={`flex items-center ${isDarkMode ? "text-white" : ""}`}>
+                  <BookOutlined className="mr-2" /> Course Lessons
+                </Title>
+              }
+              className={`w-full ${isDarkMode ? "bg-gray-800 text-white" : "bg-white"}`}
+              bordered={false}
+              extra={
+                role !== "Admin" && (
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={() => navigate(`/create-lesson/${courseId}`)}
+                  >
+                    Create Lesson
+                  </Button>
+                )
+              }
+            >
+              {lessons.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {lessons.map((lesson) => (
+                    <Card
+                      key={lesson._id}
+                      hoverable
+                      className={`${isDarkMode ? "bg-gray-700" : "bg-white"} border-l-4 border-blue-500 transition-all hover:shadow-xl`}
+                      actions={[
+                        <Button
+                          key="view"
+                          icon={<EyeOutlined />}
+                          onClick={() => navigate(`/lesson-detail/${lesson._id}`)}
+                        >
+                          View
+                        </Button>,
+                        role !== "Admin" && (
+                          <Button
+                            key="edit"
+                            icon={<EditOutlined />}
+                            onClick={() => openModal(lesson)}
+                          >
+                            Update
+                          </Button>
+                        ),
+                        role !== "Admin" && (
+                          <Button
+                            key="delete"
+                            danger
+                            icon={<DeleteOutlined />}
+                            onClick={() => {
+                              setSelectedLesson(lesson);
+                              setIsDeleteLessonOpen(true);
+                            }}
+                          >
+                            Delete
+                          </Button>
+                  
+                        ),
+                      ].filter(Boolean)}
+                    >
+                      <div className="flex items-center mb-2">
+                        <Tag color="blue" className="mr-2">#{lesson.number || 'N/A'}</Tag>
+                        <Text strong className={`text-blue-500 text-lg ${isDarkMode ? "text-blue-400" : ""}`}>
+                          {lesson.title}
+                        </Text>
+                      </div>
+                      <Paragraph
+                        className={isDarkMode ? "text-gray-300" : "text-gray-600"}
+                        ellipsis={{ rows: 3, expandable: false }}
+                      >
+                        {lesson.description}
+                      </Paragraph>
+                    </Card>
+                    
+                  ))}
+                  
+                  
+                </div>
+              ) : (
+                <Alert
+                  message="No lessons found"
+                  description="There are no lessons created for this course yet."
+                  type="info"
+                  showIcon
+                />
+                
+              )}
+            </Card>
+          </div>
+        ) : (
+          <Result
+            status="warning"
+            title="Course Not Found"
+            subTitle="The course you're looking for does not exist or has been removed."
+            extra={
+              <Button type="primary" onClick={() => navigate('/courses')}>
+                Back to Courses
+              </Button>
+            }
+          />
+        )}
+      </Content>
+      
+      {/* Modals */}
       {isModalOpen && selectedLesson && (
         <UpdateLessonModal
           lesson={selectedLesson}
           onClose={closeModal}
           onUpdate={handleUpdateLesson}
+          visible={isModalOpen}
         />
       )}
-      <div className="p-6">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center tracking-wide mt-6">
-          📚 Course Exams
-        </h2>
-
-        {role !== "Admin" && !exams && (
-          <button
-            onClick={() => navigate(`/create-exam/${courseId}`)}
-            className="ml-6 bg-gradient-to-r from-teal-500 to-green-400 text-white px-7 py-3 rounded-xl shadow-lg transition-transform transform hover:scale-105 active:scale-95"
+      
+      <Modal
+        title={<Text strong className={isDarkMode ? "text-white" : ""}>Delete Lesson</Text>}
+        open={isDeleteLessonOpen}
+        onCancel={() => setIsDeleteLessonOpen(false)}
+        footer={[
+          <Button key="cancel" onClick={() => setIsDeleteLessonOpen(false)}>
+            Cancel
+          </Button>,
+          <Button 
+            key="delete" 
+            danger 
+            loading={isDeleting} 
+            onClick={handleDeleteLesson}
           >
-            + Create Exam
-          </button>
-        )}
-
-        {exams ? (
-          <ul className="space-y-6 mt-4">
-            <li className="p-6 rounded-xl shadow-lg bg-white border border-gray-200 hover:shadow-2xl transition">
-              <h3 className="text-xl font-bold text-gray-900">{exams.title}</h3>
-              <p className="text-gray-700 font-medium">
-                📊 Total Marks: {exams.totalMark}
-              </p>
-              <p className="text-gray-700 font-medium">
-                ⏳ Duration: {exams.duration} min
-              </p>
-
-              <h4 className="mt-4 text-lg font-semibold text-gray-800">
-                📝 Questions:
-              </h4>
-              <ul className="mt-2 space-y-2">
-                {(showAllQuestions
-                  ? exams.questions
-                  : exams.questions.slice(0, 3)
-                ).map((question, index) => (
-                  <li
-                    key={question._id}
-                    className="p-4 bg-gray-50 rounded-lg shadow-sm border-l-4 border-teal-400"
-                  >
-                    <p className="text-gray-900 font-semibold">
-                      {index + 1}. {question.question}
-                    </p>
-                    <ul className="ml-4 mt-2 space-y-1">
-                      {question.answers.map((answer) => (
-                        <li
-                          key={answer._id}
-                          className={`pl-2 border-l-2 ${
-                            answer.isCorrect
-                              ? "border-green-500 text-green-600"
-                              : "border-red-500 text-red-600"
-                          }`}
-                        >
-                          {answer.answer}
-                        </li>
-                      ))}
-                    </ul>
-                  </li>
-                ))}
-              </ul>
-
-              {exams.questions.length > 3 && (
-                <span
-                  className="mt-4 text-blue-500 underline cursor-pointer hover:text-blue-700 transition"
-                  onClick={() => setShowAllQuestions(!showAllQuestions)}
-                >
-                  {showAllQuestions ? "⬆ Show Less" : "⬇ Show More"}
-                </span>
-              )}
-            </li>
-
-            {role !== "Admin" && (
-              <div className="flex gap-4">
-                <button
-                  onClick={() => navigate(`/update-exam/${courseId}`)}
-                  className="bg-yellow-500 text-white px-5 py-2 rounded-lg shadow-md hover:bg-yellow-400 transition"
-                >
-                  ✏ Update
-                </button>
-                <button
-                  onClick={() => setIsDeleteModalOpen(true)}
-                  className="bg-red-500 text-white px-5 py-2 rounded-lg shadow-md hover:bg-red-400 transition"
-                >
-                  ❌ Delete
-                </button>
+            Delete
+          </Button>,
+        ]}
+        className={isDarkMode ? "dark-theme-modal" : ""}
+      >
+        <Alert
+          message="Warning"
+          description="Are you sure you want to delete this lesson? This action cannot be undone."
+          type="warning"
+          showIcon
+          icon={<WarningOutlined />}
+          className="mb-4"
+        />
+      </Modal>
+      
+      <Modal
+        title={<Text strong className={isDarkMode ? "text-white" : ""}>Delete Exam</Text>}
+        open={isDeleteModalOpen}
+        onCancel={handleDeleteModalClose}
+        footer={[
+          <Button key="cancel" onClick={handleDeleteModalClose}>
+            Cancel
+          </Button>,
+          <Button key="delete" danger onClick={handleDeleteExam}>
+            Delete
+          </Button>,
+        ]}
+        className={isDarkMode ? "dark-theme-modal" : ""}
+      >
+        <Alert
+          message="Warning"
+          description="Are you sure you want to delete this exam? This action cannot be undone."
+          type="warning"
+          showIcon
+          icon={<WarningOutlined />}
+          className="mb-4"
+        />
+      </Modal>
+      
+      {/* Modal hiển thị tất cả comments */}
+      <Modal
+        title={
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <MessageFilled className="text-blue-500 mr-2" />
+              <Text strong className={`text-lg ${isDarkMode ? "text-white" : ""}`}>Course Reviews</Text>
+            </div>
+            {selectedComments && selectedComments.length > 0 && (
+              <div className="flex items-center">
+                <StarFilled className="text-yellow-400 mr-1" />
+                <Text strong>
+                  {(selectedComments.reduce((acc, comment) => acc + comment.rating, 0) / selectedComments.length).toFixed(1)}
+                </Text>
+                <Text type="secondary" className="ml-2">
+                  ({selectedComments.length})
+                </Text>
               </div>
             )}
-          </ul>
-        ) : (
-          <p className="text-gray-500 mt-2 text-center italic">
-            No exams found for this course.
-          </p>
-        )}
-
-        <div className="p-6 ">
-          {/* bg-gradient-to-b from-gray-50 to-gray-100 shadow-xl rounded-2xl */}
-          <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center tracking-wide">
-            📖 Course Lessons
-          </h2>
-
-          {role !== "Admin" && (
-            <button
-              onClick={() => navigate(`/create-lesson/${courseId}`)}
-              className="bg-gradient-to-r from-teal-500 to-green-400 text-white px-6 py-3 rounded-xl shadow-lg transition-transform transform hover:scale-105 active:scale-95"
-            >
-              + Create Lesson
-            </button>
-          )}
-
-          {lessons.length > 0 ? (
-            <div className="mt-6">
-              <h3 className="text-xl font-semibold text-gray-700">
-                📌 Lessons
-              </h3>
-
-              <ul className="space-y-6 mt-4">
-                {lessons.map((lesson) => (
-                  <li
-                    key={lesson._id}
-                    className={`p-6 rounded-xl shadow-lg border-l-4 ${
-                      theme === "dark"
-                        ? "bg-gray-800 border-teal-400 text-white"
-                        : "bg-white border-teal-500 text-gray-900"
-                    } transition transform hover:scale-105 hover:shadow-xl`}
-                  >
-                    <p className="font-bold text-teal-600 text-lg">
-                      {lesson.title}
-                    </p>
-                    <p className="text-gray-600 text-sm italic">
-                      {lesson.description}
-                    </p>
-
-                    <div className="flex gap-4 mt-4">
-                      <button
-                        onClick={() => navigate(`/lesson-detail/${lesson._id}`)}
-                        className="bg-blue-500 text-white px-5 py-2 rounded-lg shadow-md hover:bg-blue-400 transition"
-                      >
-                        🔍 View Details
-                      </button>
-
-                      {role !== "Admin" && (
-                        <>
-                          <button
-                            onClick={() => openModal(lesson)}
-                            className="bg-green-500 text-white px-5 py-2 rounded-lg shadow-md hover:bg-green-400 transition"
-                          >
-                            ✏ Update
-                          </button>
-
-                          <button
-                            onClick={() => {
-                              setSelectedLesson(lesson);
-                              setIsDeleteLessonOpen(true);
-                            }}
-                            className="bg-red-500 text-white px-5 py-2 rounded-lg shadow-md hover:bg-red-400 transition"
-                          >
-                            ❌ Delete
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : (
-            <p className="text-gray-500 mt-4 text-center italic">
-              No lessons found for this course.
-            </p>
-          )}
-        </div>
-
-        {isDeleteLessonOpen && (
-          <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center">
-            <div className="bg-white p-4 rounded-lg shadow-lg flex flex-col items-center">
-              <h2 className="text-lg font-bold mb-2">
-                Are you sure you want to delete this lesson?
-              </h2>
-              <div className="flex space-x-4">
-                <button
-                  onClick={handleDeleteLesson}
-                  className="bg-red-500 text-white px-4 py-2 rounded-lg"
-                  disabled={isDeleting}
-                >
-                  {isDeleting ? "Deleting..." : "Delete"}
-                </button>
-
-                <button
-                  className="bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition"
-                  onClick={() => setIsDeleteLessonOpen(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
           </div>
-        )}
-
-        {isDeleteModalOpen && (
-          <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center">
-            <div className="bg-white p-4 rounded-lg shadow-lg flex flex-col items-center">
-              <h2 className="text-lg font-bold mb-2">
-                Are you sure you want to delete this exam?
-              </h2>
-              <div className="flex space-x-4">
-                <button
-                  className="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition"
-                  onClick={handleDeleteExam}
-                >
-                  Confirm
-                </button>
-                <button
-                  className="bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition"
-                  onClick={handleDeleteModalClose}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {isCommentModalOpen && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="relative bg-white p-6 rounded-2xl shadow-2xl w-[500px] max-h-[80vh] overflow-y-auto">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
-                Comments
-              </h2>
-
-              {selectedComments.length > 0 ? (
-                <div className="space-y-4">
-                  {selectedComments.map((comment) => (
-                    <div
-                      key={comment._id}
-                      className="border border-gray-300 rounded-lg p-4 shadow-sm bg-gray-50"
-                    >
-                      <p className="text-gray-800 font-semibold">
+        }
+        open={isCommentModalOpen}
+        onCancel={closeCommentModal}
+        footer={[
+          <Button key="close" type="primary" onClick={closeCommentModal}>
+            Close
+          </Button>,
+        ]}
+        width={700}
+        className={isDarkMode ? "dark-theme-modal" : ""}
+      >
+        {selectedComments && selectedComments.length > 0 ? (
+          <List
+            itemLayout="vertical"
+            dataSource={selectedComments}
+            renderItem={(comment, index) => (
+              <List.Item 
+                key={index}
+                className={`mb-4 p-4 rounded-lg ${isDarkMode ? "bg-gray-700" : "bg-gray-50"}`}
+              >
+                <div className="flex items-start">
+                  <Avatar 
+                    icon={<UserOutlined />} 
+                    size={50}
+                    className={`${isDarkMode ? "bg-blue-600" : "bg-blue-500"} flex-shrink-0`}
+                  />
+                  <div className="ml-4 flex-grow">
+                    <div className="flex items-center justify-between flex-wrap">
+                      <Text strong className={`text-lg ${isDarkMode ? "text-white" : ""}`}>
                         {comment.author}
-                      </p>
-                      <p className="text-yellow-400 text-lg">
-                        {"⭐".repeat(comment.rating)}
-                      </p>
-                      <p className="text-gray-600">{comment.comment}</p>
-                      <p className="text-gray-400 text-sm">
-                        {new Date(comment.date).toLocaleString()}
-                      </p>
+                      </Text>
+                      <div className="flex items-center mt-1 sm:mt-0">
+                        <ClockCircleFilled className={`mr-1 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
+                        <Text type="secondary" className="text-sm">
+                          {new Date(comment.date).toLocaleDateString("en-US", {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </Text>
+                      </div>
                     </div>
-                  ))}
+                    
+                    <div className="mt-2 flex items-center">
+                      <Rate 
+                        disabled 
+                        defaultValue={comment.rating} 
+                        className="text-yellow-400 text-sm"
+                      />
+                      <Text strong className="ml-2">
+                        {comment.rating.toFixed(1)}
+                      </Text>
+                    </div>
+                    
+                    <Paragraph 
+                      className={`mt-3 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
+                    >
+                      {comment.comment}
+                    </Paragraph>
+                    
+                    <div className="mt-3 flex items-center">
+                      <Button 
+                        type="text" 
+                        size="small"
+                        icon={<LikeFilled />}
+                        className={isDarkMode ? "text-gray-400 hover:text-white" : "text-gray-500 hover:text-blue-500"}
+                      >
+                        Helpful
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-              ) : (
-                <p className="text-gray-500 text-center">No comments yet.</p>
-              )}
-
-              <button
-                onClick={closeCommentModal}
-                className="mt-4 w-full bg-gray-700 text-white py-2 rounded-lg hover:bg-gray-800 transition font-semibold"
-              >
-                Close
-              </button>
-
-              <button
-                onClick={closeCommentModal}
-                className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition text-2xl"
-              >
-                ✖
-              </button>
-            </div>
-          </div>
+              </List.Item>
+            )}
+            pagination={{
+              pageSize: 5,
+              size: "small",
+              hideOnSinglePage: true,
+              className: "mt-4"
+            }}
+          />
+        ) : (
+          <Alert
+            message="No Reviews Yet"
+            description="Be the first to review this course!"
+            type="info"
+            showIcon
+            className="my-4"
+          />
         )}
-
-        <ToastContainer position="top-right" autoClose={3000} />
-      </div>
-      {/* // ) : ( //{" "}
-      <p className="mt-4 text-gray-500">
-        // No lessons available for this course. //{" "}
-      </p>
-      // )} */}
-    </div>
+      </Modal>
+      
+      <ToastContainer position="top-right" autoClose={3000} />
+    </Layout>
   );
 };
 

@@ -1,116 +1,116 @@
 import React, { useState } from "react";
 import { useTheme } from "../context/ThemeContext";
+import { Modal, Input, Select, Button, Popconfirm, message } from "antd";
+import { toast } from "react-toastify";
+const { TextArea } = Input;
+const { Option } = Select;
 
 const UpdateCourseModal = ({ course, onClose, onUpdate }) => {
   const { theme } = useTheme();
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [formData, setFormData] = useState({
+    
     title: course.title,
     description: course.description,
     price: course.price,
     category: course.category,
   });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  // kieerm tra xem co thay doi du lieu k
+  const isChanged =
+    formData.title !== course.title ||
+    formData.description !== course.description ||
+    formData.price !== course.price ||
+    formData.category !== course.category;
+
+  const handleChange = (name, value) => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = () => {
+    if (!isChanged) {
+      message.warning("No changes detected!");
+      return;
+    }
     onUpdate({ ...formData, _id: course._id });
+    onClose();
   };
 
   return (
-<div
-  className={`fixed inset-0 flex items-center justify-center ${
-    theme === "dark" ? "bg-gray-900 bg-opacity-80" : "bg-black bg-opacity-50"
-  } z-50`}
->
-  <div
-    className={`rounded-lg shadow-lg p-6 w-96 ${
-      theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-gray-900"
-    }`}
-  >
-        <h2 className="text-2xl font-semibold border-b-2 border-teal-500 pb-4 mb-4">Update Course</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">Title</label>
-            <input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              className={`w-full px-6 py-4 rounded-lg border 
-                ${theme === "dark" 
-                  ? "bg-gray-800 text-white border-gray-600 focus:ring-teal-400" 
-                  : "bg-white text-gray-900 border-gray-300 focus:ring-teal-500"} 
-                focus:outline-none`}
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">Description</label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              className={`w-full px-6 py-4 rounded-lg border 
-                ${theme === "dark" 
-                  ? "bg-gray-800 text-white border-gray-600 focus:ring-teal-400" 
-                  : "bg-white text-gray-900 border-gray-300 focus:ring-teal-500"} 
-                focus:outline-none`}
-            ></textarea>
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">Price</label>
-            <input
-              type="number"
-              name="price"
-              value={formData.price}
-              onChange={handleChange}
-              className={`w-full px-6 py-4 rounded-lg border 
-                ${theme === "dark" 
-                  ? "bg-gray-800 text-white border-gray-600 focus:ring-teal-400" 
-                  : "bg-white text-gray-900 border-gray-300 focus:ring-teal-500"} 
-                focus:outline-none`}
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">Category</label>
-            <select
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              className={`w-full px-6 py-4 rounded-lg border 
-                ${theme === "dark" 
-                  ? "bg-gray-800 text-white border-gray-600 focus:ring-teal-400" 
-                  : "bg-white text-gray-900 border-gray-300 focus:ring-teal-500"} 
-                focus:outline-none`}
-            >
-              <option value="Programming">Programming</option>
-              <option value="Design">Design</option>
-              <option value="Marketing">Marketing</option>
-            </select>
-          </div>
-          <div className="flex justify-end space-x-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className={`px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 ${
-                theme === "dark" ? "bg-gray-500 text-white" : "bg-gray-300 text-gray-900"
-              }`}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              Update
-            </button>
-          </div>
-        </form>
+    <Modal
+      title={<span className="text-xl font-semibold">Update Course</span>}
+      open={true}
+      onCancel={onClose}
+      footer={null} // Ẩn footer mặc định
+      className="dark"
+    >
+      <div className="space-y-4">
+        <label className="block text-sm font-medium">Title</label>
+        <Input
+          name="title"
+          value={formData.title}
+          onChange={(e) => handleChange("title", e.target.value)}
+          className="rounded-lg"
+        />
+
+        <label className="block text-sm font-medium">Description</label>
+        <TextArea
+          name="description"
+          value={formData.description}
+          onChange={(e) => handleChange("description", e.target.value)}
+          rows={4}
+          className="rounded-lg"
+        />
+
+        <label className="block text-sm font-medium">Price</label>
+        <Input
+          type="number"
+          name="price"
+          value={formData.price}
+          onChange={(e) => handleChange("price", e.target.value)}
+          className="rounded-lg"
+        />
+
+        <label className="block text-sm font-medium">Category</label>
+        <Select
+          name="category"
+          value={formData.category}
+          onChange={(value) => handleChange("category", value)}
+          className="w-full rounded-lg"
+        >
+          <Option value="Programming">Programming</Option>
+          <Option value="Design">Design</Option>
+          <Option value="Marketing">Marketing</Option>
+        </Select>
       </div>
-    </div>
+
+      {/* Custom Footer */}
+      <div className="flex justify-end gap-2 mt-4">
+        <Button onClick={onClose}>Cancel</Button>
+        <Popconfirm
+          title="Are you sure you want to update this course?"
+          open={confirmOpen}
+          onConfirm={handleSubmit}
+          onCancel={() => setConfirmOpen(false)}
+          okText="Yes"
+          cancelText="No"
+        >
+         <Button
+            type="primary"
+            onClick={() => {
+              if (!isChanged) {
+                message.warning("No changes detected!");
+                return;
+              }
+              setConfirmOpen(true);
+            }}
+            disabled={!isChanged} // Disable nếu không có thay đổi
+          >
+            Update
+          </Button>
+        </Popconfirm>
+      </div>
+    </Modal>
   );
 };
 
