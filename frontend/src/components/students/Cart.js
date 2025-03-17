@@ -9,6 +9,8 @@ const Cart = () => {
   const [cartId, setCartId] = useState(null); // Lưu trữ cartId
   const navigate = useNavigate(); // Khởi tạo navigate
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteItemId, setDeleteItemId] = useState(null); // Thêm state mới
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // Thêm state mới
   useEffect(() => {
     // Lấy giỏ hàng từ API
     const fetchCartItems = async () => {
@@ -45,7 +47,6 @@ const Cart = () => {
   }, []);
 
   const handleRemoveItem = async (itemId) => {
-    console.log("Xóa sản phẩm có Course ID:", itemId);
     try {
       const response = await fetch(`http://localhost:3000/api/cart/${itemId}`, {
         method: "DELETE",
@@ -57,8 +58,6 @@ const Cart = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("Đã xóa sản phẩm thành công:", data);
-
         setCartItems((prevItems) => {
           const updatedItems = prevItems.filter(
             (item) => item.course._id !== itemId
@@ -72,16 +71,22 @@ const Cart = () => {
 
           return updatedItems;
         });
+        toast.success("Deleted successfully!"); // Thêm thông báo toast
       } else {
         const errorData = await response.json();
-        console.error(
-          "Lỗi khi xóa sản phẩm:",
-          errorData.message || "Không rõ lỗi"
-        );
+        toast.error("Failed to delete item!");
       }
     } catch (error) {
       console.error("Lỗi khi xóa sản phẩm:", error);
+      toast.error("Failed to delete item!");
     }
+    setIsDeleteModalOpen(false); // Đóng modal sau khi xóa
+  };
+
+  // Thêm hàm mới để xử lý việc mở modal xác nhận xóa
+  const openDeleteConfirmation = (itemId) => {
+    setDeleteItemId(itemId);
+    setIsDeleteModalOpen(true);
   };
 
   const handlePayment = async () => {
@@ -163,7 +168,7 @@ const Cart = () => {
                     </div>
                   </div>
                   <button
-                    onClick={() => handleRemoveItem(item.course._id)}
+                    onClick={() => openDeleteConfirmation(item.course._id)}
                     className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
                   >
                     Delete
@@ -187,6 +192,66 @@ const Cart = () => {
         )}
       </div>
 
+      {/* Modal xác nhận xóa */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-8 rounded-lg shadow-2xl text-center transform scale-105 w-[400px]">
+            <div className="mb-4">
+              <div className="w-16 h-16 mx-auto bg-red-100 rounded-full flex items-center justify-center">
+                <svg
+                  className="w-8 h-8 text-red-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </div>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">
+              Confirm Delete
+            </h2>
+            <p className="text-gray-600 mb-8">
+              Are you sure you want to remove this course from your cart? This
+              action cannot be undone.
+            </p>
+            <div className="flex justify-center space-x-4">
+              <button
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleRemoveItem(deleteItemId)}
+                className="px-6 py-2.5 rounded-lg bg-red-500 text-white font-medium hover:bg-red-600 transition-colors duration-200 flex items-center"
+              >
+                <svg
+                  className="w-4 h-4 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+                Delete Course
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal thông báo mua hàng thành công */}
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-8 rounded-lg shadow-2xl text-center transform scale-105">

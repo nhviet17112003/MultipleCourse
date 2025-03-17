@@ -190,7 +190,7 @@ const Navbar = () => {
           : "bg-white dark:bg-gray-900 shadow-md"
       }`}
     >
-      <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+      <div className="container mx-auto md:px-8 px-6 py-4 flex justify-between items-center">
         {/* Logo */}
         <h1
           className="text-2xl font-bold cursor-pointer hover:text-teal-500 transition-all duration-300"
