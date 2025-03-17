@@ -11,6 +11,23 @@ router.get(
   auth.verifyAdmin,
   requestController.getAllRequests
 );
+
+router.get(
+  "/requests-by-user",
+  cors.cors,
+  auth.verifyUser,
+  auth.verifyTutor,
+  requestController.getRequestsByUser
+);
+
+router.post(
+  "/cancel-request",
+  cors.cors,
+  auth.verifyUser,
+  auth.verifyTutor,
+  requestController.cancelRequest
+);
+
 router.get(
   "/request-detail/:request_id",
   cors.cors,
