@@ -55,7 +55,7 @@ router.get(
   "/get-exam-score/:course_id",
   cors.corsWithOptions,
   auth.verifyUser,
-  ExamController.getExamForStudent
+  ExamController.getExamScoreForStudent
 );
 
 module.exports = router;
