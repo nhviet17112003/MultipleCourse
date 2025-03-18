@@ -1,42 +1,142 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
+import { 
+  Modal, 
+  Form, 
+  Input, 
+  Upload, 
+  Button, 
+  Typography, 
+  Divider, 
+  Space, 
+  Alert, 
+  Spin, 
+  Card
+} from "antd";
+import { 
+  InboxOutlined, 
+  UploadOutlined, 
+  FilePdfOutlined, 
+  VideoCameraOutlined, 
+  SaveOutlined, 
+  EditOutlined, 
+  ExclamationCircleOutlined
+} from "@ant-design/icons";
+import { toast } from "react-toastify";
 
-const UpdateLessonModal = ({ lesson, onClose }) => {
+const { TextArea } = Input;
+const { Title, Text } = Typography;
+const { Dragger } = Upload;
+
+const UpdateLessonModal = ({ lesson, onClose, onUpdate, visible = true }) => {
   const { theme } = useTheme();
-  const [title, setTitle] = useState(lesson.title);
-  const [description, setDescription] = useState(lesson.description);
+  const [form] = Form.useForm();
+  const [title, setTitle] = useState(lesson?.title || "");
+  const [description, setDescription] = useState(lesson?.description || "");
   const [videoFile, setVideoFile] = useState(null);
   const [documentFile, setDocumentFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [videoFileList, setVideoFileList] = useState([]);
+  const [documentFileList, setDocumentFileList] = useState([]);
 
-  const handleVideoChange = (e) => {
-    setVideoFile(e.target.files[0]);
+  // Initialize form with lesson data
+  useEffect(() => {
+    if (lesson) {
+      setTitle(lesson.title);
+      setDescription(lesson.description);
+      
+      // Reset file lists when lesson changes
+      setVideoFileList([]);
+      setDocumentFileList([]);
+    }
+  }, [lesson]);
+
+  const isDarkMode = theme === "dark";
+
+  // Theme-based styling classes
+  const getThemeClasses = () => {
+    return {
+      modal: isDarkMode ? "bg-gray-800 text-white" : "bg-white text-gray-900",
+      input: isDarkMode 
+        ? "bg-gray-700 border-gray-600 text-white" 
+        : "bg-white border-gray-300 text-gray-900",
+      upload: isDarkMode
+        ? "bg-gray-700 border-gray-600 text-white hover:border-blue-400" 
+        : "bg-white border-gray-300 text-gray-900 hover:border-blue-500",
+      button: isDarkMode 
+        ? "border-gray-600 text-gray-300 hover:text-white" 
+        : "border-gray-300 text-gray-800 hover:text-black",
+      primaryButton: "bg-blue-500 hover:bg-blue-600 border-blue-500 text-white",
+      dangerButton: "bg-red-500 hover:bg-red-600 border-red-500 text-white"
+    };
   };
 
-  const handleDocumentChange = (e) => {
-    setDocumentFile(e.target.files[0]);
+  const classes = getThemeClasses();
+
+  // Video upload handler
+  const handleVideoChange = (info) => {
+    const { fileList } = info;
+    setVideoFileList(fileList);
+    
+    if (fileList.length > 0) {
+      const file = fileList[fileList.length - 1];
+      
+      if (file.status === 'done' || file.status === 'uploading' || !file.status) {
+        setVideoFile(file.originFileObj);
+      }
+    } else {
+      setVideoFile(null);
+    }
   };
 
-  const handleUpdateClick = () => {
-    setShowConfirmModal(true);
+  // Document upload handler
+  const handleDocumentChange = (info) => {
+    const { fileList } = info;
+    setDocumentFileList(fileList);
+    
+    if (fileList.length > 0) {
+      const file = fileList[fileList.length - 1];
+      
+      if (file.status === 'done' || file.status === 'uploading' || !file.status) {
+        setDocumentFile(file.originFileObj);
+      }
+    } else {
+      setDocumentFile(null);
+    }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    setShowConfirmModal(false);
+  // Show confirmation dialog
+  const showConfirm = () => {
+    Modal.confirm({
+      title: 'Confirm Update',
+      icon: <ExclamationCircleOutlined />,
+      content: 'Are you sure you want to update this lesson?',
+      okText: 'Update',
+      cancelText: 'Cancel',
+      onOk: handleSubmit,
+      okButtonProps: {
+        className: classes.primaryButton
+      },
+      className: isDarkMode ? 'dark-theme-modal' : '',
+      styles: {
+        body: isDarkMode ? { background: '#1f2937', color: 'white' } : {}
+      }
+    });
+  };
 
-    const formData = new FormData();
-    formData.append("title", title);
-    formData.append("description", description);
-    if (videoFile) formData.append("video", videoFile);
-    if (documentFile) formData.append("document", documentFile);
-
+  // Form submission handler
+  const handleSubmit = async () => {
     try {
+      setLoading(true);
+      setError("");
+
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("description", description);
+      if (videoFile) formData.append("video", videoFile);
+      if (documentFile) formData.append("document", documentFile);
+
       const token = localStorage.getItem("authToken");
       const response = await fetch(
         `http://localhost:3000/api/lessons/${lesson._id}`,
@@ -53,152 +153,221 @@ const UpdateLessonModal = ({ lesson, onClose }) => {
         throw new Error("Failed to update lesson");
       }
 
-      setShowSuccessModal(true);
+      const data = await response.json();
+      
+      // Call parent update function if provided
+      if (onUpdate) {
+        onUpdate(data);
+      }
+      
+      // toast.success("Lesson updated successfully!");
+      onClose();
     } catch (err) {
       setError(err.message);
+      // toast.error("Failed to update lesson");
     } finally {
       setLoading(false);
     }
   };
 
+  // Upload configurations
+  const uploadProps = {
+    customRequest: ({ onSuccess }) => {
+      setTimeout(() => {
+        onSuccess("ok");
+      }, 0);
+    },
+    progress: {
+      strokeColor: {
+        '0%': '#108ee9',
+        '100%': '#87d068',
+      },
+      strokeWidth: 3
+    }
+  };
+
+  // Video upload configuration
+  const videoUploadProps = {
+    ...uploadProps,
+    accept: 'video/*',
+    fileList: videoFileList,
+    onChange: handleVideoChange,
+    maxCount: 1
+  };
+
+  // Document upload configuration
+  const documentUploadProps = {
+    ...uploadProps,
+    accept: '.pdf,.docx,.txt',
+    fileList: documentFileList,
+    onChange: handleDocumentChange,
+    maxCount: 1
+  };
+
   return (
-    <div
-      className={`fixed inset-0 flex items-center justify-center ${
-        theme === "dark"
-          ? "bg-gray-900 bg-opacity-80"
-          : "bg-black bg-opacity-50"
-      } z-50`}
+    <Modal
+      title={
+        <Space>
+          <EditOutlined className="text-blue-500" />
+          <Text strong className={isDarkMode ? "text-white" : ""}>Update Lesson</Text>
+        </Space>
+      }
+      open={visible}
+      onCancel={onClose}
+      footer={null}
+      width={700}
+      className={isDarkMode ? "dark-theme-modal" : ""}
+      styles={{ 
+        body: isDarkMode ? { background: '#1f2937', color: 'white' } : {},
+        mask: { backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.8)' : 'rgba(0, 0, 0, 0.5)' }
+      }}
+      destroyOnClose
     >
-      <div
-        className={`rounded-lg shadow-lg p-8 w-full sm:w-96 ${
-          theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-gray-900"
-        }`}
-      >
-        <h2 className="text-2xl font-semibold border-b-2 border-teal-500 pb-4 mb-4">
-          Update Lesson
-        </h2>
-
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-
-        <form onSubmit={handleSubmit}>
-          <div className="mt-4">
-            <label className="block text-sm font-medium mb-2">Title</label>
-            <input
-              type="text"
+      <Divider className={isDarkMode ? "bg-gray-700" : ""} />
+      
+      {error && (
+        <Alert
+          message="Error"
+          description={error}
+          type="error"
+          showIcon
+          className="mb-4"
+          closable
+        />
+      )}
+      
+      <Spin spinning={loading} tip="Updating lesson...">
+        <Form layout="vertical" initialValues={{ title, description }}>
+          <Form.Item 
+            label={<Text className={isDarkMode ? "text-white" : ""}>Lesson Title</Text>}
+            required
+            rules={[{ required: true, message: "Title is required" }]}
+          >
+            <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className={`w-full px-6 py-4 rounded-lg border ${
-                theme === "dark"
-                  ? "bg-gray-800 text-white border-gray-600 focus:ring-teal-400"
-                  : "bg-white text-gray-900 border-gray-300 focus:ring-teal-500"
-              } focus:outline-none`}
-              required
+              placeholder="Enter lesson title"
+              className={classes.input}
+              size="large"
             />
-          </div>
-
-          <div className="mt-4">
-            <label className="block text-sm font-medium mb-2">
-              Description
-            </label>
-            <textarea
+          </Form.Item>
+          
+          <Form.Item 
+            label={<Text className={isDarkMode ? "text-white" : ""}>Description</Text>}
+            required
+            rules={[{ required: true, message: "Description is required" }]}
+          >
+            <TextArea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className={`w-full px-6 py-4 rounded-lg border ${
-                theme === "dark"
-                  ? "bg-gray-800 text-white border-gray-600 focus:ring-teal-400"
-                  : "bg-white text-gray-900 border-gray-300 focus:ring-teal-500"
-              } focus:outline-none`}
-              required
-            ></textarea>
-          </div>
-
-          <div className="mt-4">
-            <label className="block text-sm font-medium mb-2">
-              Video Upload
-            </label>
-            <input
-              type="file"
-              accept="video/*"
-              onChange={handleVideoChange}
-              className="w-full px-6 py-4 rounded-lg border bg-white text-gray-900"
+              placeholder="Enter lesson description"
+              className={classes.input}
+              rows={4}
+              autoSize={{ minRows: 4, maxRows: 8 }}
             />
-          </div>
-
-          <div className="mt-4">
-            <label className="block text-sm font-medium mb-2">
-              Document Upload
-            </label>
-            <input
-              type="file"
-              accept=".pdf,.docx,.txt"
-              onChange={handleDocumentChange}
-              className="w-full px-6 py-4 rounded-lg border bg-white text-gray-900"
-            />
-          </div>
-
-          <div className="mt-6 flex justify-end">
-            <button
-              type="button"
+          </Form.Item>
+          
+          <Form.Item
+            label={
+              <Space>
+                <VideoCameraOutlined className="text-blue-500" />
+                <Text className={isDarkMode ? "text-white" : ""}>Video Upload</Text>
+              </Space>
+            }
+          >
+            <Card className={`${classes.upload} border border-dashed`}>
+              <Dragger {...videoUploadProps} className="bg-transparent">
+                <p className="ant-upload-drag-icon">
+                  <InboxOutlined className="text-blue-500" />
+                </p>
+                <p className={`ant-upload-text ${isDarkMode ? "text-white" : ""}`}>
+                  Click or drag to upload video
+                </p>
+                <p className={`ant-upload-hint text-xs ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                  {lesson?.video_url ? "Upload to replace existing video" : "Supported formats: MP4, WebM, etc."}
+                </p>
+              </Dragger>
+            </Card>
+            
+            {lesson?.video_url && !videoFile && (
+              <div className="mt-2 flex items-center">
+                <VideoCameraOutlined className="mr-2 text-blue-500" />
+                <Text type={isDarkMode ? "secondary" : ""} className={isDarkMode ? "text-gray-300" : ""}>
+                  Current Video: 
+                  <a 
+                    href={lesson.video_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="ml-1 text-blue-500 hover:underline"
+                  >
+                    {lesson.video_url.split('/').pop() || 'View current video'}
+                  </a>
+                </Text>
+              </div>
+            )}
+          </Form.Item>
+          
+          <Form.Item
+            label={
+              <Space>
+                <FilePdfOutlined className="text-blue-500" />
+                <Text className={isDarkMode ? "text-white" : ""}>Document Upload</Text>
+              </Space>
+            }
+          >
+            <Card className={`${classes.upload} border border-dashed`}>
+              <Dragger {...documentUploadProps} className="bg-transparent">
+                <p className="ant-upload-drag-icon">
+                  <InboxOutlined className="text-blue-500" />
+                </p>
+                <p className={`ant-upload-text ${isDarkMode ? "text-white" : ""}`}>
+                  Click or drag to upload document
+                </p>
+                <p className={`ant-upload-hint text-xs ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                  {lesson?.document_url ? "Upload to replace existing document" : "Supported formats: PDF, DOCX, TXT"}
+                </p>
+              </Dragger>
+            </Card>
+            
+            {lesson?.document_url && !documentFile && (
+              <div className="mt-2 flex items-center">
+                <FilePdfOutlined className="mr-2 text-blue-500" />
+                <Text type={isDarkMode ? "secondary" : ""} className={isDarkMode ? "text-gray-300" : ""}>
+                  Current Document: 
+                  <a 
+                    href={lesson.document_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="ml-1 text-blue-500 hover:underline"
+                  >
+                    {lesson.document_url.split('/').pop() || 'View current document'}
+                  </a>
+                </Text>
+              </div>
+            )}
+          </Form.Item>
+          
+          <div className="flex justify-end mt-6 space-x-2">
+            <Button 
               onClick={onClose}
-              className="px-4 py-2 rounded-lg mr-2 bg-gray-300 text-gray-900 hover:bg-gray-400 transition"
+              className={classes.button}
             >
               Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleUpdateClick}
-              disabled={loading}
-              className={`px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition ${
-                loading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+            </Button>
+            <Button 
+              type="primary"
+              onClick={showConfirm}
+              loading={loading}
+              icon={<SaveOutlined />}
+              className={classes.primaryButton}
+              disabled={!title || !description}
             >
-              {loading ? "Updating..." : "Update"}
-            </button>
+              Update Lesson
+            </Button>
           </div>
-        </form>
-      </div>
-
-      {showConfirmModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg">
-            <p>Are you sure you want to update?</p>
-            <div className="mt-4 flex justify-end">
-              <button
-                onClick={() => setShowConfirmModal(false)}
-                className="px-4 py-2 mr-2 bg-gray-300"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSubmit}
-                className="px-4 py-2 bg-teal-500 text-white"
-              >
-                OK
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showSuccessModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg">
-            <p>Lesson updated successfully!</p>
-            <div className="mt-4 flex justify-end">
-              <button
-                onClick={() => {
-                  setShowSuccessModal(false);
-                  onClose();
-                }}
-                className="px-4 py-2 bg-teal-500 text-white"
-              >
-                OK
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+        </Form>
+      </Spin>
+    </Modal>
   );
 };
 

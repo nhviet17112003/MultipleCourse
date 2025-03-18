@@ -56,6 +56,7 @@ import Students from "./components/tutors/Students";
 import { useState } from "react";
 import CourseDetailForAdmin from "./components/admins/CourseDetailForAdmin";
 import ViewCertificate from "./components/tutors/ViewCertificate";
+import UpdateCourseModal from "./components/tutors/UpdateCourseModal";
 function Layout() {
   const location = useLocation();
   const [navbarKey, setNavbarKey] = useState(0);
@@ -79,7 +80,7 @@ function Layout() {
   const hideSidebar = noSidebarPages.includes(location.pathname);
 
   return (
-    <div className="bg-white dark:bg-black w-screen min-h-screen flex flex-col">
+    <div className="bg-white dark:bg-black w-screen max-h-screen flex flex-col">
       <Navbar key={navbarKey} reloadNavbar={reloadNavbar} />
 
       <div className="flex">
@@ -179,6 +180,8 @@ function Layout() {
             <Route path="/statistic-tutor" element={<StatisticForTutor />} />
             <Route path="/student-list" element={<Students />} />
             <Route path="/certificate" element={<ViewCertificate />} />
+
+            <Route path="//update-course/:courseId" element={<UpdateCourseModal />} />
 
           </Routes>
         </div>

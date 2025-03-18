@@ -1,20 +1,26 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { Button, Input, Card, Select, Form, message, Typography, Alert } from "antd";
+import { PlusOutlined, MinusCircleOutlined, ArrowLeftOutlined } from "@ant-design/icons";
+import { toast, ToastContainer } from "react-toastify";
+import { Header } from "antd/es/layout/layout";
+const { Option } = Select;
+const { Title, Text } = Typography;
+
 const CreateExam = () => {
-  const {courseId} = useParams();
-  const [courseIds, setCourseIds] = useState(courseId);
+  const navigate = useNavigate();
+  const { courseId } = useParams();
   const [title, setTitle] = useState("");
   const [duration, setDuration] = useState("");
   const [totalMark, setTotalMark] = useState("");
   const [questions, setQuestions] = useState([]);
-  const [message, setMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCreated, setIsCreated] = useState(false);
 
   const handleAddQuestion = () => {
-    setQuestions([
-      ...questions,
-      { question: "", questionType: "One Choice", marks: 0, answers: [] },
-    ]);
+    setQuestions([...questions, { question: "", marks: 0, answers: [] }]);
   };
 
   const handleRemoveQuestion = (index) => {
@@ -41,80 +47,111 @@ const CreateExam = () => {
 
   const handleAnswerChange = (qIndex, aIndex, field, value) => {
     const updatedQuestions = [...questions];
-    updatedQuestions[qIndex].answers[aIndex][field] =
-      field === "isCorrect" ? value === "true" : value;
+    updatedQuestions[qIndex].answers[aIndex][field] = field === "isCorrect" ? value === "true" : value;
     setQuestions(updatedQuestions);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const token = localStorage.getItem("authToken");
-    
-    if (!courseIds || !title || !duration || !totalMark || questions.length === 0) {
-      setMessage("Vui lòng điền đầy đủ thông tin và ít nhất một câu hỏi.");
+  const handleSubmit = async () => {
+    if (!title.trim()) {
+      message.error("Title cannot be empty.");
       return;
     }
-
-    const calculatedTotalMark = questions.reduce(
-      (sum, question) => sum + question.marks,
-      0
-    );
+    if (!duration || isNaN(duration) || duration <= 0) {
+      message.error("Duration must be a positive number.");
+      return;
+    }
+    if (!totalMark || isNaN(totalMark) || totalMark <= 0) {
+      message.error("Total mark must be a positive number.");
+      return;
+    }
+    if (questions.length === 0) {
+      message.error("At least one question is required.");
+      return;
+    }
     
+    const calculatedTotalMark = questions.reduce((sum, question) => sum + question.marks, 0);
     if (calculatedTotalMark !== parseInt(totalMark)) {
-      setMessage("Tổng điểm của các câu hỏi không khớp với tổng điểm đã nhập.");
+      message.error("Total marks of questions do not match the entered total mark.");
       return;
     }
-
-    questions.forEach((question) => {
-      const correctAnswers = question.answers.filter((answer) => answer.isCorrect);
-      question.questionType = correctAnswers.length > 1 ? "Multiple Choice" : "One Choice";
-    });
-
+    
     try {
-      await axios.post(
-        "http://localhost:3000/api/exams/create-exam",
-        { course_id: courseIds, title, duration: parseInt(duration), totalMark: parseInt(totalMark), questions },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setMessage("Bài thi đã được tạo thành công!");
+      setIsSubmitting(true);
+      setErrorMessage(null);
+
+      await axios.post("http://localhost:3000/api/exams/create-exam", {
+        course_id: courseId,
+        title,
+        duration: parseInt(duration),
+        totalMark: parseInt(totalMark),
+        questions,
+      },{
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+        },
+      });
+      toast.success("Exam created successfully!");
+      setIsCreated(true);
+      // navigate(`/courses-list-tutor/${courseId}`);
     } catch (error) {
-      setMessage("Lỗi khi tạo bài thi: " + (error.response?.data?.error || "Lỗi không xác định"));
+      const errorMsg = error.response?.data?.message || "Unknown error";
+      setErrorMessage(errorMsg);
+      toast.error("Exam creation failed!");
+    } finally {
+      setIsSubmitting(false);
     }
   };
-  console.log(courseIds)
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-lg">
-      <h2 className="text-2xl font-bold mb-4">Tạo bài thi</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* <input type="text" placeholder="Course ID" value={courseIds} onChange={(e) => setCourseIds(e.target.value)} className="w-full p-2 border rounded" /> */}
-        <input type="text" placeholder="Tiêu đề" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full p-2 border rounded" />
-        <input type="number" placeholder="Thời gian (phút)" value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full p-2 border rounded" />
-        <input type="number" placeholder="Tổng điểm" value={totalMark} onChange={(e) => setTotalMark(e.target.value)} className="w-full p-2 border rounded" />
-        
+          
+      <Title level={2} className="mb-4">Create Exam</Title>
+      {errorMessage && <Alert message="Error" description={"Exam creation failed!"} type="error" showIcon className="mb-4" />}
+      <Form layout="vertical" onFinish={handleSubmit}>
+        <Form.Item name="title" label="Title" rules={[{ required: true, message: "Please enter the title" }]}> 
+          <Input value={title} onChange={(e) => setTitle(e.target.value.trim())} disabled={isCreated}/>
+        </Form.Item>
+        <Form.Item name="duration" label="Duration (minutes)" rules={[{ required: true, message: "Please enter the duration" }]}> 
+          <Input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} disabled={isCreated}/>
+        </Form.Item>
+        <Form.Item name="totalMark" label="Total Marks" rules={[{ required: true, message: "Please enter the total marks" }]}> 
+          <Input type="number" value={totalMark} onChange={(e) => setTotalMark(e.target.value)} disabled={isCreated}/>
+        </Form.Item>
         {questions.map((question, qIndex) => (
-          <div key={qIndex} className="p-4 border rounded-lg space-y-2">
-            <input type="text" placeholder="Câu hỏi" value={question.question} onChange={(e) => handleQuestionChange(qIndex, "question", e.target.value)} className="w-full p-2 border rounded" />
-            <input type="number" placeholder="Điểm" value={question.marks} onChange={(e) => handleQuestionChange(qIndex, "marks", parseInt(e.target.value))} className="w-full p-2 border rounded" />
+          <Card key={qIndex} className="mb-4">
+            <Form.Item name={`question${qIndex}`} label={`Question ${qIndex + 1}`} rules={[{ required: true, message: "Please enter the question" }]}> 
+              <Input value={question.question} onChange={(e) => handleQuestionChange(qIndex, "question", e.target.value)} disabled={isCreated}/>
+            </Form.Item>
+            <Form.Item name={`marks${qIndex}`} label="Marks" rules={[{ required: true, message: "Please enter the marks" }]}> 
+              <Input type="number" value={question.marks} onChange={(e) => handleQuestionChange(qIndex, "marks", parseInt(e.target.value))} disabled={isCreated}/>
+            </Form.Item>
             {question.answers.map((answer, aIndex) => (
-              <div key={aIndex} className="flex space-x-2 items-center">
-                <input type="text" placeholder="Đáp án" value={answer.answer} onChange={(e) => handleAnswerChange(qIndex, aIndex, "answer", e.target.value)} className="p-2 border rounded" />
-                <select value={answer.isCorrect.toString()} onChange={(e) => handleAnswerChange(qIndex, aIndex, "isCorrect", e.target.value)} className="p-2 border rounded">
-                  <option value="false">Sai</option>
-                  <option value="true">Đúng</option>
-                </select>
-                <button type="button" onClick={() => handleRemoveAnswer(qIndex, aIndex)} className="bg-red-500 text-white p-1 rounded">Xóa</button>
+              <div key={aIndex} className="flex gap-2 items-center mb-2">
+                <Input placeholder="Answer" value={answer.answer} onChange={(e) => handleAnswerChange(qIndex, aIndex, "answer", e.target.value)} disabled={isCreated}/>
+                <Select value={answer.isCorrect.toString()} onChange={(value) => handleAnswerChange(qIndex, aIndex, "isCorrect", value)} disabled={isCreated}>
+                  <Option value="false" disabled={isCreated}>False</Option>
+                  <Option value="true" disabled={isCreated}>True</Option>
+                </Select>
+                <Button type="text" danger icon={<MinusCircleOutlined />} onClick={() => handleRemoveAnswer(qIndex, aIndex)} disabled={isCreated}/>
               </div>
             ))}
-            <button type="button" onClick={() => handleAddAnswer(qIndex)} className="bg-blue-500 text-white p-2 rounded">Thêm đáp án</button>
-            <button type="button" onClick={() => handleRemoveQuestion(qIndex)} className="bg-red-500 text-white p-2 rounded">Xóa câu hỏi</button>
-          </div>
+            <Button type="dashed" onClick={() => handleAddAnswer(qIndex)} block icon={<PlusOutlined />} disabled={isCreated}>Add Answer</Button>
+            <Button type="text" danger onClick={() => handleRemoveQuestion(qIndex)} block className="mt-2" disabled={isCreated}>Remove Question</Button>
+          </Card>
         ))}
-        
-        <button type="button" onClick={handleAddQuestion} className="bg-green-500 text-white p-2 rounded">Thêm câu hỏi</button>
-        <button type="submit" className="bg-purple-500 text-white p-2 rounded">Tạo bài thi</button>
-      </form>
-      {message && <p className="mt-4 text-green-600 font-semibold">{message}</p>}
+        <Button type="dashed" onClick={handleAddQuestion} block icon={<PlusOutlined />} disabled={isCreated}>Add Question</Button>
+        <Button type="primary" htmlType="submit" className="mt-4" block loading={isSubmitting} disabled={isCreated}>Create Exam</Button>
+        <Button 
+        block
+        type=""
+          // icon={<ArrowLeftOutlined />} 
+          onClick={() => navigate(-1)}
+          className="mt-4"
+        >
+          Back
+        </Button>
+      </Form>
+      <ToastContainer />
     </div>
   );
 };
