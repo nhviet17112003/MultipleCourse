@@ -11,24 +11,40 @@ import { useTheme } from "./context/ThemeContext";
 function Sidebar() {
   const { theme } = useTheme();
   const [current, setCurrent] = useState("1");
-  const [role, setRole] = useState(null); // Default to "Student"
-  const [token, setToken] = useState(null);
+  const [role, setRole] = useState(localStorage.getItem("role") || "Guest");
   const location = useLocation();
 
   useEffect(() => {
     const updateRole = () => {
-      const currentRole = localStorage.getItem("role") || "Guest"; // Nếu không có role thì mặc định là Student
+      const currentRole = localStorage.getItem("role") || "Guest";
       setRole(currentRole);
       console.log("Updated Role:", currentRole);
     };
 
-    // Gọi ngay khi component mount
-    updateRole();
-
-    // Lắng nghe sự kiện thay đổi localStorage (dùng để cập nhật role khi đăng nhập)
+    // Lắng nghe sự kiện roleChanged
+    window.addEventListener("roleChanged", updateRole);
+    
+    // Lắng nghe sự kiện storage
     window.addEventListener("storage", updateRole);
 
+    // Kiểm tra token và role khi component mount
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      fetch("http://localhost:3000/api/users/profile", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          localStorage.setItem("role", data.role);
+          setRole(data.role);
+        })
+        .catch((error) => console.error("Error fetching user profile:", error));
+    }
+
     return () => {
+      window.removeEventListener("roleChanged", updateRole);
       window.removeEventListener("storage", updateRole);
     };
   }, []);
