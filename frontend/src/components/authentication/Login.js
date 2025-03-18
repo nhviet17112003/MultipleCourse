@@ -116,9 +116,7 @@ const Login = () => {
     }
   };
 
-  const refreshCaptcha = () => {
-    setCaptcha(generateCaptcha());
-  };
+ 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -202,22 +200,31 @@ const Login = () => {
   const handleSignUpForTutor = () => {
     navigate("/signup", { state: { role: "Tutor" } });
   };
-
   const handleGoogleLogin = () => {
-    // Mở trang đăng nhập Google
     window.open("http://localhost:3000/api/users/google/login", "_self");
 
-    // Dùng polling để kiểm tra token trong cookie
     const checkToken = setInterval(() => {
-      const token = getCookie("token"); // Hàm lấy token từ cookie
+      const token = getCookie("token");
       if (token) {
-        clearInterval(checkToken); // Dừng kiểm tra khi đã có token
-        console.log("Đăng nhập thành công! Token:", token);
-        localStorage.setItem("authToken", token); // Lưu token vào localStorage
-        window.location.href = "/course-list"; // Chuyển đến trang Home
+        clearInterval(checkToken);
+        localStorage.setItem("authToken", token);
+        
+        // Thêm đoạn code lấy role từ API
+        fetch("http://localhost:3000/api/users/profile", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            localStorage.setItem("role", data.role);
+            // Tạo một event để thông báo role đã thay đổi
+            window.dispatchEvent(new Event('roleChanged'));
+            window.location.href = "/course-list";
+          });
       }
-    }, 500); // Kiểm tra mỗi 500ms
-  };
+    }, 500);
+};
 
   // Hàm để lấy cookie theo tên
   const getCookie = (name) => {

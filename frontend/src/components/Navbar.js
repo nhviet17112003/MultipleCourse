@@ -3,14 +3,12 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 
 import axios from "axios";
 import { useTheme } from "./context/ThemeContext";
-import { Space, Switch, Input, Button, Dropdown, Menu, Segmented } from "antd";
+import { Space, Switch, Input, Button, Dropdown, Menu } from "antd";
 import {
   UserOutlined,
   LogoutOutlined,
   SearchOutlined,
   CartOutlined,
-  SunOutlined,
-  MoonOutlined,
 } from "@ant-design/icons";
 import Cookies from "js-cookie";
 import ReCAPTCHA from "react-google-recaptcha";
@@ -56,7 +54,6 @@ const Navbar = () => {
 
     if (!token) {
       setError("You are not logged in. Please log in again.");
-      // debouncedNavigate("/login");
       return;
     }
 
@@ -69,17 +66,39 @@ const Navbar = () => {
           },
         }
       );
+
       setUserData(response.data);
       localStorage.setItem("role", response.data.role);
-      setAvatarUrl(response.data.avatar);
+
+      // Xử lý URL avatar từ Google
+      if (response.data.avatar) {
+        // Thêm tham số mới vào URL để tránh cache
+        const googleAvatarUrl = `${
+          response.data.avatar
+        }?${new Date().getTime()}`;
+        setAvatarUrl(googleAvatarUrl);
+        localStorage.setItem("avatarUrl", googleAvatarUrl);
+      } else {
+        const defaultAvatar =
+          "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
+        setAvatarUrl(defaultAvatar);
+        localStorage.setItem("avatarUrl", defaultAvatar);
+      }
+
       setFullname(response.data.fullname || "User");
     } catch (err) {
+      console.error("Error fetching profile:", err);
       setError("Your session has expired. Please log in again.");
-      localStorage.removeItem("authToken"); // Remove token
-      debouncedNavigate("/login"); // Redirect to login page
+      localStorage.removeItem("authToken");
+      debouncedNavigate("/login");
     }
   };
-
+  useEffect(() => {
+    const savedAvatar = localStorage.getItem("avatarUrl");
+    if (savedAvatar) {
+      setAvatarUrl(savedAvatar);
+    }
+  }, []);
   const fetchBalance = async () => {
     try {
       const token = localStorage.getItem("authToken");
@@ -192,7 +211,7 @@ const Navbar = () => {
           : "bg-white dark:bg-gray-900 shadow-md"
       }`}
     >
-      <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+      <div className="container mx-auto md:px-8 px-6 py-4 flex justify-between items-center">
         {/* Logo */}
         <h1
           className="text-2xl font-bold cursor-pointer hover:text-teal-500 transition-all duration-300"
@@ -233,12 +252,11 @@ const Navbar = () => {
 
         {/* User Profile + Balance */}
         <div className="flex items-center space-x-6">
-          
-          {/* <div className="flex items-center space-x-6 font-bold">
+          <div className="flex items-center space-x-6 font-bold">
             {fullname}
-          </div> */}
-          {/* {role === "Tutor" || role === "Student" ? (
-            <div className="flex items-center text-gray-700 dark:text-white px-3 py-2">
+          </div>
+          {role === "Tutor" || role === "Student" ? (
+            <div className="flex items-center text-gray-700 dark:text-white px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm">
               <span className="mr-2">Balance:</span>
               <span className="font-semibold">{balance ?? "0"} VND</span>
               {role === "Student" && (
@@ -250,13 +268,8 @@ const Navbar = () => {
                   Top Up
                 </Button>
               )}
-              
             </div>
-            
-          ) : null} */}
-
-
-          
+          ) : null}
 
           {/* Avatar + Dropdown */}
           {isLoggedIn ? (
@@ -266,31 +279,26 @@ const Navbar = () => {
                 alt="Avatar"
                 className="w-10 h-10 rounded-full border-2 border-white shadow-md cursor-pointer"
                 onClick={() => setShowDropdown((prev) => !prev)}
+                onError={(e) => {
+                  console.log("Image failed to load, trying alternative URL");
+                  e.target.onerror = null;
+                  // Thử URL thay thế nếu URL gốc không hoạt động
+                  const alternativeUrl = avatarUrl.replace("=s96-c", "");
+                  e.target.src = alternativeUrl;
+                  // Nếu vẫn không hoạt động, sử dụng avatar mặc định
+                  e.target.onerror = () => {
+                    e.target.src =
+                      "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
+                  };
+                }}
+                referrerPolicy="no-referrer" // Thêm thuộc tính này để tránh vấn đề CORS
               />
 
               {showDropdown && (
                 <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 text-teal-900 dark:text-white rounded-lg shadow-lg z-50 transition-opacity duration-200">
                   <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700 text-center">
-                    <span className="">{fullname}</span>
+                    <span className="font-semibold">User Menu</span>
                   </div>
-
-                  {role === "Tutor" || role === "Student" ? (
-            <div className="block w-full px-4 py-2 text-left dark:hover:bg-gray-700">
-              <span className="mr-2">Balance:</span>
-              <span className="">{balance ?? "0"} VND</span>
-              {/* {role === "Student" && (
-                <Button
-                  type=""
-                  className=""
-                  onClick={() => debouncedNavigate("/deposit")}
-                >
-                  Top Up
-                </Button>
-              )} */}
-              
-            </div>
-            
-          ) : null}
                   <button
                     className="block w-full px-4 py-2 text-left hover:bg-teal-100 dark:hover:bg-gray-700"
                     onClick={() => debouncedNavigate("/userprofile")}
@@ -311,7 +319,14 @@ const Navbar = () => {
                   >
                     Logout
                   </button>
-                
+                  <div className="w-full flex justify-center py-3">
+                    <Switch
+                      onClick={toggleTheme}
+                      checkedChildren="Dark"
+                      unCheckedChildren="Light"
+                      defaultChecked={theme === "dark"}
+                    />
+                  </div>
                 </div>
               )}
             </div>
@@ -324,27 +339,6 @@ const Navbar = () => {
               Login
             </Button>
           )}
-
-          {/* dark ode */}
-          {/* <div className="">
-      <Segmented
-        size="large"
-        shape="round"
-        value={theme} // Set giá trị theo theme hiện tại
-        onChange={toggleTheme} // Gọi toggleTheme khi thay đổi
-        options={[
-          {
-            value: "light",
-            icon: <SunOutlined />,
-          },
-          {
-            value: "dark",
-            icon: <MoonOutlined />,
-          },
-        ]}
-         className="bg-opacity-30 border border-white/30"
-      />
-    </div> */}
         </div>
       </div>
     </nav>
@@ -352,4 +346,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-

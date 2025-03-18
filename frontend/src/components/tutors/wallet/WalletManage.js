@@ -1,7 +1,26 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { FaWallet, FaQuestionCircle } from "react-icons/fa";
+import { FaWallet, FaQuestionCircle, FaSort, FaFilter, FaTimes, FaSearch } from "react-icons/fa";
+import { 
+  Card, 
+  Select, 
+  Input, 
+  Button, 
+  Spin, 
+  Tooltip, 
+  Modal, 
+  Form, 
+  InputNumber, 
+  Space, 
+  Divider, 
+  Empty, 
+  Badge 
+} from "antd";
+import { SearchOutlined, BankOutlined, EditOutlined, LoadingOutlined } from "@ant-design/icons";
+
+const { Option } = Select;
+const { Search } = Input;
 
 const WalletManage = () => {
   const [balance, setBalance] = useState(null);
@@ -18,56 +37,29 @@ const WalletManage = () => {
   const [isConfirmVisible, setIsConfirmVisible] = useState(false);
   const [filteredBanks, setFilteredBanks] = useState([]);
   const [hasPendingRequest, setHasPendingRequest] = useState(false);
+  
+  // New states for sorting and filtering
+  const [sortOrder, setSortOrder] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredBankData, setFilteredBankData] = useState([]);
+  const [withdrawalHistory, setWithdrawalHistory] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const bankList = [
-    "SHB",
-    "Sacombank",
-    "Vietcombank",
-    "Viettinbank",
-    "Techcombank",
-    "ACB",
-    "BIDV",
-    "MB Bank",
-    "VPBank",
-    "Eximbank",
-    "LienVietPostBank",
-    "OceanBank",
-    "HDBank",
-    "Bac A Bank",
-    "SeABank",
-    "NamABank",
-    "KienLongBank",
-    "SCB",
-    "VIB",
-    "PGBank",
-    "TPBank",
-    "Asia Commercial Bank (ACB)",
-    "DongA Bank",
-    "Shinhan Bank",
-    "Standard Chartered Bank",
-    "HSBC Vietnam",
-    "Citibank",
-    "JPMorgan Chase Bank",
-    "ANZ Vietnam",
-    "UOB Vietnam",
-    "VietABank",
-    "BaoViet Bank",
-    "Saigonbank",
-    "VietCapital Bank",
-    "Public Bank Vietnam",
-    "First Commercial Bank Vietnam",
-    "Woori Bank",
-    "Hong Leong Bank Vietnam",
-    "Indovina Bank",
-    "Shanghai Pudong Development Bank",
-    "OCB (Orient Commercial Bank)",
-    "Hong Kong and Shanghai Banking Corporation (HSBC)",
-    "China Construction Bank Vietnam",
-    "VIB Bank",
-    "CitiBank Vietnam",
-    "Agribank",
-    "Techcom Securities",
-    "Vietnam International Bank (VIB)",
+    "SHB", "Sacombank", "Vietcombank", "Viettinbank", "Techcombank",
+    "ACB", "BIDV", "MB Bank", "VPBank", "Eximbank", "LienVietPostBank",
+    "OceanBank", "HDBank", "Bac A Bank", "SeABank", "NamABank",
+    "KienLongBank", "SCB", "VIB", "PGBank", "TPBank",
+    "Asia Commercial Bank (ACB)", "DongA Bank", "Shinhan Bank",
+    "Standard Chartered Bank", "HSBC Vietnam", "Citibank",
+    "JPMorgan Chase Bank", "ANZ Vietnam", "UOB Vietnam", "VietABank",
+    "BaoViet Bank", "Saigonbank", "VietCapital Bank", "Public Bank Vietnam",
+    "First Commercial Bank Vietnam", "Woori Bank", "Hong Leong Bank Vietnam",
+    "Indovina Bank", "Shanghai Pudong Development Bank",
+    "OCB (Orient Commercial Bank)", "Hong Kong and Shanghai Banking Corporation (HSBC)",
+    "China Construction Bank Vietnam", "VIB Bank", "CitiBank Vietnam",
+    "Agribank", "Techcom Securities", "Vietnam International Bank (VIB)",
     "Keppel Bank",
   ];
 
@@ -89,6 +81,7 @@ const WalletManage = () => {
 
   const fetchWithdrawHistory = useCallback(async () => {
     try {
+      setLoading(true);
       const response = await fetch(
         "http://localhost:3000/api/wallet/requests-history",
         {
@@ -107,12 +100,15 @@ const WalletManage = () => {
           (withdrawal) => withdrawal.status === "Pending"
         );
         setHasPendingRequest(pendingRequest);
+        setWithdrawalHistory(data.withdrawals);
       } else {
         toast.error(data.message || "Error fetching withdrawal history.");
       }
     } catch (error) {
       console.error("Error fetching withdrawal history:", error);
       toast.error("An error occurred while fetching withdrawal history.");
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -144,6 +140,36 @@ const WalletManage = () => {
     setFilteredBanks([]);
   };
 
+  // Apply sorting and filtering to bank data
+  useEffect(() => {
+    let filtered = [...bankData];
+    
+    // Apply search filter
+    if (searchQuery) {
+      filtered = filtered.filter(
+        bank => 
+          bank.bank_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          bank.account_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          bank.account_name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    
+    // Apply sorting
+    if (sortOrder === "name-asc") {
+      filtered.sort((a, b) => a.bank_name.localeCompare(b.bank_name));
+    } else if (sortOrder === "name-desc") {
+      filtered.sort((a, b) => b.bank_name.localeCompare(a.bank_name));
+    }
+    
+    setFilteredBankData(filtered);
+  }, [bankData, searchQuery, sortOrder]);
+
+  // Filter withdrawal history
+  const filteredHistory = withdrawalHistory.filter(item => {
+    if (statusFilter === "all") return true;
+    return item.status.toLowerCase() === statusFilter.toLowerCase();
+  });
+
   useEffect(() => {
     const fetchBalance = async () => {
       try {
@@ -164,7 +190,6 @@ const WalletManage = () => {
           setBalance(data.current_balance);
         } else {
           toast.error(data.message || "No balance found");
-
           setBalance(0);
         }
       } catch (error) {
@@ -300,264 +325,336 @@ const WalletManage = () => {
     }
   };
 
+  const antIcon = <LoadingOutlined style={{ fontSize: 36 }} spin />;
+
   if (loading) {
     return (
       <div className="flex justify-center items-center bg-gray-50 min-h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500"></div>
+        <Spin indicator={antIcon} size="large" />
         <p className="mt-4 text-gray-600 ml-4 text-xl font-semibold">
-          Đang tải số dư ví...
+          Loading wallet balance...
         </p>
       </div>
     );
   }
 
+  const getStatusBadge = (status) => {
+    if (status === "Pending") {
+      return <Badge status="processing" text="Pending" className="text-blue-500" />;
+    } else if (status === "Completed") {
+      return <Badge status="success" text="Completed" className="text-green-500" />;
+    } else if (status === "Rejected") {
+      return <Badge status="error" text="Rejected" className="text-red-500" />;
+    }
+    return <Badge status="default" text={status} />;
+  };
+
   return (
-    <div className="min-h-screen flex justify-start items-start bg-gradient-to-b from-[#14b8a6] to-indigo-200 pt-10">
-      <div className="max-w-4xl w-full mx-auto bg-white rounded-xl shadow-xl p-6 py-6">
-        <h1 className="text-3xl font-bold text-black-700 text-center mb-8">
-          Wallet Manage
-        </h1>
-        <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start mb-6 sm:mb-8 text-center sm:text-left">
-          <p className="text-base sm:text-lg font-semibold text-gray-800">
-            Current Balance
-          </p>
-          <p className="text-2xl sm:text-3xl font-bold text-green-600 transition-all">
-            {balance?.toLocaleString("vi-VN")} ₫
-          </p>
+    <div className="min-h-screen flex justify-start items-start bg-gradient-to-b from-teal-500 to-indigo-200 pt-10 pb-10">
+      <Card className="max-w-4xl w-full mx-auto rounded-xl shadow-xl" bodyStyle={{ padding: 24 }}>
+        <div className="flex items-center justify-center mb-6">
+          <FaWallet className="text-teal-500 text-3xl mr-3" />
+          <h1 className="text-3xl font-bold text-gray-800">Wallet Management</h1>
         </div>
-
-        {hasPendingRequest ? (
-          <p className="text-red-500 font-semibold">
-            You have a pending withdrawal request. Please wait and try again
-            later.
-          </p>
-        ) : (
-          !isWithdrawFormVisible && (
-            <button
-              onClick={() => setIsWithdrawFormVisible(true)}
-              className="w-full py-3 bg-[#14b8a6] text-white rounded-lg shadow-lg hover:bg-green-700 transition-all ease-in-out"
-            >
-              Withdrawal Request
-            </button>
-          )
+        
+        <Card className="mb-6 bg-gradient-to-r from-teal-50 to-blue-50">
+          <div className="flex flex-col sm:flex-row justify-between items-center">
+            <div>
+              <p className="text-base sm:text-lg font-semibold text-gray-600">Current Balance</p>
+              <p className="text-2xl sm:text-3xl font-bold text-teal-600 transition-all">
+                {balance?.toLocaleString("vi-VN")} VND
+              </p>
+            </div>
+            <div className="mt-4 sm:mt-0">
+              <Button 
+                type="primary"
+                size="large"
+                disabled={hasPendingRequest}
+                className={`${hasPendingRequest ? 'bg-gray-400' : 'bg-teal-500 hover:bg-teal-600'} text-white`}
+                onClick={() => setIsWithdrawFormVisible(!isWithdrawFormVisible)}
+                icon={<FaWallet className="mr-2" />}
+              >
+                {isWithdrawFormVisible ? 'Cancel Request' : 'Withdrawal Request'}
+              </Button>
+            </div>
+          </div>
+        </Card>
+        
+        {hasPendingRequest && (
+          <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-yellow-700">
+                  You have a pending withdrawal request. Please wait for it to be processed before submitting another request.
+                </p>
+              </div>
+            </div>
+          </div>
         )}
-
+        
         {isWithdrawFormVisible && (
-          <div className="mt-6">
-            <div className="grid grid-cols-1 gap-6">
-              <div className="relative w-full">
-                <input
-                  type="number"
+          <Card className="mb-6" title="Withdrawal Request" bordered={false}>
+            <Form layout="vertical">
+              <Form.Item 
+                label="Withdrawal Amount" 
+                validateStatus={messageBalance ? "error" : ""} 
+                help={messageBalance}
+              >
+                <InputNumber
+                  style={{ width: '100%' }}
                   value={withdrawAmount}
-                  onChange={(e) => {
-                    const inputAmount = Number(e.target.value);
-                    if (inputAmount > balance) {
-                      setMessageBalance(
-                        "The withdrawal amount cannot exceed the current balance."
-                      );
+                  min={0}
+                  max={balance}
+                  formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                  parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                  onChange={(value) => {
+                    if (value > balance) {
+                      setMessageBalance("The withdrawal amount cannot exceed the current balance.");
                     } else {
                       setMessageBalance("");
-                      toast.clearWaitingQueue();
                     }
-                    setWithdrawAmount(inputAmount);
+                    setWithdrawAmount(value || 0);
                   }}
-                  className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="Số tiền muốn rút"
+                  placeholder="Enter withdrawal amount"
+                  addonAfter="VND"
                 />
-                <div className="absolute inset-y-0 right-2 flex items-center group">
-                  <FaQuestionCircle className="text-gray-400 hover:text-gray-600 cursor-pointer text-2xl" />
-                  <div className="absolute bottom-12 right-0 w-52 p-3 text-sm text-white bg-gray-700 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
-                    <p className="font-semibold">To withdraw money you must:</p>
-                    <ul className="list-disc list-inside mt-1">
-                      <li>Add the bank</li>
-                      <li>Amount must be greater than 0</li>
-                      <li>Amount must be less than the current balance</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              {messageBalance && (
-                <p className="mt-6 text-center text-red-600 font-semibold">
-                  {messageBalance}
-                </p>
-              )}
-              <button
-                onClick={() => setIsConfirmVisible(true)}
-                disabled={!isWithdrawalButtonEnabled}
-                className={`w-full mt-4 py-3 ${
-                  isWithdrawalButtonEnabled
-                    ? "bg-green-600 hover:bg-green-700"
-                    : "bg-gray-400 cursor-not-allowed"
-                } text-white rounded-lg transition-all`}
+              </Form.Item>
+              
+              <Tooltip title="Withdrawal requires a valid bank account, amount greater than 0, and not exceeding your balance">
+                <Button
+                  type="primary"
+                  size="large"
+                  block
+                  disabled={!isWithdrawalButtonEnabled}
+                  onClick={() => setIsConfirmVisible(true)}
+                  className={isWithdrawalButtonEnabled ? "bg-teal-500 hover:bg-teal-600" : "bg-gray-300"}
+                >
+                  Withdrawal Confirmation
+                </Button>
+              </Tooltip>
+            </Form>
+          </Card>
+        )}
+        
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-semibold text-gray-700">Bank Information</h2>
+            <div className="flex space-x-2">
+              <Button 
+                icon={<SearchOutlined />} 
+                onClick={() => setShowHistory(!showHistory)}
+                className="flex items-center"
               >
-                Withdrawal Confirmation
-              </button>
+                {showHistory ? "Hide History" : "View History"}
+              </Button>
+              
+              {/* Sort button */}
+              <Select
+                placeholder="Sort by"
+                style={{ width: 130 }}
+                onChange={(value) => setSortOrder(value)}
+                value={sortOrder}
+              >
+                <Option value={null}>No Sort</Option>
+                <Option value="name-asc">Bank Name (A-Z)</Option>
+                <Option value="name-desc">Bank Name (Z-A)</Option>
+              </Select>
             </div>
-            <div className="mb-8 mt-8 px-4">
-              <h2 className="text-2xl sm:text-3xl font-semibold text-indigo-700 mb-4 text-center sm:text-left">
-                Bank Information
-              </h2>
-
-              {bankData.length > 0 ? (
-                bankData.map((bank, index) => (
-                  <div
-                    key={index}
-                    className="bg-white p-4 sm:p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 my-4 flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4"
-                  >
-                    <div className="flex flex-col text-center sm:text-left">
-                      <div className="flex items-center justify-center sm:justify-start mb-2">
-                        <p className="text-lg sm:text-xl font-medium text-gray-700">
-                          <strong>{bank.bank_name}</strong>
-                        </p>
-                      </div>
-                      <p className="text-gray-600 text-sm sm:text-base">
-                        <strong>Account Number:</strong> {bank.account_number}
-                      </p>
-                      <p className="text-gray-600 text-sm sm:text-base">
-                        <strong>Account Holder Name:</strong>{" "}
-                        {bank.account_name}
+          </div>
+          
+          {/* Search bar */}
+          <Input
+            placeholder="Search by bank name, account number, or holder name"
+            prefix={<SearchOutlined className="site-form-item-icon" />}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="mb-4"
+            allowClear
+          />
+          
+          {showHistory ? (
+            <Card className="mb-6" title="Withdrawal History">
+              <div className="mb-4">
+                <Select
+                  placeholder="Filter by status"
+                  style={{ width: 150 }}
+                  onChange={(value) => setStatusFilter(value)}
+                  value={statusFilter}
+                >
+                  <Option value="all">All Status</Option>
+                  <Option value="pending">Pending</Option>
+                  <Option value="completed">Completed</Option>
+                  <Option value="rejected">Rejected</Option>
+                </Select>
+              </div>
+              
+              {filteredHistory.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {filteredHistory.map((item, index) => (
+                        <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {new Date(item.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {parseInt(item.amount).toLocaleString()} VND
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            {getStatusBadge(item.status)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <Empty description="No withdrawal history" />
+              )}
+            </Card>
+          ) : (
+            filteredBankData.length > 0 ? (
+              filteredBankData.map((bank, index) => (
+                <Card 
+                  key={index}
+                  className="mb-4 hover:shadow-lg transition-all duration-300"
+                  actions={[
+                    <Button 
+                      onClick={() => handleUpdateClick(bank)} 
+                      icon={<EditOutlined />} 
+                      type="link"
+                    >
+                      Update
+                    </Button>
+                  ]}
+                >
+                  <div className="flex items-center mb-2">
+                    <BankOutlined className="text-teal-500 text-xl mr-2" />
+                    <span className="text-lg font-medium text-gray-700">{bank.bank_name}</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div>
+                      <p className="text-gray-500">
+                        <span className="font-semibold">Account Number:</span> {bank.account_number}
                       </p>
                     </div>
-
-                    <button
-                      onClick={() => handleUpdateClick(bank)}
-                      className="py-2 px-4 sm:px-6 bg-yellow-500 text-white rounded-full hover:bg-yellow-600 transition-all flex items-center justify-center w-full sm:w-auto"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="w-5 h-5 mr-2"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M13 3l-7 7V3h14v14H7V10m3-4l4 4"
-                        />
-                      </svg>
-                      <span>Update</span>
-                    </button>
+                    <div>
+                      <p className="text-gray-500">
+                        <span className="font-semibold">Account Holder:</span> {bank.account_name}
+                      </p>
+                    </div>
                   </div>
-                ))
-              ) : (
-                <div className="text-center">
-                  <p className="text-gray-600">
-                    No bank information available.
-                  </p>
-                  <button
-                    onClick={() => setIsUpdateFormVisible(true)}
-                    className="mt-4 py-2 px-6 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-all w-full sm:w-auto"
-                  >
-                    Add Bank
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-        {isConfirmVisible && (
-          <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center px-4">
-            <div className="bg-white p-6 rounded-xl shadow-xl text-center w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg transform scale-95 transition-all duration-300 ease-in-out">
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
-                Withdrawal Confirmation
-              </h2>
-              <p className="text-gray-600 mb-6 text-sm sm:text-base">
-                Are you sure you want to withdraw{" "}
-                <span className="font-bold text-gray-800">
-                  {withdrawAmount.toLocaleString("vi-VN")} ₫
-                </span>
-                ?
-              </p>
-              <div className="flex flex-col sm:flex-row justify-center sm:space-x-4 space-y-3 sm:space-y-0">
-                <button
-                  onClick={handleWithdraw}
-                  className="w-full sm:w-auto px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
-                >
-                  Confirm
-                </button>
-                <button
-                  onClick={() => setIsConfirmVisible(false)}
-                  className="w-full sm:w-auto px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {isUpdateFormVisible && (
-          <div className="mt-6 bg-white p-6 rounded-lg shadow-lg">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="relative w-full">
-                  <input
-                    type="text"
-                    value={newBankName}
-                    onChange={handleBankNameChange}
-                    className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    placeholder="Bank Name"
-                  />
-                  {newBankName && (
-                    <ul className="absolute mt-2 w-full bg-white rounded-lg shadow-md max-h-60 overflow-y-auto z-10">
-                      {filteredBanks.map((bank, index) => (
-                        <li
-                          key={index}
-                          onClick={() => handleBankSelection(bank)}
-                          className="p-2 cursor-pointer hover:bg-gray-200"
-                        >
-                          {bank}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-
-                <input
-                  type="text"
-                  value={newAccountNumber}
-                  onChange={(e) => setNewAccountNumber(e.target.value)}
-                  className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="Account Number"
+                </Card>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <Empty 
+                  description="No bank information available" 
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
                 />
-
-                <input
-                  type="text"
-                  value={newAccountHolder}
-                  onChange={handleAccountHolderChange}
-                  placeholder="Account Holder Name"
-                  className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div className="flex flex-col justify-center md:items-end gap-4">
-                <button
-                  onClick={handleUpdateBank}
-                  className="w-full md:w-48 py-3 bg-green-600 text-white rounded-lg shadow-lg hover:bg-green-700 transition-all ease-in-out"
+                <Button
+                  type="primary"
+                  onClick={() => setIsUpdateFormVisible(true)}
+                  className="mt-4 bg-blue-500 hover:bg-blue-600"
                 >
-                  Update Bank
-                </button>
-                <button
-                  onClick={handleCancelUpdate}
-                  className="w-full md:w-48 py-3 bg-gray-600 text-white rounded-lg shadow-lg hover:bg-gray-700 transition-all ease-in-out"
-                >
-                  Cancel
-                </button>
+                  Add Bank Account
+                </Button>
               </div>
-            </div>
-          </div>
-        )}
-
-        {message && (
-          <p className="mt-6 text-center text-red-600 font-semibold">
-            {message}
+            )
+          )}
+        </div>
+        
+        {/* Confirmation Modal */}
+        <Modal
+          title="Withdrawal Confirmation"
+          visible={isConfirmVisible}
+          onOk={handleWithdraw}
+          onCancel={() => setIsConfirmVisible(false)}
+          okText="Confirm"
+          cancelText="Cancel"
+          okButtonProps={{ className: "bg-green-500 hover:bg-green-600" }}
+        >
+          <p className="text-gray-600">
+            Are you sure you want to withdraw{" "}
+            <span className="font-bold text-gray-800">
+              {withdrawAmount.toLocaleString("vi-VN")} VND
+            </span>
+            ?
           </p>
+        </Modal>
+        
+        {/* Bank Update Modal */}
+        <Modal
+          title={bankData.length > 0 ? "Update Bank Account" : "Add Bank Account"}
+          visible={isUpdateFormVisible}
+          onOk={handleUpdateBank}
+          onCancel={handleCancelUpdate}
+          okText="Save"
+          cancelText="Cancel"
+          okButtonProps={{ className: "bg-blue-500 hover:bg-blue-600" }}
+        >
+          <Form layout="vertical">
+            <Form.Item label="Bank Name" required>
+              <div className="relative">
+                <Input
+                  value={newBankName}
+                  onChange={handleBankNameChange}
+                  placeholder="Start typing to search banks..."
+                />
+                {newBankName && filteredBanks.length > 0 && (
+                  <div className="absolute z-10 w-full bg-white shadow-lg max-h-60 overflow-y-auto rounded-md border border-gray-200">
+                    {filteredBanks.map((bank, index) => (
+                      <div
+                        key={index}
+                        className="p-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleBankSelection(bank)}
+                      >
+                        {bank}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </Form.Item>
+            
+            <Form.Item label="Account Number" required>
+              <Input
+                value={newAccountNumber}
+                onChange={(e) => setNewAccountNumber(e.target.value)}
+                placeholder="Enter your account number"
+              />
+            </Form.Item>
+            
+            <Form.Item label="Account Holder Name" required>
+              <Input
+                value={newAccountHolder}
+                onChange={handleAccountHolderChange}
+                placeholder="Enter account holder name"
+              />
+            </Form.Item>
+          </Form>
+        </Modal>
+        
+        {message && (
+          <div className="p-4 bg-red-50 border-l-4 border-red-500 rounded mb-4">
+            <p className="text-red-700">{message}</p>
+          </div>
         )}
-        <ToastContainer />
-      </div>
+        
+        <ToastContainer position="top-right" autoClose={5000} />
+      </Card>
     </div>
   );
 };

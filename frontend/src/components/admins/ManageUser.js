@@ -1,12 +1,26 @@
-import { Dropdown, Table, Tag } from "antd";
+import { Dropdown, Table, Tag, Typography, Card, Spin, Alert, Space, Divider, Avatar, Button } from "antd";
 import { useEffect, useState } from "react";
-import { EllipsisOutlined } from "@ant-design/icons";
+import { 
+  EllipsisOutlined, 
+  CheckOutlined, 
+  StopOutlined, 
+  UserOutlined,
+  TeamOutlined,
+  FilterOutlined,
+  SearchOutlined,
+  ReloadOutlined
+} from "@ant-design/icons";
 import { toast, ToastContainer } from "react-toastify";
-import { CheckOutlined, StopOutlined } from "@ant-design/icons";
+import "react-toastify/dist/ReactToastify.css";
+
+const { Title, Text } = Typography;
+
 const ManageUser = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchText, setSearchText] = useState("");
+  const [filterRole, setFilterRole] = useState(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -38,58 +52,90 @@ const ManageUser = () => {
     fetchUsers();
   }, []);
 
-  // const toggleUserStatus = async (id) => {
- 
-  //   try {
-  //     const response = await fetch(
-  //       `http://localhost:3000/api/users/set-status-user/${id}`,
-  //       {
-  //         method: "PUT",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //           Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-  //         },
-  //       }
-  //     );
+  if (loading) return (
+    <div className="flex items-center justify-center h-screen">
+      <Spin size="large" tip="Loading user data..." />
+    </div>
+  );
+  
+  if (error) return (
+    <div className="p-8">
+      <Alert
+        message="Error"
+        description={error}
+        type="error"
+        showIcon
+      />
+    </div>
+  );
 
-  //     if (!response.ok) {
-  //       throw new Error("Failed to update user status");
-  //     }
+  const handleSearch = (value) => {
+    setSearchText(value);
+  };
 
-  //     const updatedUsers = users.map((user) =>
-  //       user._id === id ? { ...user, status: !user.status } : user
-  //     );
-  //     setUsers(updatedUsers);
-  //   } catch (err) {
-  //     setError(err.message);
-  //   }
-  // };
+  const handleRoleFilter = (role) => {
+    setFilterRole(role === filterRole ? null : role);
+  };
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p className="text-red-500">Error: {error}</p>;
+  const resetFilters = () => {
+    setSearchText("");
+    setFilterRole(null);
+  };
+
+  const filteredData = users
+    .filter(user => {
+      if (!searchText) return true;
+      return (
+        user.fullname?.toLowerCase().includes(searchText.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchText.toLowerCase()) ||
+        user.phone?.toLowerCase().includes(searchText.toLowerCase())
+      );
+    })
+    .filter(user => {
+      if (!filterRole) return true;
+      return user.role === filterRole;
+    })
+    .map((user) => ({
+      key: user._id,
+      avatar: user.avatar,
+      fullname: user.fullname,
+      email: user.email,
+      phone: user.phone || "N/A",
+      role: user.role,
+      status: user.status,
+    }));
 
   const columns = [
     {
       title: "Avatar",
       dataIndex: "avatar",
       key: "avatar",
-      render: (avatar, record) => (
-        <img
-        src={avatar || "https://via.placeholder.com/150"} 
-          alt="avatar"
-          className="w-10 h-10 rounded-full mx-auto"
-        />
+      width: 80,
+      render: (avatar) => (
+        <div className="flex justify-center">
+          <Avatar 
+            size={40} 
+            src={avatar || undefined}
+            icon={!avatar && <UserOutlined />}
+            className="border-2 border-blue-100"
+          />
+        </div>
       ),
     },
     {
       title: "Full Name",
       dataIndex: "fullname",
       key: "fullname",
+      sorter: (a, b) => a.fullname.localeCompare(b.fullname),
+      render: (text) => <Text strong>{text}</Text>,
     },
     {
       title: "Email",
       dataIndex: "email",
       key: "email",
+      render: (email) => (
+        <Text copyable className="text-blue-600 hover:text-blue-800">{email}</Text>
+      ),
     },
     {
       title: "Phone",
@@ -100,53 +146,127 @@ const ManageUser = () => {
       title: "Role",
       dataIndex: "role",
       key: "role",
+      filters: [
+        { text: 'Admin', value: 'Admin' },
+        { text: 'User', value: 'User' },
+        { text: 'Instructor', value: 'Instructor' },
+      ],
+      onFilter: (value, record) => record.role === value,
+      render: (role) => {
+        let color = role === 'Admin' ? 'purple' : role === 'Instructor' ? 'blue' : 'default';
+        return (
+          <Tag color={color} className="px-3 py-1">
+            {role.toUpperCase()}
+          </Tag>
+        );
+      },
     },
     {
       title: "Status",
       dataIndex: "status",
       key: "status",
+      filters: [
+        { text: 'Active', value: true },
+        { text: 'Inactive', value: false },
+      ],
+      onFilter: (value, record) => record.status === value,
       render: (status) => (
-        
-         
-            status
-              ? <Tag color='green'>Active</Tag>: <Tag color='red'>Inactive</Tag>
-          
-        
-      
-      
+        status 
+          ? <Tag color="success" icon={<CheckOutlined />} className="px-3 py-1">Active</Tag>
+          : <Tag color="error" icon={<StopOutlined />} className="px-3 py-1">Inactive</Tag>
       ),
     },
     {
       title: "Action",
       key: "action",
+      width: 80,
       render: (record) => (
-        // <button
-        //   onClick={() => {
-        //     if (record.role !== "Admin") toggleUserStatus(record.key);  
-        //   }}
-        //   className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-700"
-        // >
-        //   {record.status ? "Ban" : "Unban"}
-        // </button>
-        <DropDownMenu  record={record} setUsers={setUsers} users={users}/>  
+        <DropDownMenu record={record} setUsers={setUsers} users={users} />  
       ),
     },
   ];
-  const data = users.map((user) => ({
-    key: user._id,
-    avatar: user.avatar,
-    fullname: user.fullname,
-    email: user.email,
-    phone: user.phone || "N/A",
-    role: user.role,
-    status: user.status,
-  }));
 
   return (
-    <div className="p-4">
-      <h2 className="text-3xl font-bold text-center mb-6">Manage Users</h2>
-      <Table columns={columns} dataSource={data} />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+      <Card className="shadow-xl rounded-lg overflow-hidden" bordered={false}>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center">
+            <TeamOutlined className="text-blue-500 text-3xl mr-4" />
+            <Title level={2} className="m-0 text-blue-800">
+              Manage Users
+            </Title>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search users..."
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={searchText}
+                onChange={(e) => handleSearch(e.target.value)}
+              />
+              <SearchOutlined className="absolute left-3 top-2.5 text-gray-400" />
+            </div>
+            
+            <Dropdown
+              menu={{
+                items: [
+                  {
+                    key: '1',
+                    label: 'Admin',
+                    onClick: () => handleRoleFilter('Admin'),
+                  },
+                  {
+                    key: '2',
+                    label: 'Instructor',
+                    onClick: () => handleRoleFilter('Instructor'),
+                  },
+                  {
+                    key: '3',
+                    label: 'User',
+                    onClick: () => handleRoleFilter('User'),
+                  },
+                ],
+              }}
+              placement="bottomRight"
+            >
+              <Button icon={<FilterOutlined />} className={filterRole ? "bg-blue-50" : ""}>
+                {filterRole || "Filter Role"}
+              </Button>
+            </Dropdown>
+            
+            {(searchText || filterRole) && (
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={resetFilters}
+                className="text-gray-600"
+              >
+                Reset
+              </Button>
+            )}
+          </div>
+        </div>
+        
+        {/* <Divider className="mb-6" /> */}
+        
+        <Table 
+          columns={columns} 
+          dataSource={filteredData}
+          pagination={{ 
+            pageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total) => `Total ${total} users`,
+          }}
+          className="shadow-sm"
+          rowClassName="hover:bg-blue-50 transition-colors"
+          // bordered
+          scroll={{ x: 'max-content' }}
+        />
+      </Card>
       <ToastContainer />
+      {/* position="bottom-right" theme="colored"  */}
     </div>
   );
 };
@@ -187,13 +307,10 @@ const DropDownMenu = ({record, setUsers, users}) => {
     }
   };
 
-  // Xử lý khi người dùng nhấn vào Ban/Unban
   const handleStatusToggleClick = () => {
     if (record.status) {
-      // Nếu user đang active, hiển thị modal khi muốn ban
       setIsModalOpen(true);
     } else {
-      // Nếu user đang inactive, unban trực tiếp không cần lý do
       toggleUserStatus(record.key);
     }
   };
@@ -223,17 +340,21 @@ const DropDownMenu = ({record, setUsers, users}) => {
   ];
 
   return(
-    <div>
-      <Dropdown menu={{items}}>
-        <EllipsisOutlined />
+    <div className="flex justify-center">
+      <Dropdown menu={{items}} trigger={['click']} placement="bottomRight">
+        <Button 
+          type="text" 
+          icon={<EllipsisOutlined />} 
+          className="flex items-center justify-center hover:bg-gray-100 rounded-full w-8 h-8" 
+        />
       </Dropdown>
 
       {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-70 backdrop-blur-md z-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-70 backdrop-blur-sm z-50">
           <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-2xl w-96 border border-gray-100 dark:border-gray-700 transform transition-all">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-800 dark:text-white">
-                Rejection Reason
+                Ban User
               </h2>
               <button 
                 onClick={() => setIsModalOpen(false)}
@@ -246,24 +367,29 @@ const DropDownMenu = ({record, setUsers, users}) => {
             </div>
             
             <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Please provide a reason for banning this user:
+              </label>
               <textarea
-                className="w-full p-4 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white transition duration-300 resize-none"
+                className="w-full p-4 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white transition duration-300 resize-none"
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
-                placeholder="Please provide a detailed reason for rejection..."
+                placeholder="Enter detailed reason..."
                 rows="4"
               />
             </div>
             
             <div className="flex justify-end space-x-3">
-              <button
-                className="px-5 py-2.5 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition duration-300 font-medium"
+              <Button 
+                className="px-5 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
                 onClick={() => setIsModalOpen(false)}
               >
                 Cancel
-              </button>
-              <button
-                className="px-5 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition duration-300 shadow-lg hover:shadow-xl font-medium flex items-center"
+              </Button>
+              <Button 
+                type="primary" 
+                danger
+                className="px-5 py-2 transition shadow-md"
                 onClick={() => {
                   toggleUserStatus(
                     record.key,
@@ -271,9 +397,10 @@ const DropDownMenu = ({record, setUsers, users}) => {
                     rejectReason
                   );
                 }}
+                disabled={!rejectReason.trim()}
               >
-                Reject
-              </button>
+                Ban User
+              </Button>
             </div>
           </div>
         </div>
