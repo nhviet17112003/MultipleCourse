@@ -116,8 +116,6 @@ const Login = () => {
     }
   };
 
- 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -208,7 +206,7 @@ const Login = () => {
       if (token) {
         clearInterval(checkToken);
         localStorage.setItem("authToken", token);
-        
+
         // Thêm đoạn code lấy role từ API
         fetch("http://localhost:3000/api/users/profile", {
           headers: {
@@ -219,12 +217,12 @@ const Login = () => {
           .then((data) => {
             localStorage.setItem("role", data.role);
             // Tạo một event để thông báo role đã thay đổi
-            window.dispatchEvent(new Event('roleChanged'));
+            window.dispatchEvent(new Event("roleChanged"));
             window.location.href = "/course-list";
           });
       }
     }, 500);
-};
+  };
 
   // Hàm để lấy cookie theo tên
   const getCookie = (name) => {
@@ -313,7 +311,6 @@ const Login = () => {
                       Forgot Password
                     </button>
                   </div>
-                  {/* Thêm reCAPTCHA */}
                   <div className="flex justify-center items-center gap-2 mb-[5px]">
                     <canvas
                       ref={canvasRef}
