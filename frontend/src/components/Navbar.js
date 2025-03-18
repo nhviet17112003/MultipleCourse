@@ -54,7 +54,6 @@ const Navbar = () => {
 
     if (!token) {
       setError("You are not logged in. Please log in again.");
-      // debouncedNavigate("/login");
       return;
     }
 
@@ -67,17 +66,39 @@ const Navbar = () => {
           },
         }
       );
+
       setUserData(response.data);
       localStorage.setItem("role", response.data.role);
-      setAvatarUrl(response.data.avatar);
+
+      // Xử lý URL avatar từ Google
+      if (response.data.avatar) {
+        // Thêm tham số mới vào URL để tránh cache
+        const googleAvatarUrl = `${
+          response.data.avatar
+        }?${new Date().getTime()}`;
+        setAvatarUrl(googleAvatarUrl);
+        localStorage.setItem("avatarUrl", googleAvatarUrl);
+      } else {
+        const defaultAvatar =
+          "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
+        setAvatarUrl(defaultAvatar);
+        localStorage.setItem("avatarUrl", defaultAvatar);
+      }
+
       setFullname(response.data.fullname || "User");
     } catch (err) {
+      console.error("Error fetching profile:", err);
       setError("Your session has expired. Please log in again.");
-      localStorage.removeItem("authToken"); // Remove token
-      debouncedNavigate("/login"); // Redirect to login page
+      localStorage.removeItem("authToken");
+      debouncedNavigate("/login");
     }
   };
-
+  useEffect(() => {
+    const savedAvatar = localStorage.getItem("avatarUrl");
+    if (savedAvatar) {
+      setAvatarUrl(savedAvatar);
+    }
+  }, []);
   const fetchBalance = async () => {
     try {
       const token = localStorage.getItem("authToken");
@@ -258,6 +279,19 @@ const Navbar = () => {
                 alt="Avatar"
                 className="w-10 h-10 rounded-full border-2 border-white shadow-md cursor-pointer"
                 onClick={() => setShowDropdown((prev) => !prev)}
+                onError={(e) => {
+                  console.log("Image failed to load, trying alternative URL");
+                  e.target.onerror = null;
+                  // Thử URL thay thế nếu URL gốc không hoạt động
+                  const alternativeUrl = avatarUrl.replace("=s96-c", "");
+                  e.target.src = alternativeUrl;
+                  // Nếu vẫn không hoạt động, sử dụng avatar mặc định
+                  e.target.onerror = () => {
+                    e.target.src =
+                      "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
+                  };
+                }}
+                referrerPolicy="no-referrer" // Thêm thuộc tính này để tránh vấn đề CORS
               />
 
               {showDropdown && (
