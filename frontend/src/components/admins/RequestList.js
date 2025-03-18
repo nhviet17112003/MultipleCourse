@@ -1,34 +1,54 @@
 import React, { useState, useEffect } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { toast, ToastContainer } from "react-toastify";
-import { useNavigate } from "react-router-dom";
-import { Dropdown, Spin, Table, Tag } from "antd";
-import { EllipsisOutlined, CheckOutlined, StopOutlined } from "@ant-design/icons";
+import { 
+  Dropdown, 
+  Spin, 
+  Table, 
+  Tag, 
+  Input, 
+  Button, 
+  Modal, 
+  Typography, 
+  Select 
+} from "antd";
+import { 
+  EllipsisOutlined, 
+  CheckOutlined, 
+  StopOutlined, 
+  SearchOutlined,
+  FilterOutlined 
+} from "@ant-design/icons";
+
+const { Title, Text } = Typography;
+const { Search } = Input;
 
 export default function RequestList() {
   const [requests, setRequests] = useState([]);
+  const [filteredRequests, setFilteredRequests] = useState([]);
   const token = localStorage.getItem("authToken");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [selectedRequest, setSelectedRequest] = useState(null);
-  const navigate = useNavigate();
-    const { theme } = useTheme();
-  
+  const { theme } = useTheme();
 
-    const [spinning, setSpinning] = useState(false);
-    const [percent, setPercent] = useState(0);
+  const [spinning, setSpinning] = useState(false);
+  const [percent, setPercent] = useState(0);
+
+  // Search and Filter States
+  const [searchText, setSearchText] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
 
   useEffect(() => {
     if (token) {
       fetchRequests();
-      console.log("token", token);
     } else {
       setError("User not authenticated.");
     }
   }, []);
-  console.log(requests, "requests");
+
   const fetchRequests = async () => {
     setLoading(true);
     setError(null);
@@ -47,8 +67,6 @@ export default function RequestList() {
       if (!response.ok) throw new Error(`Error: ${response.status}`);
 
       const data = await response.json();
-      console.log("API Response:", data);
-
       const sortedRequests = Array.isArray(data)
         ? data.sort(
             (a, b) => new Date(b.request_date) - new Date(a.request_date)
@@ -56,12 +74,54 @@ export default function RequestList() {
         : [];
 
       setRequests(sortedRequests);
+      setFilteredRequests(sortedRequests);
     } catch (err) {
       console.error("Error fetching requests:", err);
       setError("Failed to fetch requests.");
     } finally {
       setLoading(false);
     }
+  };
+
+  // Search and Filter Logic
+  const handleSearch = (value) => {
+    setSearchText(value);
+    filterRequests(value, statusFilter);
+  };
+
+  const handleStatusFilter = (value) => {
+    setStatusFilter(value);
+    filterRequests(searchText, value);
+  };
+
+  const filterRequests = (search, status) => {
+    let filtered = requests;
+  
+    if (search) {
+      filtered = filtered.filter(request => {
+        // Kiểm tra request có tồn tại không
+        if (!request) return false;
+  
+        // Kiểm tra và chuyển đổi an toàn
+        const courseTitle = typeof request.course_title === 'string' 
+          ? request.course_title.toLowerCase() 
+          : '';
+        const requestType = typeof request.request_type === 'string' 
+          ? request.request_type.toLowerCase() 
+          : '';
+  
+        return courseTitle.includes(search.toLowerCase()) ||
+               requestType.includes(search.toLowerCase());
+      });
+    }
+  
+    if (status !== "All") {
+      filtered = filtered.filter(request => 
+        request && request.status === status
+      );
+    }
+  
+    setFilteredRequests(filtered);
   };
 
   const handleProcessRequest = async (
@@ -86,15 +146,12 @@ export default function RequestList() {
         method = "DELETE";
         break;
       default:
-        alert("Invalid request type: " + requestType);
+        toast.error("Invalid request type");
         return;
     }
-    console.log("endpoint", endpoint);
 
     try {
-  
       setSpinning(true);
-
       setPercent(0);
       
       let ptg = 0;
@@ -120,25 +177,17 @@ export default function RequestList() {
 
       if (!response.ok) throw new Error(`Error: ${response.status}`);
 
-      // alert("Successfully processed request.");
       toast.success("Successfully processed request.");
       setIsModalOpen(false);
       setRejectReason("");
       await fetchRequests();
     } catch (err) {
       console.error("Error processing request:", err);
-      // alert("Failed to process request");
       toast.error("Failed to process request");
-    }
-    finally {
-   
+    } finally {
       setSpinning(false);
       setPercent(100);
     }
-    console.log("requestId", requestId);
-    console.log("status", status);
-    console.log("requestType", requestType);
-    console.log("message", message);
   };
 
   const columns = [ 
@@ -146,21 +195,23 @@ export default function RequestList() {
       title: "Course Name",
       dataIndex: "course_title",
       key: "course_title",
+      sorter: (a, b) => a.course_title.localeCompare(b.course_title),
     },
     {
       title: "Request Type",
       dataIndex: "request_type",
       key: "request_type",
+      sorter: (a, b) => a.request_type.localeCompare(b.request_type),
     },
     {
       title: "Content",
       dataIndex: "content",
       key: "content",
       render: (content) => (
-        <div>
+        <div className="space-y-1">
           {content.map((item, index) => (
             <div key={index} className="text-sm">
-              <strong>{item.title}:</strong> {item.value}
+              <Text strong>{item.title}:</Text> {item.value}
             </div>
           ))}
         </div>
@@ -170,21 +221,57 @@ export default function RequestList() {
       title: "Status",
       dataIndex: "status",
       key: "status",
-      render: (status) => (
-       status === "Pending" ? <Tag color="yellow">{status}</Tag> : status === "Approved" ? <Tag color="green">{status}</Tag> : <Tag color="red">{status}</Tag>
-      ),
+      filters: [
+        { text: 'Pending', value: 'Pending' },
+        { text: 'Approved', value: 'Approved' },
+        { text: 'Rejected', value: 'Rejected' },
+      ],
+      onFilter: (value, record) => record.status === value,
+      render: (status) => {
+        const statusColors = {
+          Pending: { 
+            color: "yellow", 
+            className: "bg-yellow-100 text-yellow-800 px-3 py-1" 
+          },
+          Approved: { 
+            color: "green", 
+            className: "bg-green-100 text-green-800 px-3 py-1" 
+          },
+          Rejected: { 
+            color: "red", 
+            className: "bg-red-100 text-red-800 px-3 py-1" 
+          }
+        };
+    
+        const statusStyle = statusColors[status] || statusColors.Pending;
+    
+        return (
+          <Tag 
+            color={statusStyle.color} 
+            className={statusStyle.className}
+          >
+            {status}
+          </Tag>
+        );
+      },
     },
     {
       title: "Actions",
       key: "actions",
       render: (record) => (
-      
-        record.status === "Pending"  &&   <DropDownMenu handleProcessRequest={handleProcessRequest} setIsModalOpen={setIsModalOpen} setSelectedRequest={setSelectedRequest}  record={record} />  
+        record.status === "Pending" && (
+          <DropDownMenu 
+            handleProcessRequest={handleProcessRequest} 
+            setIsModalOpen={setIsModalOpen} 
+            setSelectedRequest={setSelectedRequest}  
+            record={record} 
+          />
+        )
       ),
     },
   ];
 
-  const data = requests.map((request) => ({
+  const data = filteredRequests.map((request) => ({
     key: request._id,
     course_title: request.course_title || "N/A",
     request_type: request.request_type || "N/A",
@@ -193,144 +280,137 @@ export default function RequestList() {
   }));
 
   return (
-    <div className="container mx-auto p-6 ">
-       <Spin spinning={spinning} percent={percent} fullscreen />
-      <h1 className="text-3xl font-bold text-center mb-6">Request List</h1>
-      {loading && <p className="text-blue-500">Loading...</p>}
-      {error && <p className="text-red-500">{error}</p>}
-      <div className="overflow-x-auto">
-
-        <Table columns={columns} dataSource={data} />
+    <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gradient-to-br from-blue-50 to-indigo-100'} p-6`}>
+      <Spin spinning={spinning} percent={percent} fullscreen />
       
+      <div className="container mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <Title level={2} className={`m-0 ${theme === 'dark' ? 'text-white' : 'text-blue-800'}`}>
+            Request Management
+          </Title>
+          
+          <div className="flex items-center space-x-4">
+          <Input
+  placeholder="Search requests"
+  prefix={<SearchOutlined className="text-gray-400 mr-2" />}
+  value={searchText}
+  onChange={(e) => handleSearch(e.target.value)}
+  className="w-64"
+  allowClear
+/>
+
+            <Select
+              style={{ width: 200 }}
+              placeholder="Filter by Status"
+              onChange={handleStatusFilter}
+              size="large"
+              suffixIcon={<FilterOutlined />}
+            >
+              <Select.Option value="All">All Statuses</Select.Option>
+              <Select.Option value="Pending">Pending</Select.Option>
+              <Select.Option value="Approved">Approved</Select.Option>
+              <Select.Option value="Rejected">Rejected</Select.Option>
+            </Select>
+          </div>
+        </div>
+
+        {loading && (
+          <div className="text-center text-blue-500 mb-4">Loading...</div>
+        )}
+        {error && (
+          <div className="text-center text-red-500 mb-4">{error}</div>
+        )}
+
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+          <Table 
+            columns={columns} 
+            dataSource={data}
+            pagination={{ 
+              position: ['bottomCenter'],
+              showSizeChanger: true,
+              pageSizeOptions: [10, 20, 50],
+            }}
+            className="custom-table"
+          />
+        </div>
       </div>
-      {isModalOpen && (
-           <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-70 backdrop-blur-md z-50">
-           <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-2xl w-96 border border-gray-100 dark:border-gray-700 transform transition-all">
-             <div className="flex items-center justify-between mb-6">
-               <h2 className="text-xl font-bold text-gray-800 dark:text-white">
-                 Rejection Reason
-               </h2>
-               <button 
-                 onClick={() => setIsModalOpen(false)}
-                 className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
-               >
-                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                 </svg>
-               </button>
-             </div>
-             
-             <div className="mb-6">
-               <textarea
-                 className="w-full p-4 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white transition duration-300 resize-none"
-                 value={rejectReason}
-                 onChange={(e) => setRejectReason(e.target.value)}
-                 placeholder="Please provide a detailed reason for rejection..."
-                 rows="4"
-               />
-             </div>
-             
-             <div className="flex justify-end space-x-3">
-               <button
-                 className="px-5 py-2.5 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition duration-300 font-medium"
-                 onClick={() => setIsModalOpen(false)}
-               >
-                 Cancel
-               </button>
-               <button
-                 className="px-5 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition duration-300 shadow-lg hover:shadow-xl font-medium flex items-center"
-                 onClick={() => {
-                   handleProcessRequest(
-                     selectedRequest.key,
-                     "Rejected",
-                     selectedRequest.request_type,
-                     rejectReason
-                   );
-                 }}
-               >
-                 Reject
-               </button>
-             </div>
-           </div>
-         </div>
-      )}
+
+      <Modal
+        title="Provide Rejection Reason"
+        open={isModalOpen}
+        onCancel={() => setIsModalOpen(false)}
+        footer={[
+          <Button key="cancel" onClick={() => setIsModalOpen(false)}>
+            Cancel
+          </Button>,
+          <Button 
+            key="reject" 
+            type="primary" 
+            danger
+            onClick={() => {
+              handleProcessRequest(
+                selectedRequest.key,
+                "Rejected",
+                selectedRequest.request_type,
+                rejectReason
+              );
+            }}
+          >
+            Reject Request
+          </Button>
+        ]}
+      >
+        <Input.TextArea
+          rows={4}
+          placeholder="Please provide a detailed reason for rejection..."
+          value={rejectReason}
+          onChange={(e) => setRejectReason(e.target.value)}
+        />
+      </Modal>
+
       <ToastContainer theme={theme === "dark" ? "dark" : "light"} />
     </div>
   );
 }
 
-const DropDownMenu = ({record ,handleProcessRequest, setIsModalOpen , setSelectedRequest}) =>{
-  const token = localStorage.getItem('authToken'); // Assuming token is stored in localStorage
-    // const toggleCommentStatus = async (type, commentId) => {
-      
-   
-    //   try {
-    //     console.log('Toggling comment status:', type, commentId);
-    //     const url = type === 'course' 
-    //       ? `http://localhost:3000/api/comments/change-course-comment-status/${commentId}`
-    //       : `http://localhost:3000/api/comments/change-lesson-comment-status/${commentId}`;
-    //     await axios.put(url, {}, {
-    //       headers: { Authorization: `Bearer ${token}` },
-    //     });
-    //  fetchComments();
-    //     console.log('Comment status updated successfully');
-    //     toast.success('Comment status updated successfully');
-    //   } catch (error) {
-    //     console.error('Error updating comment status:', error);
-    //     toast.error('Error updating comment status');
-    //   }
-    // };
-  
-    const items = [
-      {
-        key: '1',
-        label: (
-          <div
-            onClick={() => {
-              handleProcessRequest(record.key, "Approved", record.request_type);
-            }}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-green-600 hover:bg-green-50 rounded-md transition-colors duration-150 cursor-pointer"
-          >
-            {record.status === "Pending" && (
-              <>
-                <CheckOutlined className="h-4 w-4" />
-                <span>Approve</span>
-              </>
-            )}
-          </div>
-        ),
-      },
-      {
-        key: '2',
-        label: (
-          <div
-            onClick={() => {
-              setIsModalOpen(true);
-              setSelectedRequest(record);
-            }}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md transition-colors duration-150 cursor-pointer"
-          >
-            {record.status === "Pending" && (
-              <>
-                <StopOutlined className="h-4 w-4" />
-                <span>Reject</span>
-              </>
-            )}
-          </div>
-        ),
-      },
-    ];
+const DropDownMenu = ({record, handleProcessRequest, setIsModalOpen, setSelectedRequest}) => {
+  const items = [
+    {
+      key: '1',
+      label: (
+        <div
+          onClick={() => handleProcessRequest(record.key, "Approved", record.request_type)}
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-green-600 hover:bg-green-50 rounded-md transition-colors duration-150 cursor-pointer"
+        >
+          <CheckOutlined className="h-4 w-4" />
+          <span>Approve</span>
+        </div>
+      ),
+    },
+    {
+      key: '2',
+      label: (
+        <div
+          onClick={() => {
+            setIsModalOpen(true);
+            setSelectedRequest(record);
+          }}
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md transition-colors duration-150 cursor-pointer"
+        >
+          <StopOutlined className="h-4 w-4" />
+          <span>Reject</span>
+        </div>
+      ),
+    },
+  ];
 
-    return(
-      <div>
-  
-  <Dropdown menu={{items}}>
-            <EllipsisOutlined />
-          </Dropdown>
-  
-   
-      </div>
-     
-          
-    )
-  }
+  return (
+    <Dropdown menu={{items}} trigger={['click']}>
+      <Button 
+        type="text" 
+        icon={<EllipsisOutlined />} 
+        className="hover:bg-gray-100 rounded-full"
+      />
+    </Dropdown>
+  );
+}

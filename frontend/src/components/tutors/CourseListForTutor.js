@@ -7,6 +7,10 @@ import { Button, Spin, Breadcrumb } from "antd";
 import { HomeOutlined, UserOutlined } from "@ant-design/icons";
 import { ToastContainer, toast } from "react-toastify";
 import { ArrowRight } from "lucide-react";
+import { Modal, message } from "antd";
+import { DownOutlined } from "@ant-design/icons";
+import { Dropdown, Space } from "antd";
+import { MoreVertical, Edit, Trash2, Eye } from "lucide-react";
 
 const CourseListForTutor = () => {
   const [courses, setCourses] = useState([]);
@@ -19,6 +23,8 @@ const CourseListForTutor = () => {
   const token = localStorage.getItem("authToken");
   const { theme } = useTheme();
   const navigate = useNavigate();
+  const [loadingImage, setLoadingImage] = useState({});
+
 
   useEffect(() => {
     setSpinning(true);
@@ -74,30 +80,42 @@ const CourseListForTutor = () => {
   }, [navigate]);
 
   const handleDeleteCourse = async (courseId) => {
-    if (!window.confirm("Are you sure you want to delete this course?")) return;
+    Modal.confirm({
+      title: "Confirm Course Deletion",
+      content: "Are you sure you want to delete this course?",
+      okText: "Delete",
+      cancelText: "Cancel",
+      okType: "danger",
 
-    try {
-      const response = await axios.delete(
-        `http://localhost:3000/api/courses/delete-course/${courseId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      centered: true, // Giữ modal ở giữa màn hình
+      maskClosable: true, // Cho phép bấm ra ngoài để đóng modal
+
+      className: "custom-modal",
+      onOk: async () => {
+        try {
+          const response = await axios.delete(
+            `http://localhost:3000/api/courses/delete-course/${courseId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (response.status === 201) {
+            toast.success("Request delete course successfully.");
+            setCourses((prevCourses) =>
+              prevCourses.filter((course) => course._id !== courseId)
+            );
+          }
+        } catch (error) {
+          console.error("Error deleting course:", error);
+          toast.error(
+            error.response?.data?.message || "Failed to request delete course."
+          );
         }
-      );
-
-      if (response.status === 201) {
-        toast.success("Request delete course successfully.");
-        setCourses((prevCourses) =>
-          prevCourses.filter((course) => course._id !== courseId)
-        );
-      }
-    } catch (error) {
-      console.error("Error deleting course:", error);
-      toast.error(
-        error.response?.data?.message || "Failed to request delete course."
-      );
-    }
+      },
+    });
   };
 
   const handleOpenModal = (course) => {
@@ -137,7 +155,6 @@ const CourseListForTutor = () => {
               : course
           )
         );
-        
 
         handleCloseModal();
         toast.success("Send request to admin successfully!");
@@ -156,6 +173,9 @@ const CourseListForTutor = () => {
     const token = localStorage.getItem("authToken");
     const formData = new FormData();
     formData.append("image", imageFile);
+    if (!imageFile) return;
+
+    setLoadingImage((prev) => ({ ...prev, [courseId]: true })); // Bắt đầu loading
 
     try {
       const response = await axios.put(
@@ -175,12 +195,14 @@ const CourseListForTutor = () => {
             course._id === courseId ? response.data : course
           )
         );
+        setLoadingImage((prev) => ({ ...prev, [courseId]: false })); // Tắt loading sau khi upload xong
         toast.success("Update image successfully!");
       }
     } catch (error) {
       // setErrorMessage(
       //   error.response?.data?.message || "An error occurred while updating the image."
       // );
+      setLoadingImage((prev) => ({ ...prev, [courseId]: false })); // Tắt loading nếu lỗi
       toast.error("Update image fail.");
     }
   };
@@ -193,7 +215,7 @@ const CourseListForTutor = () => {
     >
       <Spin spinning={spinning} fullscreen />
       <h1 className="text-2xl font-semibold text-gray-800 mb-6">Course List</h1>
-      {errorMessage && <p className="text-red-500 mb-4">{errorMessage}</p>}
+      {errorMessage && <p className="text-red-500 mb-4"></p>}
       {loading ? (
         <p className="text-lg">Loading courses...</p>
       ) : courses.length > 0 ? (
@@ -205,30 +227,34 @@ const CourseListForTutor = () => {
                 theme === "dark" ? "bg-gray-800" : "bg-white"
               }`}
             >
-              <div className="flex-shrink-0 w-36 h-36 rounded-2xl overflow-hidden relative border-2 border-teal-500">
-                {/* Input file ẩn */}
-                <input
-                  type="file"
-                  accept="image/*"
-                  id={`upload-image-${course._id}`}
-                  className="hidden"
-                  onChange={(e) =>
-                    handleUpdateImage(course._id, e.target.files[0])
-                  }
-                />
+            <div className="flex-shrink-0 w-36 h-36 rounded-2xl overflow-hidden relative border-2 border-teal-500">
+      {/* Input file ẩn */}
+      <input
+        type="file"
+        accept="image/*"
+        id={`upload-image-${course._id}`}
+        className="hidden"
+        onChange={(e) => handleUpdateImage(course._id, e.target.files[0])}
+      />
 
-                {/* Hình ảnh có sự kiện onClick */}
-                <img
-                  src={course.image}
-                  alt={course.title}
-                  className="w-full h-full object-cover cursor-pointer transition-transform duration-300 hover:scale-105"
-                  onClick={() =>
-                    document
-                      .getElementById(`upload-image-${course._id}`)
-                      .click()
-                  }
-                />
-              </div>
+      {/* Hình ảnh hoặc loading */}
+      <div
+        className="w-full h-full flex items-center justify-center cursor-pointer relative"
+        onClick={() =>
+          document.getElementById(`upload-image-${course._id}`).click()
+        }
+      >
+        {loadingImage[course._id] ? (
+          <Spin size="large" />
+        ) : (
+          <img
+            src={course.image}
+            alt={course.title}
+            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+          />
+        )}
+      </div>
+    </div>
 
               <div className="ml-6 flex-1">
                 <h2 className="text-xl font-semibold text-teal-600">
@@ -238,7 +264,7 @@ const CourseListForTutor = () => {
                 <p className="text-gray-700 mt-2 line-clamp-2">
                   {course.description}
                 </p>
-                <p className="text-teal-700 font-bold mt-2">{course.price}</p>
+                <p className="text-teal-700 font-bold mt-2">{course.price} VND</p>
                 <p
                   className={`mt-2 font-bold ${
                     course.status ? "text-green-600" : "text-red-600"
@@ -247,42 +273,69 @@ const CourseListForTutor = () => {
                   {course.status ? "Available" : "Not Available"}
                 </p>
               </div>
-              <div className="ml-auto flex space-x-4">
-                <input
-                  type="file"
-                  onChange={(e) =>
-                    handleUpdateImage(course._id, e.target.files[0])
-                  }
-                  className="hidden"
-                  id={`upload-image-${course._id}`}
-                />
-                {/* <label
-                  htmlFor={`upload-image-${course._id}`}
-                  className="bg-teal-500 text-white py-2 px-4 rounded hover:bg-teal-600 transition-all cursor-pointer"
-                >
-                  Update Image
-                </label> */}
-                <button
-                  className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-all"
-                  onClick={() => handleOpenModal(course)}
-                >
-                  Update Info
-                </button>
 
-                <button
-                  className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 transition-all"
-                  onClick={() => handleDeleteCourse(course._id)}
-                >
-                  Delete
-                </button>
+              {/* cho tutor */}
+              <Dropdown
+  menu={{
+    items: [
+      {
+        label: (
+          <span className="flex items-center space-x-2 text-blue-500 hover:text-blue-600">
+            <Edit size={16} /> <span>Update Info</span>
+          </span>
+        ),
+        key: "1",
+        onClick: () => handleOpenModal(course),
+      },
+      {
+        label: (
+          <span className="flex items-center space-x-2 text-red-500 hover:text-red-600">
+            <Trash2 size={16} /> <span>Delete</span>
+          </span>
+        ),
+        key: "2",
+        onClick: () => handleDeleteCourse(course._id),
+      },
 
-                <button
-                  className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 transition-all"
-                  onClick={() => navigate(`/courses-list-tutor/${course._id}`)} // Thêm chức năng điều hướng đến chi tiết khóa học
-                >
-                  View Details
-                </button>
-              </div>
+      // pop confirm
+
+      // {
+      //   label: (
+      //     <Popconfirm
+      //       title="Delete Course"
+      //       description="Are you sure you want to delete this course?"
+      //       onConfirm={() => handleDeleteCourse(course._id)}
+      //       okText="Yes"
+      //       cancelText="No"
+      //       okButtonProps={{ danger: true }}
+      //     >
+      //       <span className="flex items-center space-x-2 text-red-500 hover:text-red-600 cursor-pointer">
+      //         <Trash2 size={16} /> <span>Delete</span>
+      //       </span>
+      //     </Popconfirm>
+      //   ),
+      //   key: "2",
+      // },
+
+      {
+        label: (
+          <span className="flex items-center space-x-2 text-green-500 hover:text-green-600">
+            <Eye size={16} /> <span>View Details</span>
+          </span>
+        ),
+        key: "3",
+        onClick: () => navigate(`/courses-list-tutor/${course._id}`),
+      },
+    ],
+  }}
+>
+  <a
+    className="p-2 hover:shadow-lg hover:rounded-lg transition-all flex items-center cursor-pointer ml-6"
+    onClick={(e) => e.preventDefault()}
+  >
+    <MoreVertical className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white" />
+  </a>
+</Dropdown>
             </div>
           ))}
         </div>
