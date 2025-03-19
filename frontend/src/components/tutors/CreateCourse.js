@@ -210,7 +210,7 @@ const CreateCourse = () => {
               min={0}
               placeholder="Enter price"
               className="w-full"
-              formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+              formatter={value => `VND ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
               parser={value => value.replace(/\$\s?|(,*)/g, '')}
             />
           </Form.Item>

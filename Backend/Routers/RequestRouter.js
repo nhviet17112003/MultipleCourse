@@ -21,7 +21,7 @@ router.get(
 );
 
 router.post(
-  "/cancel-request",
+  "/cancel-request/:request_id",
   cors.cors,
   auth.verifyUser,
   auth.verifyTutor,
