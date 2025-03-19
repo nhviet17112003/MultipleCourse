@@ -95,17 +95,17 @@ function Sidebar() {
           { key: "6", label: <Link to="/createcourse">Create Course</Link> },
         ],
       },
-      // {
-      //   key: "sub3",
-      //   label: "Manage Students",
-      //   icon: <AppstoreOutlined />,
-      //   children: [
-      //     {
-      //       key: "8",
-      //       label: <Link to="/student-list">Student List</Link>,
-      //     },
-      //   ],
-      // },
+      {
+        key: "sub3",
+        label: "Manage Requests",
+        icon: <AppstoreOutlined />,
+        children: [
+          {
+            key: "8",
+            label: <Link to="/request-list">Request List</Link>,
+          },
+        ],
+      },
 
       {
         key: "sub4",
