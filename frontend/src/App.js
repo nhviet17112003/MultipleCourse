@@ -58,7 +58,7 @@ import CourseDetailForAdmin from "./components/admins/CourseDetailForAdmin";
 import ViewCertificate from "./components/tutors/ViewCertificate";
 import UpdateCourseModal from "./components/tutors/UpdateCourseModal";
 import TutorRequests from "./components/tutors/TutorRequests";
-import RequestDetail from "./components/tutors/RequestDetail";
+// import RequestDetail from "./components/tutors/RequestDetail";
 function Layout() {
   const location = useLocation();
   const [navbarKey, setNavbarKey] = useState(0);
@@ -183,9 +183,15 @@ function Layout() {
             <Route path="/student-list" element={<Students />} />
             <Route path="/certificate" element={<ViewCertificate />} />
 
-            <Route path="//update-course/:courseId" element={<UpdateCourseModal />} />
+            <Route
+              path="//update-course/:courseId"
+              element={<UpdateCourseModal />}
+            />
             <Route path="/request-list" element={<TutorRequests />} />
-            <Route path="/request-list/:requestId" element={<RequestDetail />} />
+            {/* <Route
+              path="/request-list/:requestId"
+              element={<RequestDetail />}
+            /> */}
           </Routes>
         </div>
       </div>
