@@ -4,6 +4,7 @@ const Order = require("../Models/Orders");
 const Cart = require("../Models/Cart");
 const Course = require("../Models/Courses");
 const PayOS = require("../Configurations/PayOS");
+const WalletAdmin = require("../Models/WalletAdmin");
 
 exports.createPayment = async (req, res) => {
   try {
@@ -76,6 +77,18 @@ exports.checkPayment = async (req, res) => {
       wallet.total_deposit += payment.payment_amount;
       wallet.payment_code = undefined;
       await wallet.save();
+
+      const walletAdmin = await WalletAdmin.findOne();
+      if (!walletAdmin) {
+        walletAdmin = await WalletAdmin.create({
+          cash_in: payment.payment_amount,
+          current_balance: payment.payment_amount,
+        });
+      } else {
+        walletAdmin.cash_in += payment.payment_amount;
+        walletAdmin.current_balance += payment.payment_amount;
+        await walletAdmin.save();
+      }
       // return res.status(200).json({ message: "Payment successful" });
       return res.redirect("http://localhost:3001/course-list");
     }
