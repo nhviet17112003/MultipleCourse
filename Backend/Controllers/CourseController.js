@@ -966,3 +966,41 @@ exports.getListStudentOfCourses = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+//Counting active and inactive courses
+
+exports.countActiveAndInactiveCourses = async (req, res) => {
+  try {
+    const activeCourses = await Course.countDocuments({ status: true });
+    const inactiveCourses = await Course.countDocuments({ status: false });
+
+    res.status(200).json({ activeCourses, inactiveCourses });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+//Counting active and inactive courses of tutor by tutor id
+exports.countActiveAndInactiveCoursesOfTutor = async (req, res) => {
+  try {
+    const tutorId = req.user.id; // Lấy ID của tutor từ token
+
+    // Đếm số khóa học đang hoạt động (status: true)
+    const activeCourses = await Course.countDocuments({
+      tutor: tutorId,
+      status: true,
+    });
+
+    // Đếm số khóa học không hoạt động (status: false)
+    const inactiveCourses = await Course.countDocuments({
+      tutor: tutorId,
+      status: false,
+    });
+
+    res.status(200).json({ activeCourses, inactiveCourses });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};

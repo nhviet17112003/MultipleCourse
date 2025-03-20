@@ -257,3 +257,21 @@ exports.depositHistory = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+exports.showAdminWallet = async (req, res) => {
+  try {
+    const walletAdmin = await WalletAdmin.findOne();
+    if (!walletAdmin) {
+      return res.status(404).json({ message: "Admin wallet not found" });
+    }
+
+    res.status(200).json({
+      current_balance: walletAdmin.current_balance,
+      cash_in: walletAdmin.cash_in,
+      cash_out: walletAdmin.cash_out,
+    });
+  } catch (err) {
+    console.error("Error fetching admin wallet:", err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
