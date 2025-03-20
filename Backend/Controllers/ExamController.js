@@ -57,7 +57,7 @@ exports.createExam = async (req, res) => {
     const newExam = new Exam({ ...req.body, questions });
     await newExam.save();
 
-    res.status(201).json(newExam);
+    res.status(201).json("Created exam successfully");
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Internal Server Error" });

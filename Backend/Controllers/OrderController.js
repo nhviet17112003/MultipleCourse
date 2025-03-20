@@ -3,6 +3,7 @@ const Course = require("../Models/Courses");
 const User = require("../Models/Users");
 const Wallet = require("../Models/Wallet");
 const Cart = require("../Models/Cart");
+const WalletAdmin = require("../Models/WalletAdmin");
 const mongoose = require("mongoose");
 
 // Create Order
@@ -26,6 +27,8 @@ exports.createOrder = async (req, res) => {
       return res.status(400).json({ message: "Not enough balance" });
     }
 
+    const adminWallet = await WalletAdmin.findOne();
+
     const order_items = cart.cart_items;
     const total_price = cart.total_price;
 
@@ -38,8 +41,12 @@ exports.createOrder = async (req, res) => {
       if (!tutorWallet) {
         return res.status(404).json({ message: "Wallet not found" });
       }
-      tutorWallet.total_earning += course.price;
-      tutorWallet.current_balance += course.price;
+
+      //10% of the course will add to total earning of admin
+      adminWallet.total_earning += course.price * 0.1;
+
+      tutorWallet.total_earning += course.price * 0.9;
+      tutorWallet.current_balance += course.price * 0.9;
       await tutorWallet.save();
     }
 
