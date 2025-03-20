@@ -110,135 +110,135 @@ const ForgetPassword = () => {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center mb-6 text-green-500">
-          {step === 1 && "Forgot Password"}
-          {step === 2 && "OTP Confirmation"}
-          {step === 3 && "Success!"}
-        </h2>
-        {error && (
-          <div className="bg-red-500 text-white py-2 px-4 mb-4 rounded">
-            {error}
-          </div>
-        )}
-        {successMessage && (
-          <div className="bg-green-500 text-white py-2 px-4 mb-4 rounded">
-            {successMessage}
-          </div>
-        )}
-
-        {step === 1 && (
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-600 mb-2"
-            >
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Your email"
-              required
-            />
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-b from-green-100 to-green-200">
+    <div className="bg-white p-10 rounded-lg shadow-xl w-full max-w-md">
+      <h2 className="text-3xl font-bold text-center mb-8 text-green-600">
+        {step === 1 && "Forgot Password"}
+        {step === 2 && "OTP Confirmation"}
+        {step === 3 && "Success!"}
+      </h2>
+      {error && (
+        <div className="bg-red-100 text-red-700 py-3 px-5 mb-6 rounded border border-red-300">
+          {error}
+        </div>
+      )}
+      {successMessage && (
+        <div className="bg-green-100 text-green-700 py-3 px-5 mb-6 rounded border border-green-300">
+          {successMessage}
+        </div>
+      )}
+  
+      {step === 1 && (
+        <div>
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Email
+          </label>
+          <input
+            type="email"
+            id="email"
+            className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Your email"
+            required
+          />
+          <button
+            onClick={handleSendEmail}
+            className="mt-6 w-full bg-green-500 text-white py-3 rounded hover:bg-green-600 transition duration-200"
+          >
+            Send OTP
+          </button>
+        </div>
+      )}
+  
+      {step === 2 && (
+        <div>
+          <label
+            htmlFor="otp"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Enter OTP ({timer}s)
+          </label>
+          <input
+            type="text"
+            id="otp"
+            className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+            value={otp}
+            onChange={(e) => setOtp(e.target.value)}
+            placeholder="Enter your OTP"
+            required
+          />
+  
+          <label
+            htmlFor="newPassword"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            New password
+          </label>
+          <input
+            type="password"
+            id="newPassword"
+            className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="Enter new password"
+            required
+          />
+  
+          <label
+            htmlFor="confirmPassword"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Confirm Password
+          </label>
+          <input
+            type="password"
+            id="confirmPassword"
+            className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Confirm new password"
+            required
+          />
+  
+          <button
+            onClick={handleResetPassword}
+            className="mt-6 w-full bg-green-500 text-white py-3 rounded hover:bg-green-600 transition duration-200"
+            disabled={otpExpired}
+          >
+            Change Password
+          </button>
+  
+          {otpExpired && (
             <button
-              onClick={handleSendEmail}
-              className="mt-4 w-full bg-green-300 text-white py-3 rounded hover:bg-green-500"
+              onClick={handleResendOTP}
+              className="mt-4 w-full bg-yellow-500 text-white py-3 rounded hover:bg-yellow-600 transition duration-200"
             >
-              Send OTP
+              Resend OTP
             </button>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div>
-            <label
-              htmlFor="otp"
-              className="block text-sm font-medium text-gray-600 mb-2"
-            >
-              Enter OTP ({timer}s)
-            </label>
-            <input
-              type="text"
-              id="otp"
-              className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              placeholder="Enter your OTP"
-              required
-            />
-
-            <label
-              htmlFor="newPassword"
-              className="block text-sm font-medium text-gray-600 mb-2"
-            >
-              New password
-            </label>
-            <input
-              type="password"
-              id="newPassword"
-              className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Enter new password"
-              required
-            />
-
-            <label
-              htmlFor="confirmPassword"
-              className="block text-sm font-medium text-gray-600 mb-2"
-            >
-              Confirm Password
-            </label>
-            <input
-              type="password"
-              id="confirmPassword"
-              className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirm new password"
-              required
-            />
-
-            <button
-              onClick={handleResetPassword}
-              className="mt-4 w-full bg-green-300 text-white py-3 rounded hover:bg-green-500"
-              disabled={otpExpired}
-            >
-              Change Password
-            </button>
-
-            {otpExpired && (
-              <button
-                onClick={handleResendOTP}
-                className="mt-2 w-full bg-yellow-400 text-white py-3 rounded hover:bg-yellow-500"
-              >
-                Resend OTP
-              </button>
-            )}
-          </div>
-        )}
-
-        {step === 3 && (
-          <div className="text-center">
-            <FaCheckCircle className="text-teal-500 text-6xl mx-auto mb-4" />
-            <p className="text-lg text-gray-600">
-              Your password has been changed successfully!
-            </p>
-            <button
-              onClick={handleGoToLogin}
-              className="mt-4 w-full bg-green-300 text-white py-3 rounded hover:bg-green-500"
-            >
-              Back to Login page
-            </button>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
+  
+      {step === 3 && (
+        <div className="text-center">
+          <FaCheckCircle className="text-green-500 text-6xl mx-auto mb-6" />
+          <p className="text-lg text-gray-700 mb-6">
+            Your password has been changed successfully!
+          </p>
+          <button
+            onClick={handleGoToLogin}
+            className="w-full bg-green-500 text-white py-3 rounded hover:bg-green-600 transition duration-200"
+          >
+            Back to Login page
+          </button>
+        </div>
+      )}
     </div>
+  </div>
   );
 };
 

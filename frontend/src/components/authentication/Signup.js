@@ -30,11 +30,11 @@ const Signup = () => {
       "Terms and Rules: \n1. Do not share login information.\n2. Respect other users.\n3. Comply with system regulations."
     );
   };
-  
+
   useEffect(() => {
     console.log("🔥 Signup component loaded", location.state);
   }, []);
-  
+
   const validateForm = () => {
     if (!fullname.trim().includes(" ")) {
       setError("Full name must be at least 2 words.");

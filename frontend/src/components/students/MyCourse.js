@@ -10,6 +10,7 @@ const MyCourses = () => {
   const navigate = useNavigate();
   const [certificates, setCertificates] = useState([]);
   const [image, setImage] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const fetchCertificates = async () => {
@@ -37,7 +38,6 @@ const MyCourses = () => {
         setCertificates(data.certificates);
       } catch (error) {
         if (error.message !== "Failed to fetch") {
-          // setError("Failed to fetch certificates.");
         }
       }
     };
@@ -176,6 +176,13 @@ const MyCourses = () => {
       return false;
     }
   };
+
+  const filteredOrders = orders.map((order) => ({
+    ...order,
+    order_items: order.order_items.filter((item) =>
+      item.course.title.toLowerCase().includes(searchTerm.toLowerCase())
+    ),
+  }));
   if (loading)
     return (
       <div className="flex justify-center items-center h-screen text-xl">
@@ -191,13 +198,23 @@ const MyCourses = () => {
         My Courses
       </h1>
 
+      <div className="mb-6 flex justify-center">
+        <input
+          type="text"
+          placeholder="Search courses..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-1/2 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
       {orders.length === 0 ? (
         <p className="text-center text-gray-200 text-lg">
           No successful orders found.
         </p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {orders.map((order) =>
+          {filteredOrders.map((order) =>
             order.order_items.map((item) => (
               <div
                 key={item._id}

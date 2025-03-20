@@ -21,7 +21,7 @@ const Login = () => {
   const [captcha, setCaptcha] = useState(generateCaptcha());
   const [userCaptcha, setUserCaptcha] = useState("");
   const [role, setRole] = useState(localStorage.getItem("role") || null);
-  
+
   const navigate = useNavigate();
   const timeoutRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -116,8 +116,6 @@ const Login = () => {
     }
   };
 
- 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -156,7 +154,7 @@ const Login = () => {
       if (response.status === 200) {
         const { user_id, token, role, fullname, status, tutor_certificates } =
           response.data;
- console.log("Role:", role);
+        console.log("Role:", role);
         if (!status) {
           setError("Account has been BANNED");
           setIsSubmitting(false);
@@ -165,7 +163,7 @@ const Login = () => {
         }
         localStorage.setItem("role", role);
         localStorage.setItem("authToken", token);
-        localStorage.setItem("userId", user_id); 
+        localStorage.setItem("userId", user_id);
         localStorage.setItem("role", role);
         setRole(role); // Cập nhật role ngay để sidebar re-render
 
@@ -208,7 +206,7 @@ const Login = () => {
       if (token) {
         clearInterval(checkToken);
         localStorage.setItem("authToken", token);
-        
+
         // Thêm đoạn code lấy role từ API
         fetch("http://localhost:3000/api/users/profile", {
           headers: {
@@ -219,12 +217,12 @@ const Login = () => {
           .then((data) => {
             localStorage.setItem("role", data.role);
             // Tạo một event để thông báo role đã thay đổi
-            window.dispatchEvent(new Event('roleChanged'));
+            window.dispatchEvent(new Event("roleChanged"));
             window.location.href = "/course-list";
           });
       }
     }, 500);
-};
+  };
 
   // Hàm để lấy cookie theo tên
   const getCookie = (name) => {
@@ -313,13 +311,13 @@ const Login = () => {
                       Forgot Password
                     </button>
                   </div>
-                  {/* Thêm reCAPTCHA */}
-                  <div className="flex items-center gap-2 mb-[5px]">
+                  <div className="flex justify-center items-center gap-2 mb-[5px]">
                     <canvas
                       ref={canvasRef}
                       className="w-[100px] h-[40px] border border-gray-300 rounded-md"
                     />
                   </div>
+
                   <div className="relative w-full">
                     <input
                       type="text"

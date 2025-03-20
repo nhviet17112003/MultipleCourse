@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom"; // Import useNavigate
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
+
   const [cartId, setCartId] = useState(null); // Lưu trữ cartId
   const navigate = useNavigate(); // Khởi tạo navigate
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -124,69 +125,202 @@ const Cart = () => {
     }
   };
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       <ToastContainer position="top-right" autoClose={3000} />
 
-      <div className="container mx-auto px-6 py-10">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">🛒 My Cart</h1>
-
-        <button
-          onClick={() => navigate("/")}
-          className="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-300 transition"
-        >
-          ← Back to Home
-        </button>
+      <div className="container mx-auto px-4 sm:px-6 py-10">
+        {/* Header Section */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">
+              Shopping Cart
+            </h1>
+            <p className="text-gray-600">
+              {cartItems.length} {cartItems.length === 1 ? "course" : "courses"}{" "}
+              in cart
+            </p>
+          </div>
+          <div className="bg-gradient-to-r from-teal-500 via-blue-500 to-purple-500 text-white px-8 py-4 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-300 animate-pulse">
+            <div className="flex items-center space-x-2">
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
+              </svg>
+              <span className="text-lg font-semibold">
+                Welcome to E-Learning
+              </span>
+            </div>
+          </div>
+        </div>
 
         {cartItems.length === 0 ? (
-          <div className="mt-10 flex flex-col items-center">
-            <p className="text-lg text-gray-600">Your cart is empty. 🛍️</p>
+          <div className="mt-10 flex flex-col items-center bg-white rounded-xl shadow-lg p-12">
+            <div className="text-center">
+              <svg
+                className="mx-auto h-24 w-24 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                />
+              </svg>
+              <h2 className="mt-4 text-2xl font-semibold text-gray-800">
+                Your cart is empty
+              </h2>
+              <p className="mt-2 text-gray-600">No courses in your cart yet</p>
+              <button
+                onClick={() => navigate("/")}
+                className="mt-6 bg-teal-500 text-white px-6 py-3 rounded-lg hover:bg-teal-600 transition-colors duration-200 flex items-center mx-auto"
+              >
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                  />
+                </svg>
+                Back to Home
+              </button>
+            </div>
           </div>
         ) : (
-          <div className="bg-white p-6 rounded-xl shadow-lg mt-6">
-            <ul className="divide-y divide-gray-200">
-              {cartItems.map((item) => (
-                <li
-                  key={item._id}
-                  className="flex items-center justify-between py-4"
-                >
-                  <div className="flex items-center">
-                    <img
-                      src={item.course.image}
-                      alt={item.course.title}
-                      className="w-16 h-16 object-cover rounded-lg shadow-sm mr-4"
-                    />
-                    <div>
-                      <p className="text-gray-800 text-lg font-medium">
-                        {item.course.title}
-                      </p>
-                      <p className="text-gray-500 text-sm">
-                        Price:{" "}
-                        <span className="text-teal-600 font-semibold">
-                          {item.course.price} VND
-                        </span>
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => openDeleteConfirmation(item.course._id)}
-                    className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
-                  >
-                    Delete
-                  </button>
-                </li>
-              ))}
-            </ul>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Cart Items List */}
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                <ul className="divide-y divide-gray-100">
+                  {cartItems.map((item) => (
+                    <li
+                      key={item._id}
+                      className="p-6 hover:bg-gray-50 transition-colors duration-150"
+                    >
+                      <div className="flex space-x-6">
+                        <img
+                          src={item.course.image}
+                          alt={item.course.title}
+                          className="w-32 h-24 object-cover rounded-lg shadow-sm"
+                        />
+                        <div className="flex-1">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                                {item.course.title}
+                              </h3>
+                              <div className="flex items-center mb-3">
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-teal-100 text-teal-800">
+                                  <svg
+                                    className="w-4 h-4 mr-1.5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth="2"
+                                      d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+                                    />
+                                  </svg>
+                                  {item.course.category}
+                                </span>
+                              </div>
+                              <button
+                                onClick={() =>
+                                  openDeleteConfirmation(item.course._id)
+                                }
+                                className="text-red-500 hover:text-red-600 text-sm font-medium flex items-center space-x-1 mt-2"
+                              >
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                  />
+                                </svg>
+                                <span>Remove</span>
+                              </button>
+                            </div>
+                            <p className="text-2xl font-bold text-teal-600">
+                              {item.course.price.toLocaleString()} VND
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
 
-            <div className="flex justify-between items-center mt-6 border-t pt-4">
-              <p className="text-xl font-semibold text-gray-800">
-                Total: <span className="text-teal-600">{totalPrice} VND</span>
-              </p>
-              <button
-                onClick={handlePayment}
-                className="bg-teal-500 text-white px-6 py-3 rounded-lg hover:bg-teal-600 transition shadow-lg"
-              >
-                Pay Now
-              </button>
+            {/* Order Summary */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-xl shadow-lg p-6 sticky top-6">
+                <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                  Order Summary
+                </h2>
+                <div className="space-y-4">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Subtotal</span>
+                    <span>{totalPrice.toLocaleString()} VND</span>
+                  </div>
+                  
+                  <div className="border-t pt-4">
+                    <div className="flex justify-between items-center mb-6">
+                      <span className="text-lg font-semibold text-gray-800">
+                        Total
+                      </span>
+                      <span className="text-2xl font-bold text-teal-600">
+                        {totalPrice.toLocaleString()} VND
+                      </span>
+                    </div>
+                    <button
+                      onClick={handlePayment}
+                      className="w-full bg-teal-500 text-white py-4 rounded-lg hover:bg-teal-600 transition-colors duration-200 flex items-center justify-center space-x-2"
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+                        />
+                      </svg>
+                      <span>Proceed to Payment</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}

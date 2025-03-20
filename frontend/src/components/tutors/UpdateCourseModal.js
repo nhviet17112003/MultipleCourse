@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { Modal, Input, Select, Button, Popconfirm, message } from "antd";
 import { toast } from "react-toastify";
+import { Edit } from "lucide-react";
 const { TextArea } = Input;
 const { Option } = Select;
 
@@ -38,7 +39,7 @@ const UpdateCourseModal = ({ course, onClose, onUpdate }) => {
 
   return (
     <Modal
-      title={<span className="text-xl font-semibold">Update Course</span>}
+      title={<span className="text-xl font-semibold flex items-center"> <Edit size={20} className="mr-2" /> Update Course</span>}
       open={true}
       onCancel={onClose}
       footer={null} // Ẩn footer mặc định
@@ -78,9 +79,12 @@ const UpdateCourseModal = ({ course, onClose, onUpdate }) => {
           onChange={(value) => handleChange("category", value)}
           className="w-full rounded-lg"
         >
-          <Option value="Programming">Programming</Option>
-          <Option value="Design">Design</Option>
-          <Option value="Marketing">Marketing</Option>
+           <Option value="Programming">Programming</Option>
+              <Option value="Design">Design</Option>
+              <Option value="Marketing">Marketing</Option>
+              <Option value="Business">Business</Option>
+              <Option value="Photography">Photography</Option>
+              <Option value="Music">Music</Option>
         </Select>
       </div>
 

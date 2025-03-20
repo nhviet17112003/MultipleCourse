@@ -26,14 +26,14 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const recaptchaRef = useRef(null);
   const isHome = location.pathname === "/";
-  const [reloadNavbar, setReloadNavbar] = useState(true);
+  // const [reloadNavbar, setReloadNavbar] = useState(true);
 
-  const reload = () => {
-    setReloadNavbar(false);
-    setTimeout(() => {
-      setReloadNavbar(true);
-    }, 2000);
-  };
+  // const reload = () => {
+  //   setReloadNavbar(false);
+  //   setTimeout(() => {
+  //     setReloadNavbar(true);
+  //   }, 2000);
+  // };
   // Hàm debounce để trì hoãn việc gọi hàm navigate để tránh người dùng nhấn quá nhanh và liên tục
   const debounce = (func, delay) => {
     let debounceTimer;
@@ -51,12 +51,12 @@ const Navbar = () => {
 
   const fetchUserProfile = async () => {
     const token = localStorage.getItem("authToken");
-
+  
     if (!token) {
       setError("You are not logged in. Please log in again.");
       return;
     }
-
+  
     try {
       const response = await axios.get(
         "http://localhost:3000/api/users/get-user-by-token",
@@ -66,16 +66,14 @@ const Navbar = () => {
           },
         }
       );
-
+  
       setUserData(response.data);
       localStorage.setItem("role", response.data.role);
-
+      setRole(response.data.role); // Cập nhật state role ngay lập tức
+  
       // Xử lý URL avatar từ Google
       if (response.data.avatar) {
-        // Thêm tham số mới vào URL để tránh cache
-        const googleAvatarUrl = `${
-          response.data.avatar
-        }?${new Date().getTime()}`;
+        const googleAvatarUrl = `${response.data.avatar}?${new Date().getTime()}`;
         setAvatarUrl(googleAvatarUrl);
         localStorage.setItem("avatarUrl", googleAvatarUrl);
       } else {
@@ -84,7 +82,7 @@ const Navbar = () => {
         setAvatarUrl(defaultAvatar);
         localStorage.setItem("avatarUrl", defaultAvatar);
       }
-
+  
       setFullname(response.data.fullname || "User");
     } catch (err) {
       console.error("Error fetching profile:", err);
@@ -93,6 +91,13 @@ const Navbar = () => {
       debouncedNavigate("/login");
     }
   };
+  
+  // Thêm useEffect để theo dõi sự thay đổi của role
+  // useEffect(() => {
+  //   if (role) {
+  //     setReloadNavbar(true); // Cập nhật lại navbar khi role thay đổi
+  //   }
+  // }, [role]);
   useEffect(() => {
     const savedAvatar = localStorage.getItem("avatarUrl");
     if (savedAvatar) {

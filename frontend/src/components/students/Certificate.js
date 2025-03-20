@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { Table, Input, Button, Tag, Pagination, message, Card } from "antd";
+import { SearchOutlined, CopyOutlined } from "@ant-design/icons";
 
 export default function Certificate() {
   const [certificates, setCertificates] = useState([]);
@@ -35,148 +37,148 @@ export default function Certificate() {
 
   const copyToClipboard = (url) => {
     navigator.clipboard.writeText(url);
-    alert("Certificate URL copied to clipboard!");
+    message.success("Certificate URL copied to clipboard!");
   };
 
   const handleFilterChange = (date, name) => {
     let filtered = certificates;
-
     if (date) {
       filtered = filtered.filter(
         (cert) => new Date(cert.issue_date).toISOString().split("T")[0] === date
       );
     }
-
     if (name) {
       filtered = filtered.filter((cert) =>
         cert.course.title.toLowerCase().includes(name.toLowerCase())
       );
     }
-
     setFilteredCertificates(filtered);
     setCurrentPage(1);
   };
 
-  const totalPages = Math.ceil(
-    filteredCertificates.length / certificatesPerPage
-  );
   const paginatedCertificates = filteredCertificates.slice(
     (currentPage - 1) * certificatesPerPage,
     currentPage * certificatesPerPage
   );
 
+  const columns = [
+    {
+      title: "Course Title",
+      dataIndex: ["course", "title"],
+      key: "title",
+      sorter: (a, b) => a.course.title.localeCompare(b.course.title),
+      width: "30%",
+    },
+    {
+      title: "Status",
+      dataIndex: "isPassed",
+      key: "status",
+      render: (isPassed) => (
+        <Tag color={isPassed ? "green" : "red"}>
+          {isPassed ? "Passed" : "Failed"}
+        </Tag>
+      ),
+      width: "15%",
+      align: "center",
+    },
+    {
+      title: "Issue Date",
+      dataIndex: "issue_date",
+      key: "issue_date",
+      render: (date) => new Date(date).toLocaleDateString(),
+      width: "20%",
+      align: "center",
+    },
+    {
+      title: "Certificate URL",
+      dataIndex: "certificate_url",
+      key: "url",
+      render: (url) => (
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <a href={url} target="_blank" rel="noopener noreferrer">
+            View
+          </a>
+          <Button
+            type="primary"
+            shape="circle"
+            icon={<CopyOutlined />}
+            onClick={() => copyToClipboard(url)}
+          />
+        </div>
+      ),
+      width: "25%",
+      align: "center",
+    },
+  ];
+
   return (
-    <div className="min-h-screen flex flex-col justify-start items-center bg-gradient-to-b from-[#14b8a6] to-indigo-200 p-6">
-      <div className="w-full sm:max-w-4xl bg-white shadow-2xl rounded-lg p-8">
-        <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">
+    <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-r from-[#14b8a6] to-indigo-200">
+      <Card
+        style={{
+          width: "90%",
+          maxWidth: "1200px",
+          borderRadius: "12px",
+          boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
+        }}
+      >
+        <h1
+          style={{
+            textAlign: "center",
+            marginBottom: 24,
+            fontSize: "1.8rem",
+            fontWeight: "bold",
+            color: "#333",
+          }}
+        >
           📜 Certificate List
         </h1>
 
-        <div className="mb-6 flex flex-col md:flex-row justify-center gap-4">
-          <input
+        <div
+          style={{
+            display: "flex",
+            gap: 16,
+            marginBottom: 20,
+            justifyContent: "center",
+          }}
+        >
+          <Input
             type="date"
             value={filterDate}
             onChange={(e) => {
               setFilterDate(e.target.value);
               handleFilterChange(e.target.value, filterName);
             }}
-            className="px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+            style={{ width: "200px" }}
           />
-          <input
-            type="text"
+          <Input
             placeholder="Search by course name..."
             value={filterName}
             onChange={(e) => {
               setFilterName(e.target.value);
               handleFilterChange(filterDate, e.target.value);
             }}
-            className="w-full sm:w-auto px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            prefix={<SearchOutlined />}
+            style={{ width: "300px" }}
           />
         </div>
 
-        {paginatedCertificates.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-            {paginatedCertificates.map((certificate) => (
-              <div
-                key={certificate._id}
-                className="p-6 bg-gradient-to-r from-teal-100 to-indigo-100 shadow-md rounded-lg transition-transform transform hover:scale-105"
-              >
-                <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                  {certificate.course.title}
-                </h2>
-                <p className="text-gray-700">
-                  <strong>Status:</strong>{" "}
-                  <span
-                    className={`px-2 py-1 rounded-md text-white ${
-                      certificate.isPassed ? "bg-green-500" : "bg-red-500"
-                    }`}
-                  >
-                    {certificate.isPassed ? "Passed" : "Failed"}
-                  </span>
-                </p>
-                <p className="text-gray-700">
-                  <strong>Issued on:</strong>{" "}
-                  {new Date(certificate.issue_date).toLocaleDateString()}
-                </p>
-                <p className="text-gray-700 flex items-center">
-                  <strong>Certificate URL:</strong>{" "}
-                  <a
-                    href={certificate.certificate_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 font-semibold underline hover:text-blue-800 ml-2"
-                  >
-                    View Certificate
-                  </a>
-                  <button
-                    onClick={() => copyToClipboard(certificate.certificate_url)}
-                    className="ml-3 px-2 py-1 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition"
-                  >
-                    Copy
-                  </button>
-                </p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-center text-gray-600 text-lg">
-            ❌ No certificates available.
-          </p>
-        )}
+        <Table
+          columns={columns}
+          dataSource={paginatedCertificates}
+          pagination={false}
+          rowKey="_id"
+          bordered
+          style={{ borderRadius: "10px" }}
+        />
 
-        <div className="flex justify-center mt-6">
-          <button
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className={`px-4 py-2 mx-2 rounded-lg ${
-              currentPage === 1
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-teal-500 text-white hover:bg-teal-600"
-            }`}
-          >
-            Previous
-          </button>
-          <span className="px-4 py-2 text-gray-700">
-            Page {filteredCertificates.length > 0 ? currentPage : 0} of{" "}
-            {totalPages}
-          </span>
-          <button
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-            }
-            disabled={
-              currentPage === totalPages || filteredCertificates.length === 0
-            }
-            className={`px-4 py-2 mx-2 rounded-lg ${
-              currentPage === totalPages || filteredCertificates.length === 0
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-teal-500 text-white hover:bg-teal-600"
-            }`}
-          >
-            Next
-          </button>
-        </div>
-      </div>
+        <Pagination
+          current={currentPage}
+          total={filteredCertificates.length}
+          pageSize={certificatesPerPage}
+          onChange={(page) => setCurrentPage(page)}
+          style={{ marginTop: 16, textAlign: "center" }}
+        />
+      </Card>
     </div>
   );
 }
