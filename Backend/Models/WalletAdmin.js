@@ -8,7 +8,7 @@ const WalletAdminSchema = new Schema({
   },
   total_earning: {
     type: Number,
-    default: undefined,
+    default: 0,
   },
   cash_in: {
     type: Number,
