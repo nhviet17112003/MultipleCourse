@@ -267,6 +267,7 @@ exports.showAdminWallet = async (req, res) => {
 
     res.status(200).json({
       current_balance: walletAdmin.current_balance,
+      total_earning: walletAdmin.total_earning,
       cash_in: walletAdmin.cash_in,
       cash_out: walletAdmin.cash_out,
     });

@@ -10,6 +10,10 @@ import {
   Tag,
   Tooltip,
   message,
+  Card,
+  Statistic,
+  Row,
+  Col,
 } from "antd";
 import {
   DownloadOutlined,
@@ -17,14 +21,13 @@ import {
   EyeOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
-} from "@ant-design/icons";
-import * as XLSX from "xlsx";
-import { Card, Statistic, Row, Col } from "antd";
-import {
   WalletOutlined,
   ArrowUpOutlined,
   ArrowDownOutlined,
+  DollarCircleOutlined,
 } from "@ant-design/icons";
+import * as XLSX from "xlsx";
+
 const { Option } = Select;
 
 const WalletManageForAdmin = () => {
@@ -384,7 +387,7 @@ const WalletManageForAdmin = () => {
         <div className="bg-white rounded-xl shadow-sm mb-6 p-6">
           <div className="flex flex-col md:flex-row justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-gray-800 mb-4 md:mb-0">
-              Withdrawal Requests Management
+              Wallet Management
             </h1>
             <div className="flex space-x-3">
               <Button
@@ -407,67 +410,101 @@ const WalletManageForAdmin = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-blue-50 p-4 rounded-lg shadow-sm">
-              <p className="text-sm text-blue-600 font-medium">
-                Total Requests
-              </p>
-              <p className="text-2xl font-bold text-blue-800">
-                {requests.length}
-              </p>
-            </div>
-            <div className="bg-yellow-50 p-4 rounded-lg shadow-sm">
-              <p className="text-sm text-yellow-600 font-medium">Pending</p>
-              <p className="text-2xl font-bold text-yellow-800">
-                {getStatusCount("Pending")}
-              </p>
-            </div>
-            <div className="bg-green-50 p-4 rounded-lg shadow-sm">
-              <p className="text-sm text-green-600 font-medium">Approved</p>
-              <p className="text-2xl font-bold text-green-800">
-                {getStatusCount("Approved")}
-              </p>
-            </div>
-            <div className="bg-red-50 p-4 rounded-lg shadow-sm">
-              <p className="text-sm text-red-600 font-medium">Rejected</p>
-              <p className="text-2xl font-bold text-red-800">
-                {getStatusCount("Rejected")}
-              </p>
-            </div>
+            {[
+              {
+                title: "Total Requests",
+                count: requests.length,
+                bg: "bg-blue-50",
+                text: "text-blue-600",
+                textValue: "text-blue-800",
+              },
+              {
+                title: "Pending",
+                count: getStatusCount("Pending"),
+                bg: "bg-yellow-50",
+                text: "text-yellow-600",
+                textValue: "text-yellow-800",
+              },
+              {
+                title: "Approved",
+                count: getStatusCount("Approved"),
+                bg: "bg-green-50",
+                text: "text-green-600",
+                textValue: "text-green-800",
+              },
+              {
+                title: "Rejected",
+                count: getStatusCount("Rejected"),
+                bg: "bg-red-50",
+                text: "text-red-600",
+                textValue: "text-red-800",
+              },
+            ].map((item, index) => (
+              <div
+                key={index}
+                className={`${item.bg} p-4 rounded-lg shadow-sm flex flex-col justify-center items-center h-full`}
+              >
+                <p className={`text-sm font-medium ${item.text}`}>
+                  {item.title}
+                </p>
+                <p className={`text-2xl font-bold ${item.textValue}`}>
+                  {item.count}
+                </p>
+              </div>
+            ))}
           </div>
 
           <Row gutter={16} className="mb-6">
-            <Col xs={24} sm={12} md={8}>
-              <Card bordered={false} style={{ background: "#E6F7FF" }}>
-                <Statistic
-                  title="Current Balance"
-                  value={walletData.current_balance}
-                  suffix="VND"
-                  prefix={<WalletOutlined style={{ color: "#1890ff" }} />}
-                />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} md={8}>
-              <Card bordered={false} style={{ background: "#F6FFED" }}>
-                <Statistic
-                  title="Total Deposit"
-                  value={walletData.cash_in}
-                  suffix="VND"
-                  valueStyle={{ color: "#52c41a" }}
-                  prefix={<ArrowUpOutlined />}
-                />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} md={8}>
-              <Card bordered={false} style={{ background: "#FFF1F0" }}>
-                <Statistic
-                  title="Total Withdrawal"
-                  value={walletData.cash_out}
-                  suffix="VND"
-                  valueStyle={{ color: "#ff4d4f" }}
-                  prefix={<ArrowDownOutlined />}
-                />
-              </Card>
-            </Col>
+            {[
+              {
+                title: "System Balance",
+                value: walletData.current_balance,
+                bg: "#E6F7FF",
+                icon: <WalletOutlined style={{ color: "#1890ff" }} />,
+                tooltip:
+                  "System balance is the total revenue earned and is the amount of money in the current system",
+              },
+              {
+                title: "Earnings",
+                value: walletData.total_earning,
+                bg: "#FFF7E6",
+                icon: <DollarCircleOutlined style={{ color: "#faad14" }} />,
+                tooltip:
+                  "Earnings is the commission admin gets from each course sold.",
+              },
+              {
+                title: "Total Deposit",
+                value: walletData.cash_in,
+                bg: "#F6FFED",
+                icon: <ArrowUpOutlined style={{ color: "#52c41a" }} />,
+                tooltip:
+                  "Total deposits is the total amount of money that has been successfully deposited into the system.",
+              },
+              {
+                title: "Total Withdrawal",
+                value: walletData.cash_out,
+                bg: "#FFF1F0",
+                icon: <ArrowDownOutlined style={{ color: "#ff4d4f" }} />,
+                tooltip:
+                  "Total withdrawal is the total amount of withdrawals by the user.",
+              },
+            ].map((item, index) => (
+              <Col key={index} xs={24} sm={12} md={6} lg={6}>
+                <Tooltip title={item.tooltip}>
+                  <Card
+                    bordered={false}
+                    style={{ background: item.bg, height: "100%" }}
+                  >
+                    <Statistic
+                      title={item.title}
+                      value={item.value}
+                      suffix="VND"
+                      prefix={item.icon}
+                    />
+                  </Card>
+                </Tooltip>
+              </Col>
+            ))}
           </Row>
 
           <div className="mb-6 flex items-center">
