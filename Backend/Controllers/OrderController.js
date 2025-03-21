@@ -44,7 +44,7 @@ exports.createOrder = async (req, res) => {
 
       //10% of the course will add to total earning of admin
       adminWallet.total_earning += course.price * 0.1;
-
+      await adminWallet.save();
       tutorWallet.total_earning += course.price * 0.9;
       tutorWallet.current_balance += course.price * 0.9;
       await tutorWallet.save();
