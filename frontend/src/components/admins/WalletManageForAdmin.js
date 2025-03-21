@@ -1,9 +1,30 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Table, Button, Spin, Alert, Modal, Select, Tag, Tooltip, message } from "antd";
-import { DownloadOutlined, ReloadOutlined, EyeOutlined, CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
+import {
+  Table,
+  Button,
+  Spin,
+  Alert,
+  Modal,
+  Select,
+  Tag,
+  Tooltip,
+  message,
+} from "antd";
+import {
+  DownloadOutlined,
+  ReloadOutlined,
+  EyeOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+} from "@ant-design/icons";
 import * as XLSX from "xlsx";
-
+import { Card, Statistic, Row, Col } from "antd";
+import {
+  WalletOutlined,
+  ArrowUpOutlined,
+  ArrowDownOutlined,
+} from "@ant-design/icons";
 const { Option } = Select;
 
 const WalletManageForAdmin = () => {
@@ -15,11 +36,37 @@ const WalletManageForAdmin = () => {
   const [modalData, setModalData] = useState(null);
   const [statusFilter, setStatusFilter] = useState("All");
   const [refreshing, setRefreshing] = useState(false);
+  const [loadingWallet, setLoadingWallet] = useState(true);
+  const [errorWallet, setErrorWallet] = useState(null);
   const [sortOrder, setSortOrder] = useState({
     amount: null,
     date: null,
     status: null,
   });
+  const [walletData, setWalletData] = useState(null);
+
+  useEffect(() => {
+    const fetchWalletData = async () => {
+      const token = localStorage.getItem("authToken");
+      try {
+        const response = await axios.get(
+          "http://localhost:3000/api/wallet/show-wallet-admin",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setWalletData(response.data);
+      } catch (err) {
+        setErrorWallet("Có lỗi xảy ra khi tải thông tin ví");
+      } finally {
+        setLoadingWallet(false);
+      }
+    };
+
+    fetchWalletData();
+  }, []);
 
   const fetchWithdrawalRequests = async () => {
     setLoading(true);
@@ -139,11 +186,11 @@ const WalletManageForAdmin = () => {
   if (error) {
     return (
       <div className="flex justify-center items-center h-screen bg-gray-50">
-        <Alert 
-          message="Error" 
-          description={error} 
-          type="error" 
-          showIcon 
+        <Alert
+          message="Error"
+          description={error}
+          type="error"
+          showIcon
           className="max-w-md shadow-md"
         />
       </div>
@@ -181,7 +228,7 @@ const WalletManageForAdmin = () => {
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('vi-VN').format(amount);
+    return new Intl.NumberFormat("vi-VN").format(amount);
   };
 
   const columns = [
@@ -197,7 +244,9 @@ const WalletManageForAdmin = () => {
       key: "tutorName",
       render: (text) => (
         <div className="flex items-center">
-          <span className="font-medium text-gray-800">{text ? text.fullname : ""}</span>
+          <span className="font-medium text-gray-800">
+            {text ? text.fullname : ""}
+          </span>
         </div>
       ),
     },
@@ -205,13 +254,17 @@ const WalletManageForAdmin = () => {
       title: "Email",
       dataIndex: "user",
       key: "email",
-      render: (text) => <span className="text-gray-600">{text ? text.email : ""}</span>,
+      render: (text) => (
+        <span className="text-gray-600">{text ? text.email : ""}</span>
+      ),
     },
     {
       title: "User Phone",
       dataIndex: "user",
       key: "phone",
-      render: (text) => <span className="text-gray-600">{text ? text.phone : ""}</span>,
+      render: (text) => (
+        <span className="text-gray-600">{text ? text.phone : ""}</span>
+      ),
     },
     {
       title: "Amount",
@@ -237,7 +290,9 @@ const WalletManageForAdmin = () => {
       sortOrder: sortOrder.date,
       render: (date) => (
         <Tooltip title={new Date(date).toLocaleString()}>
-          <span className="text-gray-600">{new Date(date).toLocaleDateString()}</span>
+          <span className="text-gray-600">
+            {new Date(date).toLocaleDateString()}
+          </span>
         </Tooltip>
       ),
       onHeaderCell: () => ({
@@ -252,19 +307,19 @@ const WalletManageForAdmin = () => {
       sorter: true,
       sortOrder: sortOrder.status,
       render: (status) => {
-        let color = 'default';
+        let color = "default";
         let icon = null;
-        
-        if (status === 'Pending') {
-          color = 'warning';
-        } else if (status === 'Approved') {
-          color = 'success';
+
+        if (status === "Pending") {
+          color = "warning";
+        } else if (status === "Approved") {
+          color = "success";
           icon = <CheckCircleOutlined />;
-        } else if (status === 'Rejected') {
-          color = 'error';
+        } else if (status === "Rejected") {
+          color = "error";
           icon = <CloseCircleOutlined />;
         }
-        
+
         return (
           <Tag color={color} icon={icon}>
             {status}
@@ -320,7 +375,7 @@ const WalletManageForAdmin = () => {
   };
 
   const getStatusCount = (status) => {
-    return requests.filter(req => req.status === status).length;
+    return requests.filter((req) => req.status === status).length;
   };
 
   return (
@@ -353,25 +408,72 @@ const WalletManageForAdmin = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-blue-50 p-4 rounded-lg shadow-sm">
-              <p className="text-sm text-blue-600 font-medium">Total Requests</p>
-              <p className="text-2xl font-bold text-blue-800">{requests.length}</p>
+              <p className="text-sm text-blue-600 font-medium">
+                Total Requests
+              </p>
+              <p className="text-2xl font-bold text-blue-800">
+                {requests.length}
+              </p>
             </div>
             <div className="bg-yellow-50 p-4 rounded-lg shadow-sm">
               <p className="text-sm text-yellow-600 font-medium">Pending</p>
-              <p className="text-2xl font-bold text-yellow-800">{getStatusCount('Pending')}</p>
+              <p className="text-2xl font-bold text-yellow-800">
+                {getStatusCount("Pending")}
+              </p>
             </div>
             <div className="bg-green-50 p-4 rounded-lg shadow-sm">
               <p className="text-sm text-green-600 font-medium">Approved</p>
-              <p className="text-2xl font-bold text-green-800">{getStatusCount('Approved')}</p>
+              <p className="text-2xl font-bold text-green-800">
+                {getStatusCount("Approved")}
+              </p>
             </div>
             <div className="bg-red-50 p-4 rounded-lg shadow-sm">
               <p className="text-sm text-red-600 font-medium">Rejected</p>
-              <p className="text-2xl font-bold text-red-800">{getStatusCount('Rejected')}</p>
+              <p className="text-2xl font-bold text-red-800">
+                {getStatusCount("Rejected")}
+              </p>
             </div>
           </div>
 
+          <Row gutter={16} className="mb-6">
+            <Col xs={24} sm={12} md={8}>
+              <Card bordered={false} style={{ background: "#E6F7FF" }}>
+                <Statistic
+                  title="Current Balance"
+                  value={walletData.current_balance}
+                  suffix="VND"
+                  prefix={<WalletOutlined style={{ color: "#1890ff" }} />}
+                />
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} md={8}>
+              <Card bordered={false} style={{ background: "#F6FFED" }}>
+                <Statistic
+                  title="Total Deposit"
+                  value={walletData.cash_in}
+                  suffix="VND"
+                  valueStyle={{ color: "#52c41a" }}
+                  prefix={<ArrowUpOutlined />}
+                />
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} md={8}>
+              <Card bordered={false} style={{ background: "#FFF1F0" }}>
+                <Statistic
+                  title="Total Withdrawal"
+                  value={walletData.cash_out}
+                  suffix="VND"
+                  valueStyle={{ color: "#ff4d4f" }}
+                  prefix={<ArrowDownOutlined />}
+                />
+              </Card>
+            </Col>
+          </Row>
+
           <div className="mb-6 flex items-center">
-            <label className="mr-3 text-gray-700 font-medium">Filter by Status:</label>
+            <label className="mr-3 text-gray-700 font-medium">
+              Filter by Status:
+            </label>
             <Select
               value={statusFilter}
               onChange={setStatusFilter}
@@ -394,11 +496,12 @@ const WalletManageForAdmin = () => {
             dataSource={filteredRequests}
             columns={columns}
             rowKey="withdrawal_id"
-            pagination={{ 
+            pagination={{
               pageSize: 10,
               showSizeChanger: true,
-              pageSizeOptions: ['10', '20', '50'],
-              showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`
+              pageSizeOptions: ["10", "20", "50"],
+              showTotal: (total, range) =>
+                `${range[0]}-${range[1]} of ${total} items`,
             }}
             bordered={false}
             loading={refreshing}
@@ -409,28 +512,41 @@ const WalletManageForAdmin = () => {
       </div>
 
       <Modal
-        title={<div className="text-lg font-bold text-gray-800">Withdrawal Request Details</div>}
+        title={
+          <div className="text-lg font-bold text-gray-800">
+            Withdrawal Request Details
+          </div>
+        }
         visible={isModalVisible}
         onCancel={handleCancel}
         footer={null}
         width={600}
         centered
         className="custom-modal"
-        bodyStyle={{ padding: '24px' }}
+        bodyStyle={{ padding: "24px" }}
       >
         {modalData ? (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-gray-500 mb-1">Withdrawal ID</h3>
-                <p className="font-mono text-gray-800">{modalData.withdrawal_id}</p>
+                <h3 className="text-sm font-medium text-gray-500 mb-1">
+                  Withdrawal ID
+                </h3>
+                <p className="font-mono text-gray-800">
+                  {modalData.withdrawal_id}
+                </p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-gray-500 mb-1">Status</h3>
-                <Tag 
+                <h3 className="text-sm font-medium text-gray-500 mb-1">
+                  Status
+                </h3>
+                <Tag
                   color={
-                    modalData.status === "Pending" ? "warning" : 
-                    modalData.status === "Approved" ? "success" : "error"
+                    modalData.status === "Pending"
+                      ? "warning"
+                      : modalData.status === "Approved"
+                      ? "success"
+                      : "error"
                   }
                   className="text-sm"
                 >
@@ -438,8 +554,12 @@ const WalletManageForAdmin = () => {
                 </Tag>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-gray-500 mb-1">Amount</h3>
-                <p className="text-lg font-bold text-blue-600">{formatCurrency(modalData.amount)} VND</p>
+                <h3 className="text-sm font-medium text-gray-500 mb-1">
+                  Amount
+                </h3>
+                <p className="text-lg font-bold text-blue-600">
+                  {formatCurrency(modalData.amount)} VND
+                </p>
               </div>
             </div>
 
@@ -450,22 +570,36 @@ const WalletManageForAdmin = () => {
                 </h3>
                 <div className="space-y-3">
                   <div className="flex">
-                    <span className="w-40 text-gray-600 font-medium">Bank Name:</span>
-                    <span className="text-gray-800 font-medium">{modalData.bankAccount[0]?.bank_name}</span>
+                    <span className="w-40 text-gray-600 font-medium">
+                      Bank Name:
+                    </span>
+                    <span className="text-gray-800 font-medium">
+                      {modalData.bankAccount[0]?.bank_name}
+                    </span>
                   </div>
                   <div className="flex">
-                    <span className="w-40 text-gray-600 font-medium">Account Number:</span>
-                    <span className="font-mono text-gray-800 font-medium">{modalData.bankAccount[0]?.account_number}</span>
+                    <span className="w-40 text-gray-600 font-medium">
+                      Account Number:
+                    </span>
+                    <span className="font-mono text-gray-800 font-medium">
+                      {modalData.bankAccount[0]?.account_number}
+                    </span>
                   </div>
                   <div className="flex">
-                    <span className="w-40 text-gray-600 font-medium">Account Name:</span>
-                    <span className="text-gray-800 font-medium">{modalData.bankAccount[0]?.account_name}</span>
+                    <span className="w-40 text-gray-600 font-medium">
+                      Account Name:
+                    </span>
+                    <span className="text-gray-800 font-medium">
+                      {modalData.bankAccount[0]?.account_name}
+                    </span>
                   </div>
                 </div>
               </div>
             ) : (
               <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-center">
-                <p className="text-gray-500">No bank account information available</p>
+                <p className="text-gray-500">
+                  No bank account information available
+                </p>
               </div>
             )}
 
@@ -502,15 +636,19 @@ const WalletManageForAdmin = () => {
                 <div className="w-full">
                   <Alert
                     message={
-                      modalData.status === "Approved" 
-                        ? "This request has been approved" 
+                      modalData.status === "Approved"
+                        ? "This request has been approved"
                         : "This request has been rejected"
                     }
                     type={modalData.status === "Approved" ? "success" : "error"}
                     showIcon
                     className="mb-4"
                   />
-                  <Button size="large" onClick={handleCancel} className="w-full">
+                  <Button
+                    size="large"
+                    onClick={handleCancel}
+                    className="w-full"
+                  >
                     Close
                   </Button>
                 </div>
@@ -531,21 +669,21 @@ const WalletManageForAdmin = () => {
           font-weight: 600;
           border-bottom: 1px solid #e5e7eb;
         }
-        
+
         .custom-table .ant-table-tbody > tr > td {
           border-bottom: 1px solid #f3f4f6;
         }
-        
+
         .custom-modal .ant-modal-content {
           border-radius: 12px;
           overflow: hidden;
         }
-        
+
         .custom-modal .ant-modal-header {
           border-bottom: 1px solid #f3f4f6;
           padding: 16px 24px;
         }
-        
+
         .custom-modal .ant-modal-footer {
           border-top: 1px solid #f3f4f6;
         }
