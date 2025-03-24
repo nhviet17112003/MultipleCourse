@@ -10,14 +10,20 @@ import {
   Button, 
   Modal, 
   Typography, 
-  Select 
+  Select,
+  Card,
+  Row,
+  Col
 } from "antd";
 import { 
   EllipsisOutlined, 
   CheckOutlined, 
   StopOutlined, 
   SearchOutlined,
-  FilterOutlined 
+  FilterOutlined,
+  ClockCircleOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined
 } from "@ant-design/icons";
 
 const { Title, Text } = Typography;
@@ -40,6 +46,14 @@ export default function RequestList() {
   // Search and Filter States
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+
+  // Đếm số lượng yêu cầu theo trạng thái
+  const requestCounters = {
+    total: requests.length,
+    pending: requests.filter(request => request && request.status === "Pending").length,
+    approved: requests.filter(request => request && request.status === "Approved").length,
+    rejected: requests.filter(request => request && request.status === "Rejected").length
+  };
 
   useEffect(() => {
     if (token) {
@@ -290,14 +304,14 @@ export default function RequestList() {
           </Title>
           
           <div className="flex items-center space-x-4">
-          <Input
-  placeholder="Search requests"
-  prefix={<SearchOutlined className="text-gray-400 mr-2" />}
-  value={searchText}
-  onChange={(e) => handleSearch(e.target.value)}
-  className="w-64"
-  allowClear
-/>
+            <Input
+              placeholder="Search requests"
+              prefix={<SearchOutlined className="text-gray-400 mr-2" />}
+              value={searchText}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="w-64"
+              allowClear
+            />
 
             <Select
               style={{ width: 200 }}
@@ -314,6 +328,70 @@ export default function RequestList() {
           </div>
         </div>
 
+        {/* Thêm bộ đếm requests ở đây */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <Card 
+            className={`shadow-md hover:shadow-lg transition-shadow ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-blue-200'}`}
+          >
+            <div className="text-center">
+              <div className="flex justify-center mb-2">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${theme === 'dark' ? 'bg-blue-900' : 'bg-blue-100'}`}>
+                  <span className={`text-xl ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>{requestCounters.total}</span>
+                </div>
+              </div>
+              <Text className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>Total Requests</Text>
+            </div>
+          </Card>
+          
+          <Card 
+            className={`shadow-md hover:shadow-lg transition-shadow ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-yellow-50 border-yellow-200'}`}
+          >
+            <div className="text-center">
+              <div className="flex justify-center mb-2">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${theme === 'dark' ? 'bg-yellow-900' : 'bg-yellow-100'}`}>
+                  <ClockCircleOutlined className={`text-xl ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}`} />
+                </div>
+              </div>
+              <Text strong className={theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}>
+                {requestCounters.pending}
+              </Text>
+              <Text className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}> Pending</Text>
+            </div>
+          </Card>
+          
+          <Card 
+            className={`shadow-md hover:shadow-lg transition-shadow ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-green-50 border-green-200'}`}
+          >
+            <div className="text-center">
+              <div className="flex justify-center mb-2">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${theme === 'dark' ? 'bg-green-900' : 'bg-green-100'}`}>
+                  <CheckCircleOutlined className={`text-xl ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
+                </div>
+              </div>
+              <Text strong className={theme === 'dark' ? 'text-green-400' : 'text-green-600'}>
+                {requestCounters.approved}
+              </Text>
+              <Text className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}> Approved</Text>
+            </div>
+          </Card>
+          
+          <Card 
+            className={`shadow-md hover:shadow-lg transition-shadow ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-red-50 border-red-200'}`}
+          >
+            <div className="text-center">
+              <div className="flex justify-center mb-2">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${theme === 'dark' ? 'bg-red-900' : 'bg-red-100'}`}>
+                  <CloseCircleOutlined className={`text-xl ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
+                </div>
+              </div>
+              <Text strong className={theme === 'dark' ? 'text-red-400' : 'text-red-600'}>
+                {requestCounters.rejected}
+              </Text>
+              <Text className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}> Rejected</Text>
+            </div>
+          </Card>
+        </div>
+
         {loading && (
           <div className="text-center text-blue-500 mb-4">Loading...</div>
         )}
@@ -321,7 +399,7 @@ export default function RequestList() {
           <div className="text-center text-red-500 mb-4">{error}</div>
         )}
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+        <div className={`rounded-xl shadow-lg overflow-hidden ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
           <Table 
             columns={columns} 
             dataSource={data}
@@ -413,4 +491,4 @@ const DropDownMenu = ({record, handleProcessRequest, setIsModalOpen, setSelected
       />
     </Dropdown>
   );
-}
+};

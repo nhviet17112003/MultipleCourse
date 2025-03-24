@@ -58,6 +58,13 @@ const CourseListForAdmin = () => {
     fetchCourses();
   }, []);
 
+  // Đếm số lượng khóa học theo trạng thái
+  const courseCounters = {
+    total: courses.length,
+    active: courses.filter(course => course.status).length,
+    inactive: courses.filter(course => !course.status).length
+  };
+
   const handleSearch = (value) => {
     setSearchText(value);
   };
@@ -313,6 +320,28 @@ const CourseListForAdmin = () => {
               Refresh
             </Button>
           </div>
+        </div>
+
+        {/* Thêm bộ đếm khóa học ở đây */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Card className="bg-blue-50 border-blue-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="text-center">
+              <Text className="text-gray-600 block text-sm">Total Courses</Text>
+              <Title level={2} className="text-blue-600 m-0">{courseCounters.total}</Title>
+            </div>
+          </Card>
+          <Card className="bg-green-50 border-green-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="text-center">
+              <Text className="text-gray-600 block text-sm">Active Courses</Text>
+              <Title level={2} className="text-green-600 m-0">{courseCounters.active}</Title>
+            </div>
+          </Card>
+          <Card className="bg-red-50 border-red-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="text-center">
+              <Text className="text-gray-600 block text-sm">Inactive Courses</Text>
+              <Title level={2} className="text-red-600 m-0">{courseCounters.inactive}</Title>
+            </div>
+          </Card>
         </div>
 
         <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">

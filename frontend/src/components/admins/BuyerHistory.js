@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Table, Card, Spin, Alert, Typography, Tag, Space, Divider, Input, Select, DatePicker, Button, Row, Col } from "antd";
-import { ShoppingCartOutlined, HistoryOutlined, FilterOutlined, SearchOutlined, ReloadOutlined } from "@ant-design/icons";
+import { Table, Card, Spin, Alert, Typography, Tag, Space, Divider, Input, Select, DatePicker, Button, Row, Col, Statistic } from "antd";
+import { ShoppingCartOutlined, HistoryOutlined, FilterOutlined, SearchOutlined, ReloadOutlined, UserOutlined, DollarOutlined, BookOutlined, CalendarOutlined } from "@ant-design/icons";
 
 const { Title, Text } = Typography;
 const { Search } = Input;
@@ -14,6 +14,14 @@ export default function BuyerHistory() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const token = localStorage.getItem("authToken");
+  
+  // Summary statistics
+  const [statistics, setStatistics] = useState({
+    totalOrders: 0,
+    totalBuyers: 0,
+    totalRevenue: 0,
+    uniqueCourses: 0
+  });
   
   // Filter states
   const [searchEmail, setSearchEmail] = useState("");
@@ -33,6 +41,7 @@ export default function BuyerHistory() {
 
         setBuyerHistory(res.data);
         setFilteredData(res.data);
+        calculateStatistics(res.data);
         console.log("Buyer:", res.data);
 
         setLoading(false);
@@ -47,6 +56,43 @@ export default function BuyerHistory() {
   useEffect(() => {
     applyFilters();
   }, [searchEmail, searchCourseName, priceRange, dateRange]);
+
+  const calculateStatistics = (data) => {
+    // Calculate total orders
+    const totalOrders = data.length;
+    
+    // Calculate unique buyers
+    const uniqueBuyerEmails = new Set();
+    data.forEach(order => {
+      order.buyers.forEach(buyer => {
+        uniqueBuyerEmails.add(buyer.email);
+      });
+    });
+    const totalBuyers = uniqueBuyerEmails.size;
+    
+    // Calculate total revenue
+    let totalRevenue = 0;
+    data.forEach(order => {
+      const price = parseFloat(order.course.price);
+      if (!isNaN(price)) {
+        totalRevenue += price * order.buyers.length;
+      }
+    });
+    
+    // Calculate unique courses
+    const uniqueCourseIds = new Set();
+    data.forEach(order => {
+      uniqueCourseIds.add(order.course._id);
+    });
+    const uniqueCourses = uniqueCourseIds.size;
+    
+    setStatistics({
+      totalOrders,
+      totalBuyers,
+      totalRevenue,
+      uniqueCourses
+    });
+  };
 
   const applyFilters = () => {
     let filtered = buyerHistory;
@@ -90,6 +136,7 @@ export default function BuyerHistory() {
     }
 
     setFilteredData(filtered);
+    calculateStatistics(filtered);
   };
 
   const resetFilters = () => {
@@ -98,6 +145,7 @@ export default function BuyerHistory() {
     setPriceRange("all");
     setDateRange(null);
     setFilteredData(buyerHistory);
+    calculateStatistics(buyerHistory);
   };
 
   if (loading)
@@ -179,6 +227,11 @@ export default function BuyerHistory() {
     rawDate: order.course.date, // For sorting
   }));
 
+  // Format currency
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
       <Card 
@@ -190,6 +243,48 @@ export default function BuyerHistory() {
           <Title level={2} className="m-0 text-blue-800">
             Buyer History
           </Title>
+        </div>
+        
+        {/* Statistics Counters */}
+        <div className="mb-6">
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12} md={6}>
+              <Card className="bg-blue-50 border-blue-200 shadow-md h-full">
+                <Statistic
+                  title={<div className="text-blue-800 font-medium flex items-center"><ShoppingCartOutlined className="mr-2" /> Tổng Đơn Hàng</div>}
+                  value={statistics.totalOrders}
+                  valueStyle={{ color: '#1890ff', fontWeight: 'bold' }}
+                />
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Card className="bg-green-50 border-green-200 shadow-md h-full">
+                <Statistic
+                  title={<div className="text-green-800 font-medium flex items-center"><UserOutlined className="mr-2" /> Tổng Người Mua</div>}
+                  value={statistics.totalBuyers}
+                  valueStyle={{ color: '#52c41a', fontWeight: 'bold' }}
+                />
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Card className="bg-red-50 border-red-200 shadow-md h-full">
+                <Statistic
+                  title={<div className="text-red-800 font-medium flex items-center"><DollarOutlined className="mr-2" /> Tổng Doanh Thu</div>}
+                  value={formatCurrency(statistics.totalRevenue)}
+                  valueStyle={{ color: '#f5222d', fontWeight: 'bold' }}
+                />
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Card className="bg-purple-50 border-purple-200 shadow-md h-full">
+                <Statistic
+                  title={<div className="text-purple-800 font-medium flex items-center"><BookOutlined className="mr-2" /> Số Khóa Học</div>}
+                  value={statistics.uniqueCourses}
+                  valueStyle={{ color: '#722ed1', fontWeight: 'bold' }}
+                />
+              </Card>
+            </Col>
+          </Row>
         </div>
         
         <Divider className="mb-6" />
@@ -261,6 +356,22 @@ export default function BuyerHistory() {
             }}
             className="shadow-md"
             scroll={{ x: 'max-content' }}
+            summary={() => (
+              <Table.Summary fixed>
+                <Table.Summary.Row>
+                  <Table.Summary.Cell index={0} colSpan={4}>
+                    <div className="flex items-center">
+                      <CalendarOutlined className="mr-2" />
+                      <Text type="secondary">
+                        {statistics.totalOrders > 0 
+                          ? `Đang hiển thị ${filteredData.length} đơn hàng (từ tổng số ${buyerHistory.length})` 
+                          : 'Không có đơn hàng nào'}
+                      </Text>
+                    </div>
+                  </Table.Summary.Cell>
+                </Table.Summary.Row>
+              </Table.Summary>
+            )}
           />
         </div>
       </Card>
