@@ -21,13 +21,15 @@ import {
   CalendarOutlined, 
   VideoCameraOutlined, 
   FileOutlined, 
-  FileTextOutlined
+  FileTextOutlined,
+  DownloadOutlined
 } from "@ant-design/icons";
 
 const { Title, Text, Paragraph } = Typography;
 
 const LessonDetail = () => {
   const { lessonId } = useParams();
+  const [showDocument, setShowDocument] = useState(false);
   const [lesson, setLesson] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -64,6 +66,29 @@ const LessonDetail = () => {
       day: "2-digit",
       year: "numeric",
     });
+  };
+
+  // Check if file is PDF
+  const isPdfFile = (url) => {
+    if (!url) return false;
+    return url.toLowerCase().endsWith('.pdf');
+  };
+
+  // Extract filename from URL
+  const getFilenameFromUrl = (url) => {
+    if (!url) return "document";
+    return url.split('/').pop() || "document";
+  };
+
+  // Handle file download
+  const handleDownload = (url) => {
+    // Create an anchor element and trigger download
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', getFilenameFromUrl(url));
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // Theme-based styling
@@ -162,6 +187,7 @@ const LessonDetail = () => {
               
             </Button>
             <div className="flex-1 md:ml-8 md:text-center">
+          <Tag color="blue" className="mr-2">#{lesson.number || 'N/A'}</Tag>
               <Title level={2} className={styles.title}>
                 {lesson.title}
               </Title>
@@ -217,13 +243,37 @@ const LessonDetail = () => {
                 <Title level={4} className={styles.title}>Document Resources</Title>
               </div>
               <Card className="border border-gray-200 rounded-lg">
-                <embed
-                  src={lesson.document_url}
-                  width="100%"
-                  height="600px"
-                  type="application/pdf"
-                  className="rounded-lg"
-                />
+                {isPdfFile(lesson.document_url) ? (
+                  // Display PDF inline with viewer
+                  <embed
+                    src={lesson.document_url}
+                    width="100%"
+                    height="600px"
+                    type="application/pdf"
+                    className="rounded-lg"
+                  />
+                ) : (
+                  // Display download button for non-PDF files
+                  <div className="p-8 text-center">
+                    <FileOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
+                    <div className="mb-4">
+                      <Text className="block mb-2">
+                        {getFilenameFromUrl(lesson.document_url)}
+                      </Text>
+                      <Text type="secondary" className="block">
+                        This file type cannot be previewed directly.
+                      </Text>
+                    </div>
+                    <Button 
+                      type="primary" 
+                      icon={<DownloadOutlined />}
+                      size="large"
+                      onClick={() => handleDownload(lesson.document_url)}
+                    >
+                      Download File
+                    </Button>
+                  </div>
+                )}
               </Card>
             </div>
           )}
