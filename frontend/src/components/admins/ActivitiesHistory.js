@@ -12,13 +12,22 @@ import {
   Skeleton, 
   Alert,
   DatePicker,
-  Badge
+  Badge,
+  Statistic,
+  Row,
+  Col
 } from 'antd';
 import { 
   HistoryOutlined, 
   ReloadOutlined, 
   SearchOutlined, 
-  CalendarOutlined 
+  CalendarOutlined,
+  UserOutlined,
+  BookOutlined,
+  WalletOutlined,
+  StarOutlined,
+  AuditOutlined,
+  FileTextOutlined
 } from '@ant-design/icons';
 import { useTheme } from '../context/ThemeContext';
 
@@ -31,6 +40,15 @@ export default function ActivitiesHistory() {
   const [error, setError] = useState(null);
   const [searchText, setSearchText] = useState('');
   const [dateRange, setDateRange] = useState(null);
+  const [activityCounts, setActivityCounts] = useState({
+    total: 0,
+    request: 0,
+    user: 0,
+    course: 0,
+    review: 0,
+    wallet: 0,
+    other: 0
+  });
   const token = localStorage.getItem('authToken');
   const { theme } = useTheme();
 
@@ -43,6 +61,7 @@ export default function ActivitiesHistory() {
     })
       .then(res => {
         setActivities(res.data);
+        countActivityTypes(res.data);
         setLoading(false);
       })
       .catch(err => {
@@ -58,35 +77,57 @@ export default function ActivitiesHistory() {
   // Determine activity type for styling
   const getActivityType = (activity) => {
     const lowerActivity = activity.toLowerCase();
-    if (lowerActivity.includes('created') || lowerActivity.includes('added')) {
-      return 'create';
-    } else if (lowerActivity.includes('updated') || lowerActivity.includes('modified')) {
-      return 'update';
-    } else if (lowerActivity.includes('deleted') || lowerActivity.includes('removed')) {
-      return 'delete';
-    } else if (lowerActivity.includes('approved')) {
-      return 'approve';
-    } else if (lowerActivity.includes('rejected')) {
-      return 'reject';
-    } else if (lowerActivity.includes('login') || lowerActivity.includes('logged in')) {
-      return 'login';
+    if (lowerActivity.includes('changed')) {
+      return 'course';
+    } 
+    else if (lowerActivity.includes('approved') || lowerActivity.includes('rejected')) {
+      return 'request';
+    } 
+    else if (lowerActivity.includes('change')) {
+      return 'review';
+    } 
+    else if (lowerActivity.includes('withdrawal')) {
+      return 'wallet';
+    } 
+    else if (lowerActivity.includes('banned') || lowerActivity.includes('unbanned')) {
+      return 'user';
     } else {
       return 'other';
     }
   };
 
+  // Count activity types
+  const countActivityTypes = (activityData) => {
+    const counts = {
+      total: activityData.length,
+      request: 0,
+      user: 0,
+      course: 0,
+      review: 0,
+      wallet: 0,
+      other: 0
+    };
+
+    activityData.forEach(activity => {
+      const type = getActivityType(activity.description);
+      counts[type]++;
+    });
+
+    setActivityCounts(counts);
+  };
+
   // Get activity badge color
   const getActivityColor = (type) => {
     switch (type) {
-      case 'create':
+      case 'course':
         return 'green';
-      case 'update':
+      case 'request':
         return 'blue';
-      case 'delete':
+      case 'review':
         return 'red';
-      case 'approve':
+      case 'wallet':
         return 'cyan';
-      case 'reject':
+      case 'user':
         return 'orange';
       case 'login':
         return 'geekblue';
@@ -98,6 +139,26 @@ export default function ActivitiesHistory() {
   // Get activity icon
   const getActivityIcon = (type) => {
     return <Badge color={getActivityColor(type)} />;
+  };
+
+  // Get counter icon
+  const getCounterIcon = (type) => {
+    switch (type) {
+      case 'course':
+        return <BookOutlined />;
+      case 'request':
+        return <AuditOutlined />;
+      case 'review':
+        return <StarOutlined />;
+      case 'wallet':
+        return <WalletOutlined />;
+      case 'user':
+        return <UserOutlined />;
+      case 'other':
+        return <FileTextOutlined />;
+      default:
+        return <HistoryOutlined />;
+    }
   };
 
   // Filter data by search text and date range
@@ -121,6 +182,25 @@ export default function ActivitiesHistory() {
         rawTime: activity.entry_date
       };
     });
+
+  useEffect(() => {
+    // Update counters when filtered data changes
+    const counts = {
+      total: filteredData.length,
+      request: 0,
+      user: 0,
+      course: 0,
+      review: 0,
+      wallet: 0,
+      other: 0
+    };
+
+    filteredData.forEach(activity => {
+      counts[activity.type]++;
+    });
+
+    setActivityCounts(counts);
+  }, [filteredData.length, searchText, dateRange]);
 
   const columns = [
     {
@@ -153,12 +233,11 @@ export default function ActivitiesHistory() {
         );
       },
       filters: [
-        { text: 'Created', value: 'create' },
-        { text: 'Updated', value: 'update' },
-        { text: 'Deleted', value: 'delete' },
-        { text: 'Approved', value: 'approve' },
-        { text: 'Rejected', value: 'reject' },
-        { text: 'Login', value: 'login' },
+        { text: 'Request', value: 'request' },
+        { text: 'User', value: 'user' },
+        { text: 'Course', value: 'course' },
+        { text: 'Review', value: 'review' },
+        { text: 'Wallet', value: 'wallet' },
         { text: 'Other', value: 'other' },
       ],
       onFilter: (value, record) => record.type === value,
@@ -190,6 +269,86 @@ export default function ActivitiesHistory() {
       <Skeleton active paragraph={{ rows: 1 }} />
       <Skeleton active paragraph={{ rows: 1 }} />
       <Skeleton active paragraph={{ rows: 1 }} />
+    </div>
+  );
+
+  // Counter cards
+  const renderActivityCounters = () => (
+    <div className={`mb-6 ${loading ? 'hidden' : ''}`}>
+      <Row gutter={[16, 16]} className="mb-6">
+        <Col xs={24} sm={12} md={8} lg={4}>
+          <Card 
+            className={`${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-blue-50'} rounded-lg shadow-md h-full border-none`}
+          >
+            <Statistic
+              title={<span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} font-medium`}>Total Activities</span>}
+              value={activityCounts.total}
+              prefix={<HistoryOutlined className={`${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'}`} />}
+              valueStyle={{ color: theme === 'dark' ? '#fff' : '#1890ff' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={4}>
+          <Card 
+            className={`${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-blue-50'} rounded-lg shadow-md h-full border-none`}
+          >
+            <Statistic
+              title={<span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} font-medium`}>Requests</span>}
+              value={activityCounts.request}
+              prefix={getCounterIcon('request')}
+              valueStyle={{ color: theme === 'dark' ? '#5cadff' : '#1890ff' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={4}>
+          <Card 
+            className={`${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-green-50'} rounded-lg shadow-md h-full border-none`}
+          >
+            <Statistic
+              title={<span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} font-medium`}>Courses</span>}
+              value={activityCounts.course}
+              prefix={getCounterIcon('course')}
+              valueStyle={{ color: theme === 'dark' ? '#8fdb96' : '#52c41a' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={4}>
+          <Card 
+            className={`${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-red-50'} rounded-lg shadow-md h-full border-none`}
+          >
+            <Statistic
+              title={<span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} font-medium`}>Reviews</span>}
+              value={activityCounts.review}
+              prefix={getCounterIcon('review')}
+              valueStyle={{ color: theme === 'dark' ? '#ff7875' : '#cf1322' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={4}>
+          <Card 
+            className={`${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-cyan-50'} rounded-lg shadow-md h-full border-none`}
+          >
+            <Statistic
+              title={<span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} font-medium`}>Wallet</span>}
+              value={activityCounts.wallet}
+              prefix={getCounterIcon('wallet')}
+              valueStyle={{ color: theme === 'dark' ? '#5cdbd3' : '#13c2c2' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={4}>
+          <Card 
+            className={`${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-orange-50'} rounded-lg shadow-md h-full border-none`}
+          >
+            <Statistic
+              title={<span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} font-medium`}>Users</span>}
+              value={activityCounts.user}
+              prefix={getCounterIcon('user')}
+              valueStyle={{ color: theme === 'dark' ? '#ffc069' : '#fa8c16' }}
+            />
+          </Card>
+        </Col>
+      </Row>
     </div>
   );
 
@@ -232,6 +391,8 @@ export default function ActivitiesHistory() {
             </Button>
           </div>
         </div>
+        
+        {renderActivityCounters()}
         
         {error && (
           <Alert
