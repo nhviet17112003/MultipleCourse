@@ -5,7 +5,7 @@ import {
   useNavigate,
   useLocation,
 } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Login from "./components/authentication/Login";
 import UploadTutorCertificate from "./components/tutors/UploadTutorCertificate";
 import Signup from "./components/authentication/Signup";
@@ -20,11 +20,11 @@ import CourseManageTutor from "./components/tutors/CourseManageTutor";
 import CreateCourse from "./components/tutors/CreateCourse";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
-import { AuthProvider } from "./components/authentication/AuthContext"; // Import AuthProvider
+import { AuthProvider } from "./components/authentication/AuthContext"; // Giữ nguyên import AuthProvider
 import CourseListForTutor from "./components/tutors/CourseListForTutor";
 import UpdateCourse from "./components/tutors/UpdateCourse";
 import CourseDetailForTutor from "./components/tutors/CourseDetailForTutor";
-import { ThemeProvider } from "./components/context/ThemeContext"; // Import ThemeProvider
+import { ThemeProvider } from "./components/context/ThemeContext";
 import CreateLesson from "./components/tutors/lesson/CreateLesson";
 import LessonDetail from "./components/tutors/lesson/LessonDetail";
 import UpdateLessonModal from "./components/tutors/lesson/UpdateLessonModal";
@@ -53,33 +53,62 @@ import DepositHistory from "./components/students/wallet/DepositHistory";
 import HomeScreen from "./components/HomeScreen";
 import Footer from "./components/Footer";
 import Students from "./components/tutors/Students";
-import { useState } from "react";
 import CourseDetailForAdmin from "./components/admins/CourseDetailForAdmin";
 import ViewCertificate from "./components/tutors/ViewCertificate";
 import UpdateCourseModal from "./components/tutors/UpdateCourseModal";
 import TutorRequests from "./components/tutors/TutorRequests";
 // import RequestDetail from "./components/tutors/RequestDetail";
+
 function Layout() {
   const location = useLocation();
   const [navbarKey, setNavbarKey] = useState(0);
+  
+ //kt tken
+  const isAuthenticated = localStorage.getItem('authToken') !== null;
+  console.log("authenticate:", isAuthenticated);
+  
   // Hàm reload Navbar khi có thay đổi
   const reloadNavbar = () => {
     setNavbarKey((prevKey) => prevKey + 1);
   };
+  
   useEffect(() => {
     reloadNavbar(); // Gọi reload Navbar khi location thay đổi
   }, [location]);
-  // Danh sách các trang không hiển thị Sidebar
+  
+  // khong hien sidebar
   const noSidebarPages = [
     "/login",
     "/signup",
     "/forgetpassword",
     "/",
     "/uploadtutorcertificate/:userId",
+    "/homescreen",
+    "/introduce"
   ];
 
-  // Kiểm tra nếu đang ở một trong các trang trên thì không hiển thị Sidebar
-  const hideSidebar = noSidebarPages.includes(location.pathname);
+  // kt url
+  // chu thich o day
+  // neu nhu token co thi se la false
+  // neu nhu token khong co thi se la true
+  const shouldHideSidebar = () => {
+    if (!isAuthenticated) return true; 
+    
+    // Kiểm tra xem đường dẫn hiện tại có khớp với bất kỳ đường dẫn nào trong danh sách không
+    return noSidebarPages.some(path => {
+      // Xử lý cho các đường dẫn có tham số
+      if (path.includes(':')) {
+        const pathPattern = path.replace(/:\w+/g, '[^/]+');
+        const regex = new RegExp(`^${pathPattern}$`);
+        return regex.test(location.pathname);
+      }
+      // Kiểm tra chính xác đường dẫn
+      return location.pathname === path;
+    });
+  };
+
+  // Xác định xem có nên hiển thị sidebar hay không
+  const hideSidebar = shouldHideSidebar();
 
   return (
     <div className="bg-white dark:bg-black w-screen max-h-screen flex flex-col">
@@ -87,7 +116,7 @@ function Layout() {
 
       <div className="flex">
         {!hideSidebar && <Sidebar className="w-1/4" />}
-        <div className="flex-1">
+        <div className={`${!hideSidebar ? "flex-1" : "w-full"}`}>
           <Routes>
             <Route path="/homescreen" element={<HomeScreen />} />
             <Route path="/login" element={<Login />} />
@@ -97,13 +126,10 @@ function Layout() {
 
             {/* Các route khác */}
             <Route path="/introduce" element={<Introduce />} />
-            {/* <Route path="/login" element={<Login />} /> */}
             <Route
               path="/uploadtutorcertificate/:userId"
               element={<UploadTutorCertificate />}
             />
-            {/* <Route path="/signup" element={<Signup />} />
-                  <Route path="/forgetpassword" element={<ForgetPassword />} /> */}
             <Route path="/userprofile" element={<UserProfile />} />
             <Route path="/updateprofile/:id" element={<UpdateProfile />} />
             <Route
@@ -184,7 +210,7 @@ function Layout() {
             <Route path="/certificate" element={<ViewCertificate />} />
 
             <Route
-              path="//update-course/:courseId"
+              path="/update-course/:courseId"
               element={<UpdateCourseModal />}
             />
             <Route path="/request-list" element={<TutorRequests />} />
@@ -200,15 +226,12 @@ function Layout() {
     </div>
   );
 }
+
 function App() {
   return (
     <div className="bg-white dark:bg-black w-screen h-screen">
       <AuthProvider>
-        {" "}
-        {/* Bọc ứng dụng trong AuthProvider */}
         <ThemeProvider>
-          {" "}
-          {/* Bọc ứng dụng trong ThemeProvider */}
           <Router>
             <Layout />
           </Router>
