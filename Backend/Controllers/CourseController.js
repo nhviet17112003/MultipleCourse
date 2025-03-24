@@ -172,6 +172,7 @@ exports.processCreateCourse = async (req, res) => {
       request.status = "Rejected";
       newAdminActivity.description = `Rejected the request to create a new course with ID: ${request.course}`;
       await request.save();
+      await newAdminActivity.save();
       return res.status(200).json({ message: "Request has been rejected" });
     }
 
@@ -346,6 +347,7 @@ exports.processUpdateCourse = async (req, res) => {
       request.status = "Rejected";
       newAdminActivity.description = `Rejected the request to update course with ID: ${request.course}`;
       await request.save();
+      await newAdminActivity.save();
       return res.status(200).json({ message: "Request has been rejected" });
     }
 
@@ -582,6 +584,7 @@ exports.processDeleteCourse = async (req, res) => {
       request.status = "Rejected";
       newAdminActivity.description = `Rejected the request to delete course with ID: ${request.course}`;
       await request.save();
+      await newAdminActivity.save();
       return res.status(200).json({ message: "Request has been rejected" });
     }
 
