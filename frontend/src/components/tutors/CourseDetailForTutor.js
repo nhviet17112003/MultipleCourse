@@ -77,6 +77,7 @@ const CourseDetailForTutor = () => {
   const [totalSales, setTotalSales] = useState(0);
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
   const [selectedComments, setSelectedComments] = useState([]);
+  const [showAllLessons, setShowAllLessons] = useState(false);
 
   const isDarkMode = theme === "dark";
 
@@ -87,6 +88,10 @@ const CourseDetailForTutor = () => {
 
   const closeCommentModal = () => {
     setIsCommentModalOpen(false);
+  };
+
+  const toggleShowLessons = () => {
+    setShowAllLessons(prev => !prev);
   };
 
   useEffect(() => {
@@ -659,7 +664,7 @@ const CourseDetailForTutor = () => {
                                         : "bg-red-50 border-l-4 border-red-300 text-red-500"
                                   }`}
                                 >
-                                  {answer.answer}
+                                  <span className="ml-2">{answer.answer}</span>
                                 </List.Item>
                               )}
                             />
@@ -711,93 +716,105 @@ const CourseDetailForTutor = () => {
             
             {/* Lessons Section */}
             <Card
-              title={
-                <Title level={3} className={`flex items-center ${isDarkMode ? "text-white" : ""}`}>
-                  <BookOutlined className="mr-2" /> Course Lessons
-                </Title>
-              }
-              className={`w-full ${isDarkMode ? "bg-gray-800 text-white" : "bg-white"}`}
-              bordered={false}
-              extra={
-                role !== "Admin" && (
-                  <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={() => navigate(`/create-lesson/${courseId}`)}
-                  >
-                    Create Lesson
-                  </Button>
-                )
-              }
+  title={
+    <Title level={3} className={`flex items-center ${isDarkMode ? "text-white" : ""}`}>
+      <BookOutlined className="mr-2" /> Course Lessons
+    </Title>
+  }
+  className={`w-full ${isDarkMode ? "bg-gray-800 text-white" : "bg-white"}`}
+  bordered={false}
+  extra={
+    role !== "Admin" && (
+      <Button
+        type="primary"
+        icon={<PlusOutlined />}
+        onClick={() => navigate(`/create-lesson/${courseId}`)}
+      >
+        Create Lesson
+      </Button>
+    )
+  }
+>
+  {lessons.length > 0 ? (
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {(showAllLessons ? lessons : lessons.slice(0, 3)).map((lesson) => (
+          <Card
+            key={lesson._id}
+            hoverable
+            className={`${isDarkMode ? "bg-gray-700" : "bg-white"} border-l-4 border-blue-500 transition-all hover:shadow-xl`}
+            actions={[
+              <Button
+                key="view"
+                icon={<EyeOutlined />}
+                onClick={() => navigate(`/lesson-detail/${lesson._id}`)}
+              >
+                View
+              </Button>,
+              role !== "Admin" && (
+                <Button
+                  key="edit"
+                  icon={<EditOutlined />}
+                  onClick={() => openModal(lesson)}
+                >
+                  Update
+                </Button>
+              ),
+              role !== "Admin" && (
+                <Button
+                  key="delete"
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={() => {
+                    setSelectedLesson(lesson);
+                    setIsDeleteLessonOpen(true);
+                  }}
+                >
+                  Delete
+                </Button>
+              ),
+            ].filter(Boolean)}
+          >
+            <div className="flex items-center mb-2">
+              <Tag color="blue" className="mr-2">#{lesson.number || 'N/A'}</Tag>
+              <Text strong className={`text-blue-500 text-lg ${isDarkMode ? "text-blue-400" : ""}`}>
+                {lesson.title}
+              </Text>
+            </div>
+            <Paragraph
+              className={isDarkMode ? "text-gray-300" : "text-gray-600"}
+              ellipsis={{ rows: 3, expandable: false }}
             >
-              {lessons.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {lessons.map((lesson) => (
-                    <Card
-                      key={lesson._id}
-                      hoverable
-                      className={`${isDarkMode ? "bg-gray-700" : "bg-white"} border-l-4 border-blue-500 transition-all hover:shadow-xl`}
-                      actions={[
-                        <Button
-                          key="view"
-                          icon={<EyeOutlined />}
-                          onClick={() => navigate(`/lesson-detail/${lesson._id}`)}
-                        >
-                          View
-                        </Button>,
-                        role !== "Admin" && (
-                          <Button
-                            key="edit"
-                            icon={<EditOutlined />}
-                            onClick={() => openModal(lesson)}
-                          >
-                            Update
-                          </Button>
-                        ),
-                        role !== "Admin" && (
-                          <Button
-                            key="delete"
-                            danger
-                            icon={<DeleteOutlined />}
-                            onClick={() => {
-                              setSelectedLesson(lesson);
-                              setIsDeleteLessonOpen(true);
-                            }}
-                          >
-                            Delete
-                          </Button>
-                  
-                        ),
-                      ].filter(Boolean)}
-                    >
-                      <div className="flex items-center mb-2">
-                        <Tag color="blue" className="mr-2">#{lesson.number || 'N/A'}</Tag>
-                        <Text strong className={`text-blue-500 text-lg ${isDarkMode ? "text-blue-400" : ""}`}>
-                          {lesson.title}
-                        </Text>
-                      </div>
-                      <Paragraph
-                        className={isDarkMode ? "text-gray-300" : "text-gray-600"}
-                        ellipsis={{ rows: 3, expandable: false }}
-                      >
-                        {lesson.description}
-                      </Paragraph>
-                    </Card>
-                    
-                  ))}
-                  
-                  
-                </div>
-              ) : (
-                <Alert
-                  message="No lessons found"
-                  description="There are no lessons created for this course yet."
-                  type="info"
-                  showIcon
-                />
-                
-              )}
-            </Card>
+              {lesson.description}
+            </Paragraph>
+          </Card>
+        ))}
+      </div>
+      
+      {lessons.length > 3 && (
+        <div className="flex justify-center mt-6">
+          <Button
+            type="primary"
+            ghost
+            onClick={toggleShowLessons}
+            icon={showAllLessons ? <EyeInvisibleOutlined /> : <EyeOutlined />}
+            className={`px-6 ${isDarkMode ? " text-blue-400 hover:text-blue-300" : ""}`}
+          >
+            {showAllLessons ? "Show Less" : `Show More`}
+            {/* (${lessons.length - 3} more lessons) */}
+          </Button>
+        </div>
+      )}
+    </>
+  ) : (
+    <Alert
+      message="No lessons found"
+      description="There are no lessons created for this course yet."
+      type="info"
+      showIcon
+    />
+  )}
+</Card>
           </div>
         ) : (
           <Result
