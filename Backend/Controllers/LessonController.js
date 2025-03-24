@@ -143,12 +143,6 @@ exports.getLessonById = async (req, res) => {
 //Update a lesson
 exports.updateLesson = async (req, res) => {
   try {
-    const lesson_id = req.params.lesson_id;
-    const lesson = await Lesson.findById(lesson_id);
-    if (!lesson) {
-      return res.status(404).json({ message: "Lesson not found" });
-    }
-
     const course_id = lesson.course_id;
     const course = await Course.findOne({
       _id: course_id,
@@ -158,6 +152,12 @@ exports.updateLesson = async (req, res) => {
       return res
         .status(404)
         .json({ message: "You are not tutor of this course" });
+    }
+
+    const lesson_id = req.params.lesson_id;
+    const lesson = await Lesson.findById(lesson_id);
+    if (!lesson) {
+      return res.status(404).json({ message: "Lesson not found" });
     }
 
     const uploadMiddleware = upload.fields([
@@ -240,8 +240,6 @@ exports.updateLesson = async (req, res) => {
             videoFolderPath
           );
           lesson.video_url = videoUrl;
-        } else {
-          console.log("Tên video mới trùng với video cũ, không cập nhật.");
         }
       }
 
@@ -273,10 +271,6 @@ exports.updateLesson = async (req, res) => {
             documentFolderPath
           );
           lesson.document_url = documentUrl;
-        } else {
-          console.log(
-            "Tên document mới trùng với document cũ, không cập nhật."
-          );
         }
       }
 
