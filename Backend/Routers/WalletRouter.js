@@ -54,4 +54,11 @@ router.get(
   auth.verifyUser,
   walletController.depositHistory
 );
+router.get(
+  "/show-wallet-admin",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  auth.verifyAdmin,
+  walletController.showAdminWallet
+);
 module.exports = router;

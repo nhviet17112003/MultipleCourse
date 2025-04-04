@@ -23,7 +23,7 @@ function Sidebar() {
 
     // Lắng nghe sự kiện roleChanged
     window.addEventListener("roleChanged", updateRole);
-    
+
     // Lắng nghe sự kiện storage
     window.addEventListener("storage", updateRole);
 
@@ -149,7 +149,7 @@ function Sidebar() {
           // { key: "15", label: "System Settings" },
           {
             key: "16",
-            label: <Link to="/wallet-manage-for-admin">Manage Withdrawal</Link>,
+            label: <Link to="/wallet-manage-for-admin">Manage Wallet</Link>,
           },
           {
             key: "17",

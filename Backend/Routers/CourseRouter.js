@@ -108,4 +108,12 @@ router.get(
   courseController.getListStudentOfCourses
 );
 
+router.get(
+  "/counting-courses",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  auth.verifyAdmin,
+  courseController.countActiveAndInactiveCourses
+);
+
 module.exports = router;

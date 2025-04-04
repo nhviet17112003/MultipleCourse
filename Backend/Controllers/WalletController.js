@@ -2,6 +2,7 @@ const Wallet = require("../Models/Wallet");
 const Payment = require("../Models/Payment");
 const AdminActivityHistory = require("../Models/AdminActivityHistory");
 const User = require("../Models/Users");
+const WalletAdmin = require("../Models/WalletAdmin");
 const mongoose = require("mongoose");
 
 // Show số dư tài khoản của user
@@ -125,6 +126,8 @@ exports.confirmWithdrawRequest = async (req, res) => {
   try {
     const { withdrawalId } = req.body; // Chỉ cần ID của lệnh rút
 
+    const walletAdmin = await WalletAdmin.findOne();
+
     // Tìm Wallet chứa lệnh rút
     const wallet = await Wallet.findOne({
       "withdrawals._id": new mongoose.Types.ObjectId(withdrawalId),
@@ -159,12 +162,17 @@ exports.confirmWithdrawRequest = async (req, res) => {
     wallet.total_withdrawal =
       (wallet.total_withdrawal || 0) + withdrawal.amount;
 
+    // Cộng tiền vào ví admin
+    walletAdmin.cash_out += withdrawal.amount;
+    walletAdmin.current_balance -= withdrawal.amount;
+
     // Lưu lại lịch sử hoạt động của admin
     const adminActivity = new AdminActivityHistory({
       admin: req.user._id,
       description: `Approved withdrawal request of ${withdrawal.amount} VND for user ${user.fullname}`,
     });
 
+    await walletAdmin.save();
     await wallet.save();
     await adminActivity.save();
     res
@@ -246,6 +254,25 @@ exports.depositHistory = async (req, res) => {
     res.status(200).json({ deposits });
   } catch (err) {
     console.error("Error fetching deposit history:", err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.showAdminWallet = async (req, res) => {
+  try {
+    const walletAdmin = await WalletAdmin.findOne();
+    if (!walletAdmin) {
+      return res.status(404).json({ message: "Admin wallet not found" });
+    }
+
+    res.status(200).json({
+      current_balance: walletAdmin.current_balance,
+      total_earning: walletAdmin.total_earning,
+      cash_in: walletAdmin.cash_in,
+      cash_out: walletAdmin.cash_out,
+    });
+  } catch (err) {
+    console.error("Error fetching admin wallet:", err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

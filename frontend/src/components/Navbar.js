@@ -26,6 +26,32 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const recaptchaRef = useRef(null);
   const isHome = location.pathname === "/";
+  const [loadingWallet, setLoadingWallet] = useState(true);
+  const [errorWallet, setErrorWallet] = useState(null);
+  const [walletData, setWalletData] = useState(null);
+
+  useEffect(() => {
+    const fetchWalletData = async () => {
+      const token = localStorage.getItem("authToken");
+      try {
+        const response = await axios.get(
+          "http://localhost:3000/api/wallet/show-wallet-admin",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setWalletData(response.data);
+      } catch (err) {
+        setErrorWallet("Có lỗi xảy ra khi tải thông tin ví");
+      } finally {
+        setLoadingWallet(false);
+      }
+    };
+
+    fetchWalletData();
+  }, []);
   // const [reloadNavbar, setReloadNavbar] = useState(true);
 
   // const reload = () => {
@@ -51,12 +77,12 @@ const Navbar = () => {
 
   const fetchUserProfile = async () => {
     const token = localStorage.getItem("authToken");
-  
+
     if (!token) {
       setError("You are not logged in. Please log in again.");
       return;
     }
-  
+
     try {
       const response = await axios.get(
         "http://localhost:3000/api/users/get-user-by-token",
@@ -66,14 +92,16 @@ const Navbar = () => {
           },
         }
       );
-  
+
       setUserData(response.data);
       localStorage.setItem("role", response.data.role);
       setRole(response.data.role); // Cập nhật state role ngay lập tức
-  
+
       // Xử lý URL avatar từ Google
       if (response.data.avatar) {
-        const googleAvatarUrl = `${response.data.avatar}?${new Date().getTime()}`;
+        const googleAvatarUrl = `${
+          response.data.avatar
+        }?${new Date().getTime()}`;
         setAvatarUrl(googleAvatarUrl);
         localStorage.setItem("avatarUrl", googleAvatarUrl);
       } else {
@@ -82,7 +110,7 @@ const Navbar = () => {
         setAvatarUrl(defaultAvatar);
         localStorage.setItem("avatarUrl", defaultAvatar);
       }
-  
+
       setFullname(response.data.fullname || "User");
     } catch (err) {
       console.error("Error fetching profile:", err);
@@ -91,7 +119,7 @@ const Navbar = () => {
       debouncedNavigate("/login");
     }
   };
-  
+
   // Thêm useEffect để theo dõi sự thay đổi của role
   // useEffect(() => {
   //   if (role) {
@@ -273,6 +301,13 @@ const Navbar = () => {
                   Top Up
                 </Button>
               )}
+            </div>
+          ) : role === "Admin" ? (
+            <div className="flex items-center text-gray-700 dark:text-white px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm">
+              <span className="mr-2">Balance:</span>
+              <span className="font-semibold text-green-600 dark:text-green-400">
+                {walletData?.current_balance ?? "0"} VND
+              </span>
             </div>
           ) : null}
 

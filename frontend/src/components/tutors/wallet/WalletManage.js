@@ -1,23 +1,35 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { FaWallet, FaQuestionCircle, FaSort, FaFilter, FaTimes, FaSearch } from "react-icons/fa";
-import { 
-  Card, 
-  Select, 
-  Input, 
-  Button, 
-  Spin, 
-  Tooltip, 
-  Modal, 
-  Form, 
-  InputNumber, 
-  Space, 
-  Divider, 
-  Empty, 
-  Badge 
+import {
+  FaWallet,
+  FaQuestionCircle,
+  FaSort,
+  FaFilter,
+  FaTimes,
+  FaSearch,
+} from "react-icons/fa";
+import {
+  Card,
+  Select,
+  Input,
+  Button,
+  Spin,
+  Tooltip,
+  Modal,
+  Form,
+  InputNumber,
+  Space,
+  Divider,
+  Empty,
+  Badge,
 } from "antd";
-import { SearchOutlined, BankOutlined, EditOutlined, LoadingOutlined } from "@ant-design/icons";
+import {
+  SearchOutlined,
+  BankOutlined,
+  EditOutlined,
+  LoadingOutlined,
+} from "@ant-design/icons";
 
 const { Option } = Select;
 const { Search } = Input;
@@ -37,7 +49,7 @@ const WalletManage = () => {
   const [isConfirmVisible, setIsConfirmVisible] = useState(false);
   const [filteredBanks, setFilteredBanks] = useState([]);
   const [hasPendingRequest, setHasPendingRequest] = useState(false);
-  
+
   // New states for sorting and filtering
   const [sortOrder, setSortOrder] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -47,19 +59,54 @@ const WalletManage = () => {
   const [statusFilter, setStatusFilter] = useState("all");
 
   const bankList = [
-    "SHB", "Sacombank", "Vietcombank", "Viettinbank", "Techcombank",
-    "ACB", "BIDV", "MB Bank", "VPBank", "Eximbank", "LienVietPostBank",
-    "OceanBank", "HDBank", "Bac A Bank", "SeABank", "NamABank",
-    "KienLongBank", "SCB", "VIB", "PGBank", "TPBank",
-    "Asia Commercial Bank (ACB)", "DongA Bank", "Shinhan Bank",
-    "Standard Chartered Bank", "HSBC Vietnam", "Citibank",
-    "JPMorgan Chase Bank", "ANZ Vietnam", "UOB Vietnam", "VietABank",
-    "BaoViet Bank", "Saigonbank", "VietCapital Bank", "Public Bank Vietnam",
-    "First Commercial Bank Vietnam", "Woori Bank", "Hong Leong Bank Vietnam",
-    "Indovina Bank", "Shanghai Pudong Development Bank",
-    "OCB (Orient Commercial Bank)", "Hong Kong and Shanghai Banking Corporation (HSBC)",
-    "China Construction Bank Vietnam", "VIB Bank", "CitiBank Vietnam",
-    "Agribank", "Techcom Securities", "Vietnam International Bank (VIB)",
+    "SHB",
+    "Sacombank",
+    "Vietcombank",
+    "Viettinbank",
+    "Techcombank",
+    "ACB",
+    "BIDV",
+    "MB Bank",
+    "VPBank",
+    "Eximbank",
+    "LienVietPostBank",
+    "OceanBank",
+    "HDBank",
+    "Bac A Bank",
+    "SeABank",
+    "NamABank",
+    "KienLongBank",
+    "SCB",
+    "VIB",
+    "PGBank",
+    "TPBank",
+    "Asia Commercial Bank (ACB)",
+    "DongA Bank",
+    "Shinhan Bank",
+    "Standard Chartered Bank",
+    "HSBC Vietnam",
+    "Citibank",
+    "JPMorgan Chase Bank",
+    "ANZ Vietnam",
+    "UOB Vietnam",
+    "VietABank",
+    "BaoViet Bank",
+    "Saigonbank",
+    "VietCapital Bank",
+    "Public Bank Vietnam",
+    "First Commercial Bank Vietnam",
+    "Woori Bank",
+    "Hong Leong Bank Vietnam",
+    "Indovina Bank",
+    "Shanghai Pudong Development Bank",
+    "OCB (Orient Commercial Bank)",
+    "Hong Kong and Shanghai Banking Corporation (HSBC)",
+    "China Construction Bank Vietnam",
+    "VIB Bank",
+    "CitiBank Vietnam",
+    "Agribank",
+    "Techcom Securities",
+    "Vietnam International Bank (VIB)",
     "Keppel Bank",
   ];
 
@@ -143,29 +190,31 @@ const WalletManage = () => {
   // Apply sorting and filtering to bank data
   useEffect(() => {
     let filtered = [...bankData];
-    
+
     // Apply search filter
     if (searchQuery) {
       filtered = filtered.filter(
-        bank => 
+        (bank) =>
           bank.bank_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          bank.account_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          bank.account_number
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
           bank.account_name.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
-    
+
     // Apply sorting
     if (sortOrder === "name-asc") {
       filtered.sort((a, b) => a.bank_name.localeCompare(b.bank_name));
     } else if (sortOrder === "name-desc") {
       filtered.sort((a, b) => b.bank_name.localeCompare(a.bank_name));
     }
-    
+
     setFilteredBankData(filtered);
   }, [bankData, searchQuery, sortOrder]);
 
   // Filter withdrawal history
-  const filteredHistory = withdrawalHistory.filter(item => {
+  const filteredHistory = withdrawalHistory.filter((item) => {
     if (statusFilter === "all") return true;
     return item.status.toLowerCase() === statusFilter.toLowerCase();
   });
@@ -340,9 +389,13 @@ const WalletManage = () => {
 
   const getStatusBadge = (status) => {
     if (status === "Pending") {
-      return <Badge status="processing" text="Pending" className="text-blue-500" />;
+      return (
+        <Badge status="processing" text="Pending" className="text-blue-500" />
+      );
     } else if (status === "Completed") {
-      return <Badge status="success" text="Completed" className="text-green-500" />;
+      return (
+        <Badge status="success" text="Completed" className="text-green-500" />
+      );
     } else if (status === "Rejected") {
       return <Badge status="error" text="Rejected" className="text-red-500" />;
     }
@@ -351,70 +404,98 @@ const WalletManage = () => {
 
   return (
     <div className="min-h-screen flex justify-start items-start bg-gradient-to-b from-teal-500 to-indigo-200 pt-10 pb-10">
-      <Card className="max-w-4xl w-full mx-auto rounded-xl shadow-xl" bodyStyle={{ padding: 24 }}>
+      <Card
+        className="max-w-4xl w-full mx-auto rounded-xl shadow-xl"
+        bodyStyle={{ padding: 24 }}
+      >
         <div className="flex items-center justify-center mb-6">
           <FaWallet className="text-teal-500 text-3xl mr-3" />
-          <h1 className="text-3xl font-bold text-gray-800">Wallet Management</h1>
+          <h1 className="text-3xl font-bold text-gray-800">
+            Wallet Management
+          </h1>
         </div>
-        
+
         <Card className="mb-6 bg-gradient-to-r from-teal-50 to-blue-50">
           <div className="flex flex-col sm:flex-row justify-between items-center">
             <div>
-              <p className="text-base sm:text-lg font-semibold text-gray-600">Current Balance</p>
+              <p className="text-base sm:text-lg font-semibold text-gray-600">
+                Current Balance
+              </p>
               <p className="text-2xl sm:text-3xl font-bold text-teal-600 transition-all">
                 {balance?.toLocaleString("vi-VN")} VND
               </p>
             </div>
             <div className="mt-4 sm:mt-0">
-              <Button 
+              <Button
                 type="primary"
                 size="large"
                 disabled={hasPendingRequest}
-                className={`${hasPendingRequest ? 'bg-gray-400' : 'bg-teal-500 hover:bg-teal-600'} text-white`}
+                className={`${
+                  hasPendingRequest
+                    ? "bg-gray-400"
+                    : "bg-teal-500 hover:bg-teal-600"
+                } text-white`}
                 onClick={() => setIsWithdrawFormVisible(!isWithdrawFormVisible)}
                 icon={<FaWallet className="mr-2" />}
               >
-                {isWithdrawFormVisible ? 'Cancel Request' : 'Withdrawal Request'}
+                {isWithdrawFormVisible
+                  ? "Cancel Request"
+                  : "Withdrawal Request"}
               </Button>
             </div>
           </div>
         </Card>
-        
+
         {hasPendingRequest && (
           <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
             <div className="flex items-start">
               <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                <svg
+                  className="h-5 w-5 text-yellow-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </div>
               <div className="ml-3">
                 <p className="text-sm text-yellow-700">
-                  You have a pending withdrawal request. Please wait for it to be processed before submitting another request.
+                  You have a pending withdrawal request. Please wait for it to
+                  be processed before submitting another request.
                 </p>
               </div>
             </div>
           </div>
         )}
-        
+
         {isWithdrawFormVisible && (
           <Card className="mb-6" title="Withdrawal Request" bordered={false}>
             <Form layout="vertical">
-              <Form.Item 
-                label="Withdrawal Amount" 
-                validateStatus={messageBalance ? "error" : ""} 
+              <Form.Item
+                label="Withdrawal Amount"
+                validateStatus={messageBalance ? "error" : ""}
                 help={messageBalance}
               >
                 <InputNumber
-                  style={{ width: '100%' }}
+                  style={{ width: "100%" }}
                   value={withdrawAmount}
                   min={0}
                   max={balance}
-                  formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                  parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                  formatter={(value) =>
+                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                  parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
                   onChange={(value) => {
                     if (value > balance) {
-                      setMessageBalance("The withdrawal amount cannot exceed the current balance.");
+                      setMessageBalance(
+                        "The withdrawal amount cannot exceed the current balance."
+                      );
                     } else {
                       setMessageBalance("");
                     }
@@ -424,7 +505,7 @@ const WalletManage = () => {
                   addonAfter="VND"
                 />
               </Form.Item>
-              
+
               <Tooltip title="Withdrawal requires a valid bank account, amount greater than 0, and not exceeding your balance">
                 <Button
                   type="primary"
@@ -432,7 +513,11 @@ const WalletManage = () => {
                   block
                   disabled={!isWithdrawalButtonEnabled}
                   onClick={() => setIsConfirmVisible(true)}
-                  className={isWithdrawalButtonEnabled ? "bg-teal-500 hover:bg-teal-600" : "bg-gray-300"}
+                  className={
+                    isWithdrawalButtonEnabled
+                      ? "bg-teal-500 hover:bg-teal-600"
+                      : "bg-gray-300"
+                  }
                 >
                   Withdrawal Confirmation
                 </Button>
@@ -440,19 +525,21 @@ const WalletManage = () => {
             </Form>
           </Card>
         )}
-        
+
         <div className="mb-8">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold text-gray-700">Bank Information</h2>
+            <h2 className="text-2xl font-semibold text-gray-700">
+              Bank Information
+            </h2>
             <div className="flex space-x-2">
-              <Button 
-                icon={<SearchOutlined />} 
+              <Button
+                icon={<SearchOutlined />}
                 onClick={() => setShowHistory(!showHistory)}
                 className="flex items-center"
               >
                 {showHistory ? "Hide History" : "View History"}
               </Button>
-              
+
               {/* Sort button */}
               <Select
                 placeholder="Sort by"
@@ -466,7 +553,7 @@ const WalletManage = () => {
               </Select>
             </div>
           </div>
-          
+
           {/* Search bar */}
           <Input
             placeholder="Search by bank name, account number, or holder name"
@@ -476,7 +563,7 @@ const WalletManage = () => {
             className="mb-4"
             allowClear
           />
-          
+
           {showHistory ? (
             <Card className="mb-6" title="Withdrawal History">
               <div className="mb-4">
@@ -492,20 +579,31 @@ const WalletManage = () => {
                   <Option value="rejected">Rejected</Option>
                 </Select>
               </div>
-              
+
               {filteredHistory.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="min-w-full">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Date
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Amount
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Status
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {filteredHistory.map((item, index) => (
-                        <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                        <tr
+                          key={index}
+                          className={
+                            index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                          }
+                        >
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {new Date(item.created_at).toLocaleDateString()}
                           </td>
@@ -524,58 +622,60 @@ const WalletManage = () => {
                 <Empty description="No withdrawal history" />
               )}
             </Card>
+          ) : filteredBankData.length > 0 ? (
+            filteredBankData.map((bank, index) => (
+              <Card
+                key={index}
+                className="mb-4 hover:shadow-lg transition-all duration-300"
+                actions={[
+                  <Button
+                    onClick={() => handleUpdateClick(bank)}
+                    icon={<EditOutlined />}
+                    type="link"
+                  >
+                    Update
+                  </Button>,
+                ]}
+              >
+                <div className="flex items-center mb-2">
+                  <BankOutlined className="text-teal-500 text-xl mr-2" />
+                  <span className="text-lg font-medium text-gray-700">
+                    {bank.bank_name}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <div>
+                    <p className="text-gray-500">
+                      <span className="font-semibold">Account Number:</span>{" "}
+                      {bank.account_number}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500">
+                      <span className="font-semibold">Account Holder:</span>{" "}
+                      {bank.account_name}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            ))
           ) : (
-            filteredBankData.length > 0 ? (
-              filteredBankData.map((bank, index) => (
-                <Card 
-                  key={index}
-                  className="mb-4 hover:shadow-lg transition-all duration-300"
-                  actions={[
-                    <Button 
-                      onClick={() => handleUpdateClick(bank)} 
-                      icon={<EditOutlined />} 
-                      type="link"
-                    >
-                      Update
-                    </Button>
-                  ]}
-                >
-                  <div className="flex items-center mb-2">
-                    <BankOutlined className="text-teal-500 text-xl mr-2" />
-                    <span className="text-lg font-medium text-gray-700">{bank.bank_name}</span>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <div>
-                      <p className="text-gray-500">
-                        <span className="font-semibold">Account Number:</span> {bank.account_number}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">
-                        <span className="font-semibold">Account Holder:</span> {bank.account_name}
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-              ))
-            ) : (
-              <div className="text-center py-8">
-                <Empty 
-                  description="No bank information available" 
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                />
-                <Button
-                  type="primary"
-                  onClick={() => setIsUpdateFormVisible(true)}
-                  className="mt-4 bg-blue-500 hover:bg-blue-600"
-                >
-                  Add Bank Account
-                </Button>
-              </div>
-            )
+            <div className="text-center py-8">
+              <Empty
+                description="No bank information available"
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+              />
+              <Button
+                type="primary"
+                onClick={() => setIsUpdateFormVisible(true)}
+                className="mt-4 bg-blue-500 hover:bg-blue-600"
+              >
+                Add Bank Account
+              </Button>
+            </div>
           )}
         </div>
-        
+
         {/* Confirmation Modal */}
         <Modal
           title="Withdrawal Confirmation"
@@ -594,10 +694,12 @@ const WalletManage = () => {
             ?
           </p>
         </Modal>
-        
+
         {/* Bank Update Modal */}
         <Modal
-          title={bankData.length > 0 ? "Update Bank Account" : "Add Bank Account"}
+          title={
+            bankData.length > 0 ? "Update Bank Account" : "Add Bank Account"
+          }
           visible={isUpdateFormVisible}
           onOk={handleUpdateBank}
           onCancel={handleCancelUpdate}
@@ -628,7 +730,7 @@ const WalletManage = () => {
                 )}
               </div>
             </Form.Item>
-            
+
             <Form.Item label="Account Number" required>
               <Input
                 value={newAccountNumber}
@@ -636,7 +738,7 @@ const WalletManage = () => {
                 placeholder="Enter your account number"
               />
             </Form.Item>
-            
+
             <Form.Item label="Account Holder Name" required>
               <Input
                 value={newAccountHolder}
@@ -646,13 +748,13 @@ const WalletManage = () => {
             </Form.Item>
           </Form>
         </Modal>
-        
+
         {message && (
           <div className="p-4 bg-red-50 border-l-4 border-red-500 rounded mb-4">
             <p className="text-red-700">{message}</p>
           </div>
         )}
-        
+
         <ToastContainer position="top-right" autoClose={5000} />
       </Card>
     </div>

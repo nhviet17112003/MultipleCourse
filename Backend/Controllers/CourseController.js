@@ -172,6 +172,7 @@ exports.processCreateCourse = async (req, res) => {
       request.status = "Rejected";
       newAdminActivity.description = `Rejected the request to create a new course with ID: ${request.course}`;
       await request.save();
+      await newAdminActivity.save();
       return res.status(200).json({ message: "Request has been rejected" });
     }
 
@@ -346,6 +347,7 @@ exports.processUpdateCourse = async (req, res) => {
       request.status = "Rejected";
       newAdminActivity.description = `Rejected the request to update course with ID: ${request.course}`;
       await request.save();
+      await newAdminActivity.save();
       return res.status(200).json({ message: "Request has been rejected" });
     }
 
@@ -582,6 +584,7 @@ exports.processDeleteCourse = async (req, res) => {
       request.status = "Rejected";
       newAdminActivity.description = `Rejected the request to delete course with ID: ${request.course}`;
       await request.save();
+      await newAdminActivity.save();
       return res.status(200).json({ message: "Request has been rejected" });
     }
 
@@ -963,6 +966,44 @@ exports.getListStudentOfCourses = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+//Counting active and inactive courses
+
+exports.countActiveAndInactiveCourses = async (req, res) => {
+  try {
+    const activeCourses = await Course.countDocuments({ status: true });
+    const inactiveCourses = await Course.countDocuments({ status: false });
+
+    res.status(200).json({ activeCourses, inactiveCourses });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+//Counting active and inactive courses of tutor by tutor id
+exports.countActiveAndInactiveCoursesOfTutor = async (req, res) => {
+  try {
+    const tutorId = req.user.id; // Lấy ID của tutor từ token
+
+    // Đếm số khóa học đang hoạt động (status: true)
+    const activeCourses = await Course.countDocuments({
+      tutor: tutorId,
+      status: true,
+    });
+
+    // Đếm số khóa học không hoạt động (status: false)
+    const inactiveCourses = await Course.countDocuments({
+      tutor: tutorId,
+      status: false,
+    });
+
+    res.status(200).json({ activeCourses, inactiveCourses });
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
