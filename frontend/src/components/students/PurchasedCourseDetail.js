@@ -33,6 +33,10 @@ const PurchasedCourseDetail = () => {
   const [userProfile, setUserProfile] = useState(null);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
     const fetchUserProfile = async () => {
       try {
         const response = await fetch(
