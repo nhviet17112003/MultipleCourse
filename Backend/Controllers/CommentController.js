@@ -67,11 +67,11 @@ exports.updateCourseComment = async (req, res) => {
     }
 
     // Check if the comment belongs to the current user
-    if (comment.author.toString() !== req.user._id.toString()) {
-      return res
-        .status(403)
-        .json({ message: "You are not authorized to update this comment" });
-    }
+    // if (comment.author.toString() !== req.user._id.toString()) {
+    //   return res
+    //     .status(403)
+    //     .json({ message: "You are not authorized to update this comment" });
+    // }
 
     if (isNaN(req.body.rating)) {
       return res.status(404).json({ message: "Rating must be a number" });

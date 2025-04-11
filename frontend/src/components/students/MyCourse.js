@@ -183,113 +183,234 @@ const MyCourses = () => {
       item.course.title.toLowerCase().includes(searchTerm.toLowerCase())
     ),
   }));
-  if (loading)
-    return (
-      <div className="flex justify-center items-center h-screen text-xl">
-        Loading...
-      </div>
-    );
-  if (error)
-    return <div className="text-red-500 text-center mt-4">{error}</div>;
 
   return (
-    <div className="p-8 min-h-screen bg-gradient-to-br from-[#14b8a6] to-indigo-200">
-      <h1 className="text-4xl font-extrabold text-center mb-8 text-black drop-shadow-md">
-        My Courses
-      </h1>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 py-8">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-800 mb-4">My Courses</h1>
+          <p className="text-gray-600 text-lg">
+            Manage and continue your learning journey
+          </p>
+        </div>
 
-      <div className="mb-6 flex justify-center">
-        <input
-          type="text"
-          placeholder="Search courses..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-1/2 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
-
-      {orders.length === 0 ? (
-        <p className="text-center text-gray-200 text-lg">
-          No successful orders found.
-        </p>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredOrders.map((order) =>
-            order.order_items.map((item) => (
-              <div
-                key={item._id}
-                className="bg-white shadow-md rounded-xl overflow-hidden transform transition duration-300 hover:shadow-2xl hover:scale-105 relative"
-                onClick={() => handleCourseClick(item.course._id)}
+        <div className="mb-8">
+          <div className="relative max-w-2xl mx-auto">
+            <input
+              type="text"
+              placeholder="Search your courses..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-6 py-4 rounded-xl border border-gray-200 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 shadow-sm"
+            />
+            <div className="absolute inset-y-0 right-0 flex items-center pr-4">
+              <svg
+                className="h-5 w-5 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                <img
-                  src={item.course.image || ""}
-                  alt={item.course.title}
-                  className="w-full h-52 object-cover"
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                 />
-                <div className="p-5">
-                  <h2 className="text-lg font-bold text-gray-800 truncate">
-                    {item.course.title}
-                  </h2>
-                  {isEnrolled(item.course._id) ? (
-                    <div className="mt-4">
-                      <div className="w-full bg-gray-300 rounded-full h-3">
-                        <div
-                          className="bg-green-500 h-3 rounded-full transition-all duration-500"
-                          style={{
-                            width: `${getProgressForCourse(item.course._id)}%`,
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
+              <svg
+                className="w-8 h-8 text-red-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <p className="text-red-500 text-lg">{error}</p>
+          </div>
+        ) : orders.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 mb-4">
+              <svg
+                className="w-8 h-8 text-indigo-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">
+              No courses found
+            </h3>
+            <p className="text-gray-600">
+              You haven't purchased any courses yet. Start your learning journey
+              today!
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredOrders.map((order) =>
+              order.order_items.map((item) => (
+                <div
+                  key={item._id}
+                  className="bg-white/80 backdrop-blur-sm rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100"
+                >
+                  <div className="relative group">
+                    <img
+                      src={item.course.image || ""}
+                      alt={item.course.title}
+                      className="w-full h-48 object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    {certificates.some(
+                      (certificate) =>
+                        certificate.course._id === item.course._id &&
+                        certificate.isPassed
+                    ) && (
+                      <img
+                        src={require("../../assets/passed44.png")}
+                        alt="Passed"
+                        className="absolute top-3 right-3 w-12 h-12 transform hover:scale-110 transition-transform duration-200"
+                      />
+                    )}
+                  </div>
+                  <div className="p-6">
+                    <h2 className="text-xl font-bold text-gray-800 mb-2 line-clamp-2">
+                      {item.course.title}
+                    </h2>
+                    {isEnrolled(item.course._id) ? (
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm text-gray-600">
+                            <span>Progress</span>
+                            <span>
+                              {getProgressForCourse(item.course._id).toFixed(0)}
+                              %
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-indigo-500 h-2 rounded-full transition-all duration-500"
+                              style={{
+                                width: `${getProgressForCourse(
+                                  item.course._id
+                                )}%`,
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCourseClick(item.course._id);
                           }}
-                        ></div>
+                          className="w-full py-3 px-4 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors duration-200 flex items-center justify-center space-x-2"
+                        >
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                          <span>Continue Learning</span>
+                        </button>
                       </div>
-                      <p className="text-sm text-gray-600 mt-2 text-center">
-                        Progress:{" "}
-                        {getProgressForCourse(item.course._id).toFixed(0)}%
-                      </p>
-                    </div>
-                  ) : (
+                    ) : (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEnroll(item.course._id);
+                        }}
+                        className="w-full py-3 px-4 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors duration-200"
+                      >
+                        Enroll Now
+                      </button>
+                    )}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleEnroll(item.course._id);
+                        navigate(`/purchased-course-detail/${item.course._id}`);
                       }}
-                      className="mt-4 w-full py-2 rounded-lg bg-blue-500 text-white font-semibold hover:bg-blue-600 transition duration-300"
+                      className="w-full mt-3 py-2 px-4 text-indigo-600 rounded-lg font-medium hover:bg-indigo-50 transition-colors duration-200"
                     >
-                      Enroll
+                      View Details
                     </button>
-                  )}
+                  </div>
                 </div>
-                {certificates.some(
-                  (certificate) =>
-                    certificate.course._id === item.course._id &&
-                    certificate.isPassed
-                ) && (
-                  <img
-                    src={require("../../assets/passed44.png")}
-                    alt="Passed"
-                    className="absolute top-3 right-3 w-14 h-14"
-                  />
-                )}
-              </div>
-            ))
-          )}
-        </div>
-      )}
-
-      {modalContent && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-xl shadow-xl text-center w-96 transform scale-95 transition duration-200 ease-in-out">
-            <h2 className="text-xl font-bold text-blue-600 mb-4">
-              {modalContent.title}
-            </h2>
-            <p className="text-gray-700">{modalContent.message}</p>
-            <button
-              onClick={() => setModalContent(null)}
-              className="mt-4 bg-blue-500 text-white py-2 px-6 rounded-lg hover:bg-blue-600 transition"
-            >
-              Close
-            </button>
+              ))
+            )}
           </div>
-        </div>
-      )}
+        )}
+
+        {modalContent && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center p-4 z-50">
+            <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full transform transition-all duration-300">
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-indigo-100 mb-4">
+                  <svg
+                    className="w-6 h-6 text-indigo-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <h2 className="text-xl font-bold text-gray-800 mb-2">
+                  {modalContent.title}
+                </h2>
+                <p className="text-gray-600 mb-6">{modalContent.message}</p>
+                <button
+                  onClick={() => setModalContent(null)}
+                  className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors duration-200"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
