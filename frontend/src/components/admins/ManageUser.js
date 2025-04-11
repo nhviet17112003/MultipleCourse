@@ -1,4 +1,4 @@
-import { Dropdown, Table, Tag, Typography, Card, Spin, Alert, Space, Divider, Avatar, Button } from "antd";
+import { Dropdown, Table, Tag, Typography, Card, Spin, Alert, Space, Divider, Avatar, Button, Statistic, Row, Col } from "antd";
 import { useEffect, useState } from "react";
 import { 
   EllipsisOutlined, 
@@ -8,7 +8,11 @@ import {
   TeamOutlined,
   FilterOutlined,
   SearchOutlined,
-  ReloadOutlined
+  ReloadOutlined,
+  UserAddOutlined,
+  UserSwitchOutlined,
+  UserDeleteOutlined,
+  IdcardOutlined
 } from "@ant-design/icons";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -53,18 +57,22 @@ const ManageUser = () => {
   }, []);
 
   if (loading) return (
-    <div className="flex items-center justify-center h-screen">
-      <Spin size="large" tip="Loading user data..." />
+    <div className="flex items-center justify-center h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="bg-white p-8 rounded-xl shadow-2xl flex flex-col items-center">
+        <Spin size="large" tip="Loading user data..." />
+        <p className="mt-4 text-gray-600">Please wait while we fetch the latest user information</p>
+      </div>
     </div>
   );
   
   if (error) return (
-    <div className="p-8">
+    <div className="p-8 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center">
       <Alert
-        message="Error"
+        message="Error Loading Users"
         description={error}
         type="error"
         showIcon
+        className="shadow-lg max-w-2xl"
       />
     </div>
   );
@@ -105,6 +113,15 @@ const ManageUser = () => {
       status: user.status,
     }));
 
+  // User statistics
+  const totalUsers = users.length;
+  const activeUsers = users.filter(user => user.status).length;
+  const inactiveUsers = totalUsers - activeUsers;
+  
+  const adminUsers = users.filter(user => user.role === 'Admin').length;
+  const tutorUsers = users.filter(user => user.role === 'Tutor').length;
+  const studentUsers = users.filter(user => user.role === 'Student').length;
+
   const columns = [
     {
       title: "Avatar",
@@ -117,7 +134,7 @@ const ManageUser = () => {
             size={40} 
             src={avatar || undefined}
             icon={!avatar && <UserOutlined />}
-            className="border-2 border-blue-100"
+            className="border-2 border-blue-100 shadow-sm"
           />
         </div>
       ),
@@ -127,20 +144,23 @@ const ManageUser = () => {
       dataIndex: "fullname",
       key: "fullname",
       sorter: (a, b) => a.fullname.localeCompare(b.fullname),
-      render: (text) => <Text strong>{text}</Text>,
+      render: (text) => <Text strong className="text-gray-800">{text}</Text>,
     },
     {
       title: "Email",
       dataIndex: "email",
       key: "email",
       render: (email) => (
-        <Text copyable className="text-blue-600 hover:text-blue-800">{email}</Text>
+        <Text copyable={{ tooltips: ['Copy email', 'Email copied!'] }} className="text-blue-600 hover:text-blue-800">{email}</Text>
       ),
     },
     {
       title: "Phone",
       dataIndex: "phone",
       key: "phone",
+      render: (phone) => (
+        <Text className="text-gray-700">{phone}</Text>
+      ),
     },
     {
       title: "Role",
@@ -148,14 +168,15 @@ const ManageUser = () => {
       key: "role",
       filters: [
         { text: 'Admin', value: 'Admin' },
-        { text: 'User', value: 'User' },
-        { text: 'Instructor', value: 'Instructor' },
+        { text: 'Student', value: 'Student' },
+        { text: 'Tutor', value: 'Tutor' },
       ],
       onFilter: (value, record) => record.role === value,
       render: (role) => {
-        let color = role === 'Admin' ? 'purple' : role === 'Instructor' ? 'blue' : 'default';
+        let color = role === 'Admin' ? 'purple' : role === 'Tutor' ? 'blue' : 'green';
+        let icon = role === 'Admin' ? <IdcardOutlined /> : role === 'Tutor' ? <UserSwitchOutlined /> : <UserOutlined />;
         return (
-          <Tag color={color} className="px-3 py-1">
+          <Tag color={color} icon={icon} className="px-3 py-1 rounded-full font-semibold">
             {role.toUpperCase()}
           </Tag>
         );
@@ -172,8 +193,8 @@ const ManageUser = () => {
       onFilter: (value, record) => record.status === value,
       render: (status) => (
         status 
-          ? <Tag color="success" icon={<CheckOutlined />} className="px-3 py-1">Active</Tag>
-          : <Tag color="error" icon={<StopOutlined />} className="px-3 py-1">Inactive</Tag>
+          ? <Tag color="success" icon={<CheckOutlined />} className="px-3 py-1 rounded-full">Active</Tag>
+          : <Tag color="error" icon={<StopOutlined />} className="px-3 py-1 rounded-full">Inactive</Tag>
       ),
     },
     {
@@ -188,11 +209,11 @@ const ManageUser = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-      <Card className="shadow-xl rounded-lg overflow-hidden" bordered={false}>
+      <Card className="shadow-2xl rounded-xl overflow-hidden border-0 mb-6" bordered={false}>
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
             <TeamOutlined className="text-blue-500 text-3xl mr-4" />
-            <Title level={2} className="m-0 text-blue-800">
+            <Title level={2} className="m-0 text-blue-800 font-bold">
               Manage Users
             </Title>
           </div>
@@ -202,7 +223,7 @@ const ManageUser = () => {
               <input
                 type="text"
                 placeholder="Search users..."
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                 value={searchText}
                 onChange={(e) => handleSearch(e.target.value)}
               />
@@ -219,19 +240,21 @@ const ManageUser = () => {
                   },
                   {
                     key: '2',
-                    label: 'Instructor',
-                    onClick: () => handleRoleFilter('Instructor'),
+                    label: 'Tutor',
+                    onClick: () => handleRoleFilter('Tutor'),
                   },
                   {
                     key: '3',
-                    label: 'User',
-                    onClick: () => handleRoleFilter('User'),
+                    label: 'Student',
+                    onClick: () => handleRoleFilter('Student'),
                   },
                 ],
               }}
               placement="bottomRight"
             >
-              <Button icon={<FilterOutlined />} className={filterRole ? "bg-blue-50" : ""}>
+              <Button 
+                icon={<FilterOutlined />} 
+                className={filterRole ? "bg-blue-50 border-blue-200" : ""}>
                 {filterRole || "Filter Role"}
               </Button>
             </Dropdown>
@@ -240,15 +263,72 @@ const ManageUser = () => {
               <Button
                 icon={<ReloadOutlined />}
                 onClick={resetFilters}
-                className="text-gray-600"
+                className="text-gray-600 hover:text-blue-600 hover:border-blue-300"
               >
                 Reset
               </Button>
             )}
           </div>
         </div>
-        
-        {/* <Divider className="mb-6" /> */}
+
+        {/* User Statistics Cards */}
+        <div className="mb-8">
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12} md={6}>
+              <Card className="border border-blue-100 shadow-md hover:shadow-lg transition-shadow rounded-lg bg-gradient-to-r from-blue-50 to-blue-100">
+                <Statistic
+                  title={<span className="text-blue-800 font-semibold">Total Users</span>}
+                  value={totalUsers}
+                  prefix={<TeamOutlined className="text-blue-500 mr-2" />}
+                  valueStyle={{ color: '#1890ff', fontWeight: 'bold' }}
+                />
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Card className="border border-green-100 shadow-md hover:shadow-lg transition-shadow rounded-lg bg-gradient-to-r from-green-50 to-green-100">
+                <Statistic
+                  title={<span className="text-green-800 font-semibold">Active Users</span>}
+                  value={activeUsers}
+                  prefix={<CheckOutlined className="text-green-500 mr-2" />}
+                  valueStyle={{ color: '#52c41a', fontWeight: 'bold' }}
+                  // suffix={<small className="text-gray-500">{`(${((activeUsers/totalUsers)*100).toFixed(1)}%)`}</small>}
+                />
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Card className="border border-red-100 shadow-md hover:shadow-lg transition-shadow rounded-lg bg-gradient-to-r from-red-50 to-red-100">
+                <Statistic
+                  title={<span className="text-red-800 font-semibold">Inactive Users</span>}
+                  value={inactiveUsers}
+                  prefix={<StopOutlined className="text-red-500 mr-2" />}
+                  valueStyle={{ color: '#ff4d4f', fontWeight: 'bold' }}
+                  // suffix={<small className="text-gray-500">{`(${((inactiveUsers/totalUsers)*100).toFixed(1)}%)`}</small>}
+                />
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Card className="border border-purple-100 shadow-md hover:shadow-lg transition-shadow rounded-lg bg-gradient-to-r from-purple-50 to-purple-100">
+                <div className="flex justify-between">
+                  <Statistic
+                    title={<span className="text-purple-800 font-semibold">Admin</span>}
+                    value={adminUsers}
+                    valueStyle={{ color: '#722ed1', fontSize: '16px' }}
+                  />
+                  <Statistic
+                    title={<span className="text-blue-800 font-semibold">Tutor</span>}
+                    value={tutorUsers}
+                    valueStyle={{ color: '#1890ff', fontSize: '16px' }}
+                  />
+                  <Statistic
+                    title={<span className="text-green-800 font-semibold">Student</span>}
+                    value={studentUsers}
+                    valueStyle={{ color: '#52c41a', fontSize: '16px' }}
+                  />
+                </div>
+              </Card>
+            </Col>
+          </Row>
+        </div>
         
         <Table 
           columns={columns} 
@@ -257,16 +337,20 @@ const ManageUser = () => {
             pageSize: 10,
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (total) => `Total ${total} users`,
+            showTotal: (total) => `Total ${total} users found`,
           }}
-          className="shadow-sm"
+          className="shadow-sm rounded-lg overflow-hidden"
           rowClassName="hover:bg-blue-50 transition-colors"
-          // bordered
           scroll={{ x: 'max-content' }}
+          footer={() => (
+            <div className="flex justify-between items-center text-gray-500">
+              <span>Showing {filteredData.length} of {totalUsers} users</span>
+              <span>Last updated: {new Date().toLocaleString()}</span>
+            </div>
+          )}
         />
       </Card>
-      <ToastContainer />
-      {/* position="bottom-right" theme="colored"  */}
+      <ToastContainer position="bottom-right" theme="colored" />
     </div>
   );
 };
@@ -325,13 +409,13 @@ const DropDownMenu = ({record, setUsers, users}) => {
         >
           {record.status ? (
             <>
-              <StopOutlined className="h-4 w-4 text-red-500"/>
-              <span>Ban</span>
+              <UserDeleteOutlined className="h-4 w-4 text-red-500"/>
+              <span>Ban User</span>
             </>
           ) : (
             <>
-              <CheckOutlined className="h-4 w-4 text-green-500" />
-              <span>Unban</span>
+              <UserAddOutlined className="h-4 w-4 text-green-500" />
+              <span>Activate User</span>
             </>
           )}
         </div>
@@ -353,7 +437,8 @@ const DropDownMenu = ({record, setUsers, users}) => {
         <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-70 backdrop-blur-sm z-50">
           <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-2xl w-96 border border-gray-100 dark:border-gray-700 transform transition-all">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center">
+                <UserDeleteOutlined className="text-red-500 mr-2" />
                 Ban User
               </h2>
               <button 
@@ -367,6 +452,19 @@ const DropDownMenu = ({record, setUsers, users}) => {
             </div>
             
             <div className="mb-6">
+              <div className="flex items-center mb-4 bg-red-50 p-3 rounded-lg border border-red-100">
+                <Avatar 
+                  size={40} 
+                  src={record.avatar || undefined}
+                  icon={!record.avatar && <UserOutlined />}
+                  className="mr-3"
+                />
+                <div>
+                  <p className="font-medium text-gray-800">{record.fullname}</p>
+                  <p className="text-sm text-gray-500">{record.email}</p>
+                </div>
+              </div>
+              
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Please provide a reason for banning this user:
               </label>

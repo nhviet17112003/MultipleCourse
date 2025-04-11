@@ -1,13 +1,19 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Button, Dropdown, Table, Tag, Modal, Input, Space, Select, Card, Typography, Row, Col } from "antd";
+import { Button, Dropdown, Table, Tag, Modal, Input, Space, Select, Card, Typography, Row, Col, Progress } from "antd";
 import { 
   EllipsisOutlined, 
   SearchOutlined, 
   PlusOutlined, 
   FilterOutlined,
   SortAscendingOutlined,
-  ReloadOutlined 
+  ReloadOutlined,
+  BookOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  RiseOutlined,
+  FireOutlined,
+  TeamOutlined
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
@@ -57,6 +63,20 @@ const CourseListForAdmin = () => {
   useEffect(() => {
     fetchCourses();
   }, []);
+
+  // Advanced course statistics
+  const totalCourses = courses.length;
+  const activeCourses = courses.filter(course => course.status).length;
+  const inactiveCourses = totalCourses - activeCourses;
+  const activePercentage = totalCourses > 0 ? Math.round((activeCourses / totalCourses) * 100) : 0;
+  
+  // Get unique tutors count
+  const uniqueTutorsCount = new Set(courses.map(course => course.tutor._id)).size;
+  
+  // Find most popular course (this is a placeholder - you might want to add actual view/enrollment counts to your data)
+  const mostPopularCourse = courses.length > 0 ? 
+    courses.reduce((prev, current) => (prev.views > current.views) ? prev : current) : 
+    null;
 
   const handleSearch = (value) => {
     setSearchText(value);
@@ -288,20 +308,7 @@ const CourseListForAdmin = () => {
       <div className="bg-white shadow-lg rounded-2xl p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-3xl font-bold text-gray-800 flex items-center">
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="h-10 w-10 mr-3 text-blue-600" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" 
-              />
-            </svg>
+            <BookOutlined className="text-blue-600 mr-3" />
             Course Management
           </h2>
           <div className="flex space-x-4">
@@ -313,6 +320,87 @@ const CourseListForAdmin = () => {
               Refresh
             </Button>
           </div>
+        </div>
+
+        {/* Enhanced Course Statistics */}
+        <div className="mb-6">
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={8}>
+              <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200 shadow-md h-full overflow-hidden">
+                <div className="relative">
+                  <BookOutlined className="absolute right-0 top-0 text-4xl text-blue-300 opacity-50" />
+                  <div>
+                    <Text className="text-gray-600 block text-sm mb-1">Total Courses</Text>
+                    <div className="flex items-baseline">
+                      <Title level={2} className="text-blue-700 m-0">{totalCourses}</Title>
+                      <Text className="ml-2 text-blue-700 opacity-70">courses</Text>
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <div className="flex justify-between text-xs text-gray-500 mb-1">
+                      <span>Course Status Distribution</span>
+                      <span>{activePercentage}% Active</span>
+                    </div>
+                    <Progress 
+                      percent={activePercentage} 
+                      showInfo={false}
+                      strokeColor="#3B82F6"
+                      trailColor="#EFF6FF"
+                      strokeWidth={8}
+                      className="custom-progress"
+                    />
+                  </div>
+                </div>
+              </Card>
+            </Col>
+            
+            <Col xs={24} sm={12} md={8}>
+              <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200 shadow-md h-full overflow-hidden">
+                <div className="relative">
+                  <CheckCircleOutlined className="absolute right-0 top-0 text-4xl text-green-300 opacity-50" />
+                  <div>
+                    <Text className="text-gray-600 block text-sm mb-1">Active Courses</Text>
+                    <div className="flex items-baseline">
+                      <Title level={2} className="text-green-700 m-0">{activeCourses}</Title>
+                      <Text className="ml-2 text-green-700 opacity-70">
+                        ({totalCourses > 0 ? ((activeCourses/totalCourses)*100).toFixed(1) : 0}%)
+                      </Text>
+                    </div>
+                    <Text className="text-gray-500 text-sm mt-2 block">
+                      {uniqueTutorsCount} {uniqueTutorsCount === 1 ? 'tutor' : 'tutors'} contributing
+                    </Text>
+                  </div>
+                </div>
+              </Card>
+            </Col>
+            
+            <Col xs={24} sm={12} md={8}>
+              <Card className="bg-gradient-to-r from-red-50 to-red-100 border-red-200 shadow-md h-full overflow-hidden">
+                <div className="relative">
+                  <CloseCircleOutlined className="absolute right-0 top-0 text-4xl text-red-300 opacity-50" />
+                  <div>
+                    <Text className="text-gray-600 block text-sm mb-1">Inactive Courses</Text>
+                    <div className="flex items-baseline">
+                      <Title level={2} className="text-red-700 m-0">{inactiveCourses}</Title>
+                      <Text className="ml-2 text-red-700 opacity-70">
+                        ({totalCourses > 0 ? ((inactiveCourses/totalCourses)*100).toFixed(1) : 0}%)
+                      </Text>
+                    </div>
+                    <div className="flex justify-between items-center mt-2">
+                      <Button 
+                        size="small" 
+                        type="text"
+                        className="p-0 text-red-700 text-sm hover:text-red-800"
+                        onClick={() => handleFilterChange('status', 'inactive')}
+                      >
+                        View Inactive Courses →
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </Col>
+          </Row>
         </div>
 
         <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">

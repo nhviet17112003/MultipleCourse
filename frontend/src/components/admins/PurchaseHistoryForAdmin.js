@@ -220,7 +220,7 @@ const PurchaseHistoryForAdmin = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <Card className="shadow-sm">
+            <Card className="shadow-sm bg-green-100">
               <Statistic
                 title="Total Sales"
                 value={totalSales.toLocaleString() + " VND"}
@@ -228,7 +228,7 @@ const PurchaseHistoryForAdmin = () => {
                 valueStyle={{ color: '#3f8600' }}
               />
             </Card>
-            <Card className="shadow-sm">
+            <Card className="shadow-sm bg-blue-100">
               <Statistic
                 title="Unique Buyers"
                 value={uniqueBuyers}
@@ -236,7 +236,7 @@ const PurchaseHistoryForAdmin = () => {
                 valueStyle={{ color: '#1890ff' }}
               />
             </Card>
-            <Card className="shadow-sm">
+            <Card className="shadow-sm bg-purple-100">
               <Statistic
                 title="Courses Sold"
                 value={totalCoursesSold}
