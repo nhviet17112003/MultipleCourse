@@ -41,6 +41,7 @@ exports.updateLessonProgress = async (req, res) => {
   try {
     const user_id = req.user._id;
     const lesson_id = req.params.lesson_id;
+
     const progress = await Progress.findOne({
       student_id: user_id,
       "lesson.lesson_id": lesson_id,
@@ -53,10 +54,6 @@ exports.updateLessonProgress = async (req, res) => {
     const lesson = progress.lesson.find(
       (lesson) => lesson.lesson_id.toString() === lesson_id
     );
-
-    if (!lesson) {
-      return res.status(404).json({ message: "Lesson not found" });
-    }
 
     if (lesson.status === "Completed") {
       lesson.note = req.body.note;

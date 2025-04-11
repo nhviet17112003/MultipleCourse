@@ -12,6 +12,21 @@ exports.createCourseComment = async (req, res) => {
       return res.status(404).json({ message: "Course not found" });
     }
 
+    if (req.body.rating === undefined) {
+      return res.status(404).json({ message: "Rating cannot be empty" });
+    }
+    if (isNaN(req.body.rating)) {
+      return res.status(404).json({ message: "Rating must be a number" });
+    }
+    if (req.body.rating < 1 || req.body.rating > 5) {
+      return res
+        .status(404)
+        .json({ message: "Rating must be between 1 and 5" });
+    }
+    if (!req.body.comment) {
+      return res.status(404).json({ message: "Comment cannot be empty" });
+    }
+
     const newComment = {
       author: req.user.fullname,
       rating: req.body.rating,
@@ -56,6 +71,15 @@ exports.updateCourseComment = async (req, res) => {
       return res
         .status(403)
         .json({ message: "You are not authorized to update this comment" });
+    }
+
+    if (isNaN(req.body.rating)) {
+      return res.status(404).json({ message: "Rating must be a number" });
+    }
+    if (req.body.rating < 1 || req.body.rating > 5) {
+      return res
+        .status(404)
+        .json({ message: "Rating must be between 1 and 5" });
     }
 
     comment.rating = req.body.rating || comment.rating;
@@ -136,6 +160,21 @@ exports.createLessonComment = async (req, res) => {
       return res.status(404).json({ message: "Lesson not found" });
     }
 
+    if (req.body.rating === undefined) {
+      return res.status(404).json({ message: "Rating cannot be empty" });
+    }
+    if (isNaN(req.body.rating)) {
+      return res.status(404).json({ message: "Rating must be a number" });
+    }
+    if (req.body.rating < 1 || req.body.rating > 5) {
+      return res
+        .status(404)
+        .json({ message: "Rating must be between 1 and 5" });
+    }
+    if (!req.body.comment) {
+      return res.status(404).json({ message: "Comment cannot be empty" });
+    }
+
     const newComment = {
       author: req.user.fullname,
       rating: req.body.rating,
@@ -179,6 +218,16 @@ exports.updateLessonComment = async (req, res) => {
       return res
         .status(403)
         .json({ message: "You are not authorized to update this comment" });
+    }
+
+    if (isNaN(req.body.rating)) {
+      return res.status(404).json({ message: "Rating must be a number" });
+    }
+
+    if (req.body.rating < 1 || req.body.rating > 5) {
+      return res
+        .status(404)
+        .json({ message: "Rating must be between 1 and 5" });
     }
 
     comment.rating = req.body.rating || comment.rating;
