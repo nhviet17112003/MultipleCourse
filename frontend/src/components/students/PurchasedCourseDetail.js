@@ -31,6 +31,7 @@ const PurchasedCourseDetail = () => {
   const [editRating, setEditRating] = useState(5);
   const [showEditModal, setShowEditModal] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
+  const [showAllComments, setShowAllComments] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -450,64 +451,112 @@ const PurchasedCourseDetail = () => {
                   </span>
                 </div>
                 <div className="space-y-6">
-                  {courseDetail.comments.map((comment) => (
-                    <div
-                      key={comment._id}
-                      className="bg-white p-6 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 border border-gray-100"
-                    >
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center">
-                          <div className="bg-indigo-100 p-2 rounded-full mr-3">
-                            <FaUser className="text-indigo-600" />
+                  {courseDetail.comments
+                    .slice(0, showAllComments ? undefined : 5)
+                    .map((comment) => (
+                      <div
+                        key={comment._id}
+                        className="bg-white p-6 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 border border-gray-100"
+                      >
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center">
+                            <div className="bg-indigo-100 p-2 rounded-full mr-3">
+                              <FaUser className="text-indigo-600" />
+                            </div>
+                            <div>
+                              <span className="font-semibold text-gray-800">
+                                {comment.author}
+                              </span>
+                              <div className="flex items-center text-yellow-500 mt-1">
+                                {[...Array(5)].map((_, i) => (
+                                  <FaStar
+                                    key={i}
+                                    className={`mr-1 ${
+                                      i < comment.rating
+                                        ? "text-yellow-500"
+                                        : "text-gray-300"
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
                           </div>
-                          <div>
-                            <span className="font-semibold text-gray-800">
-                              {comment.author}
+                          <div className="flex items-center space-x-4">
+                            <span className="text-sm text-gray-500">
+                              {new Date(comment.date).toLocaleDateString()}
                             </span>
-                            <div className="flex items-center text-yellow-500 mt-1">
-                              {[...Array(5)].map((_, i) => (
-                                <FaStar
-                                  key={i}
-                                  className={`mr-1 ${
-                                    i < comment.rating
-                                      ? "text-yellow-500"
-                                      : "text-gray-300"
-                                  }`}
-                                />
-                              ))}
-                            </div>
+                            {comment.author === userProfile?.fullname && (
+                              <div className="flex space-x-3">
+                                <button
+                                  onClick={() => handleEditComment(comment)}
+                                  className="text-indigo-600 hover:text-indigo-800 transition-colors duration-200 p-2 rounded-full hover:bg-indigo-50"
+                                  title="Edit comment"
+                                >
+                                  <FaEdit />
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    handleDeleteComment(comment._id)
+                                  }
+                                  className="text-red-600 hover:text-red-800 transition-colors duration-200 p-2 rounded-full hover:bg-red-50"
+                                  title="Delete comment"
+                                >
+                                  <FaTrash />
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </div>
-                        <div className="flex items-center space-x-4">
-                          <span className="text-sm text-gray-500">
-                            {new Date(comment.date).toLocaleDateString()}
-                          </span>
-                          {comment.author === userProfile?.fullname && (
-                            <div className="flex space-x-3">
-                              <button
-                                onClick={() => handleEditComment(comment)}
-                                className="text-indigo-600 hover:text-indigo-800 transition-colors duration-200 p-2 rounded-full hover:bg-indigo-50"
-                                title="Edit comment"
-                              >
-                                <FaEdit />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteComment(comment._id)}
-                                className="text-red-600 hover:text-red-800 transition-colors duration-200 p-2 rounded-full hover:bg-red-50"
-                                title="Delete comment"
-                              >
-                                <FaTrash />
-                              </button>
-                            </div>
-                          )}
-                        </div>
+                        <p className="text-gray-600 leading-relaxed">
+                          {comment.comment}
+                        </p>
                       </div>
-                      <p className="text-gray-600 leading-relaxed">
-                        {comment.comment}
-                      </p>
-                    </div>
-                  ))}
+                    ))}
                 </div>
+                {courseDetail.comments.length > 5 && (
+                  <div className="mt-6 text-center">
+                    <button
+                      onClick={() => setShowAllComments(!showAllComments)}
+                      className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200"
+                    >
+                      {showAllComments ? (
+                        <>
+                          <span>Show Less</span>
+                          <svg
+                            className="w-4 h-4 ml-2"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 15l7-7 7 7"
+                            />
+                          </svg>
+                        </>
+                      ) : (
+                        <>
+                          <span>Show More</span>
+                          <svg
+                            className="w-4 h-4 ml-2"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -577,15 +626,25 @@ const PurchasedCourseDetail = () => {
               </div>
             )}
 
-            {/* Comment Form */}
-            <div className="bg-white p-8 rounded-xl shadow-sm mt-12">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">
-                Add Your Review
-              </h2>
-              <form onSubmit={handleSubmitComment} className="space-y-6">
+            <div className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-lg mt-12 border border-gray-100">
+              <div className="flex items-center mb-8">
+                <div className="bg-indigo-100 p-3 rounded-full mr-4">
+                  <FaComments className="text-indigo-600 text-xl" />
+                </div>
                 <div>
-                  <label className="block text-gray-700 font-semibold mb-3">
-                    Rating
+                  <h2 className="text-2xl font-bold text-gray-800">
+                    Add Your Review
+                  </h2>
+                  <p className="text-gray-600 mt-1">
+                    Share your experience with this course
+                  </p>
+                </div>
+              </div>
+
+              <form onSubmit={handleSubmitComment} className="space-y-8">
+                <div className="space-y-4">
+                  <label className="block text-gray-700 font-medium">
+                    Your Rating
                   </label>
                   <div className="flex items-center space-x-2">
                     {[1, 2, 3, 4, 5].map((star) => (
@@ -593,40 +652,76 @@ const PurchasedCourseDetail = () => {
                         key={star}
                         type="button"
                         onClick={() => setRating(star)}
-                        className={`text-3xl transition-transform duration-200 hover:scale-110 ${
+                        className={`text-3xl transition-all duration-200 hover:scale-110 ${
                           star <= rating ? "text-yellow-500" : "text-gray-300"
                         }`}
                       >
                         <FaStar />
                       </button>
                     ))}
+                    <span className="ml-4 text-gray-600 font-medium">
+                      {rating}
+                    </span>
                   </div>
                 </div>
-                <div>
-                  <label className="block text-gray-700 font-semibold mb-3">
-                    Comment
+
+                <div className="space-y-4">
+                  <label className="block text-gray-700 font-medium">
+                    Your Review
                   </label>
                   <textarea
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
-                    rows="4"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 min-h-[150px] resize-none"
                     placeholder="Share your thoughts about this course..."
                     required
                   />
                 </div>
+
                 {submitError && (
-                  <div className="text-red-500 text-sm bg-red-50 p-3 rounded-lg">
+                  <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl">
                     {submitError}
                   </div>
                 )}
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-all duration-200 disabled:opacity-50 transform hover:scale-105 font-medium"
-                >
-                  {submitting ? "Submitting..." : "Submit Review"}
-                </button>
+
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-all duration-200 disabled:opacity-50 transform hover:scale-105"
+                  >
+                    {submitting ? (
+                      <>
+                        <svg
+                          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        <FaComments className="mr-2" />
+                        Submit Review
+                      </>
+                    )}
+                  </button>
+                </div>
               </form>
             </div>
           </div>
