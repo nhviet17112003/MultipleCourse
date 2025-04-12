@@ -304,12 +304,8 @@ exports.updateCommentStatusById = async (req, res) => {
   try {
     const { comment_id } = req.params;
     const course = await Course.findOne({ "comments._id": comment_id });
+    const comment = course?.comments.id(comment_id);
 
-    if (!course) {
-      return res.status(404).json({ message: "Comment not found" });
-    }
-
-    const comment = course.comments.id(comment_id);
     if (!comment) {
       return res.status(404).json({ message: "Comment not found" });
     }
@@ -343,13 +339,8 @@ exports.updateLessonCommentStatusById = async (req, res) => {
 
     // Tìm bài học chứa comment theo ID
     const lesson = await Lesson.findOne({ "comments._id": comment_id });
+    const comment = lesson?.comments.id(comment_id);
 
-    if (!lesson) {
-      return res.status(404).json({ message: "Comment not found" });
-    }
-
-    // Tìm comment trong bài học
-    const comment = lesson.comments.id(comment_id);
     if (!comment) {
       return res.status(404).json({ message: "Comment not found" });
     }
