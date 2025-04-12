@@ -11,7 +11,7 @@ exports.createExam = async (req, res) => {
     const totalMark = req.body.totalMark;
 
     // Kiểm tra xem course_id có tồn tại không
-    const course = await Course.findById({
+    const course = await Course.findOne({
       _id: course_id,
       tutor: req.user._id,
     });
