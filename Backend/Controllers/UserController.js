@@ -585,14 +585,15 @@ exports.googleLoginCallback = async (req, res, next) => {
       email: user.email,
     });
     // res.cookie("Token", token, { maxAge: 7200000, path: "/" }); // dùng cookie để lưu token
-      res.cookie("Token", token, {
+    res.cookie("Token", token, {
       maxAge: 7200000,
       path: "/",
       httpOnly: true,
       secure: true, // bắt buộc khi dùng HTTPS
       sameSite: "None", // cho phép gửi cookie cross-origin
     });
-    return res.redirect("https://multi-course-rfc1.vercel.app/course-list");
+    // return res.redirect("https://multi-course-rfc1.vercel.app/course-list");
+    return res.redirect("https://localhost:3001/course-list");
     // res.status(200).json({
     //   message: "Login successful",
     //   token: token,
