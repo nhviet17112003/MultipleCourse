@@ -585,7 +585,7 @@ exports.googleLoginCallback = async (req, res, next) => {
       email: user.email,
     });
     res.cookie("Token", token, { maxAge: 7200000, path: "/" }); // dùng cookie để lưu token
-    return res.redirect("http://localhost:3001/course-list");
+    return res.redirect("https://multi-course-rfc1.vercel.app/course-list");
     // res.status(200).json({
     //   message: "Login successful",
     //   token: token,
