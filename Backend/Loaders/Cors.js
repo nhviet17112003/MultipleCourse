@@ -5,7 +5,7 @@ const whitelist = [
   "http://localhost:3000",
   "http://localhost:3001",
   "https://localhost:3443",
-  "https://multicourse.onrender.com",
+  "https://multi-course-rfc1.vercel.app",
 ];
 
 const corsOptionsDelegate = (req, callback) => {
