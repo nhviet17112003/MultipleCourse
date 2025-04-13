@@ -254,7 +254,7 @@ exports.getTotalIncomeFromEachCourse = async (req, res) => {
       .populate("order_items.course") // Populate để đảm bảo dữ liệu chính xác
       .lean();
 
-    // Kiểm tra nếu không có đơn hàng nào
+    // Kiểm tra nếu không cóa đơn hàng nào
     if (!orders.length) {
       return res
         .status(200)
