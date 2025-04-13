@@ -238,7 +238,7 @@ exports.forgotPassword = async (req, res) => {
 
 //confirm otp and reset password
 exports.confirmOTP = async (req, res) => {
-  try {
+  try { 
     const user = await Users.findOne({
       resetPasswordOTP: req.body.otp,
       resetPasswordExpires: { $gt: Date.now() },
