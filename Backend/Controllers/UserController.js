@@ -238,7 +238,7 @@ exports.forgotPassword = async (req, res) => {
 
 //confirm otp and reset password
 exports.confirmOTP = async (req, res) => {
-  try { 
+  try {
     const user = await Users.findOne({
       resetPasswordOTP: req.body.otp,
       resetPasswordExpires: { $gt: Date.now() },
@@ -585,20 +585,15 @@ exports.googleLoginCallback = async (req, res, next) => {
       email: user.email,
     });
     // res.cookie("Token", token, { maxAge: 7200000, path: "/" }); // dùng cookie để lưu token
-      res.cookie("Token", token, {
+    res.cookie("Token", token, {
       maxAge: 7200000,
       path: "/",
-      httpOnly: false,
+      httpOnly: true, // chỉ cho phép truy cập cookie từ server
       secure: true, // bắt buộc khi dùng HTTPS
       sameSite: "None", // cho phép gửi cookie cross-origin
     });
-    return res.redirect("https://multi-course-rfc1.vercel.app/course-list");
-    // res.status(200).json({
-    //   message: "Login successful",
-    //   token: token,
-    //   fullname: user.fullname,
-    //   role: user.role,
-    // });
+    // return res.redirect("https://multi-course-rfc1.vercel.app/course-list");
+    return res.redirect("https://localhost:3001/course-list");
   })(req, res, next);
 };
 
