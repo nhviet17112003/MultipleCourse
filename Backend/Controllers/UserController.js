@@ -238,7 +238,7 @@ exports.forgotPassword = async (req, res) => {
 
 //confirm otp and reset password
 exports.confirmOTP = async (req, res) => {
-  try {
+  try { 
     const user = await Users.findOne({
       resetPasswordOTP: req.body.otp,
       resetPasswordExpires: { $gt: Date.now() },
@@ -588,7 +588,7 @@ exports.googleLoginCallback = async (req, res, next) => {
     res.cookie("Token", token, {
       maxAge: 7200000,
       path: "/",
-      httpOnly: true,
+      httpOnly: false,
       secure: true, // bắt buộc khi dùng HTTPS
       sameSite: "None", // cho phép gửi cookie cross-origin
     });
