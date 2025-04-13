@@ -57,25 +57,26 @@ import CourseDetailForAdmin from "./components/admins/CourseDetailForAdmin";
 import ViewCertificate from "./components/tutors/ViewCertificate";
 import UpdateCourseModal from "./components/tutors/UpdateCourseModal";
 import TutorRequests from "./components/tutors/TutorRequests";
+import PurchasedCourseDetail from "./components/students/PurchasedCourseDetail";
 // import RequestDetail from "./components/tutors/RequestDetail";
 
 function Layout() {
   const location = useLocation();
   const [navbarKey, setNavbarKey] = useState(0);
-  
- //kt tken
-  const isAuthenticated = localStorage.getItem('authToken') !== null;
+
+  //kt tken
+  const isAuthenticated = localStorage.getItem("authToken") !== null;
   console.log("authenticate:", isAuthenticated);
-  
+
   // Hàm reload Navbar khi có thay đổi
   const reloadNavbar = () => {
     setNavbarKey((prevKey) => prevKey + 1);
   };
-  
+
   useEffect(() => {
     reloadNavbar(); // Gọi reload Navbar khi location thay đổi
   }, [location]);
-  
+
   // khong hien sidebar
   const noSidebarPages = [
     "/login",
@@ -84,7 +85,7 @@ function Layout() {
     "/",
     "/uploadtutorcertificate/:userId",
     "/homescreen",
-    "/introduce"
+    "/introduce",
   ];
 
   // kt url
@@ -92,13 +93,13 @@ function Layout() {
   // neu nhu token co thi se la false
   // neu nhu token khong co thi se la true
   const shouldHideSidebar = () => {
-    if (!isAuthenticated) return true; 
-    
+    if (!isAuthenticated) return true;
+
     // Kiểm tra xem đường dẫn hiện tại có khớp với bất kỳ đường dẫn nào trong danh sách không
-    return noSidebarPages.some(path => {
+    return noSidebarPages.some((path) => {
       // Xử lý cho các đường dẫn có tham số
-      if (path.includes(':')) {
-        const pathPattern = path.replace(/:\w+/g, '[^/]+');
+      if (path.includes(":")) {
+        const pathPattern = path.replace(/:\w+/g, "[^/]+");
         const regex = new RegExp(`^${pathPattern}$`);
         return regex.test(location.pathname);
       }
@@ -144,6 +145,10 @@ function Layout() {
             <Route path="/deposit-history" element={<DepositHistory />} />
 
             <Route path="/withdrawal-history" element={<WithdrawalHistory />} />
+            <Route
+              path="/purchased-course-detail/:id"
+              element={<PurchasedCourseDetail />}
+            />
             <Route
               path="/wallet-manage-for-admin"
               element={<WalletManageForAdmin />}
