@@ -5,6 +5,7 @@ const whitelist = [
   "http://localhost:3000",
   "http://localhost:3001",
   "https://localhost:3443",
+  "https://multicourse.onrender.com",
 ];
 
 const corsOptionsDelegate = (req, callback) => {
