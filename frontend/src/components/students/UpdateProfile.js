@@ -70,6 +70,7 @@ const UpdateProfile = () => {
       [name]: value,
     });
   };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -78,6 +79,12 @@ const UpdateProfile = () => {
       setErrorMessage("Please log in to update your profile.");
       return;
     }
+    // Kiểm tra số điện thoại chỉ chứa chữ số và có độ dài hợp lệ (ví dụ: 10-11 số ở VN)
+  const phoneRegex = /^[0-9]{9,11}$/;
+  if (!phoneRegex.test(formData.phone)) {
+    toast.error("Invalid phone number. Please enter numbers only (9-11 digits).");
+    return;
+  }
     const selectedDate = new Date(formData.birthday);
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Đặt giờ về 0 để so sánh chính xác
