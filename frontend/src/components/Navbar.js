@@ -298,7 +298,7 @@ const Navbar = () => {
                   className="ml-3 bg-blue-500 hover:bg-blue-600 text-white"
                   onClick={() => debouncedNavigate("/deposit")}
                 >
-                  Top Up
+                  Deposit
                 </Button>
               )}
             </div>
