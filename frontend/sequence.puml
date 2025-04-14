@@ -1,0 +1,43 @@
+@startuml
+class UserRouter {
+  + POST /update-profile
+  - cors.corsWithOptions
+  - auth.verifyUser
+  - userController.updateUser
+}
+
+class UserController {
+  + updateUser(req, res): void
+  - Find user by ID (req.user._id)
+  - Update user fields: fullname, phone, address, birthday, gender
+  - Save updated user
+  - Return success or error
+}
+
+class UserModel {
+  - googleId: String (optional)
+  - fullname: String
+  - email: String
+  - phone: String
+  - gender: String (Male/Female/Other)
+  - birthday: Date
+  - address: String
+  - avatar: String (optional)
+  - role: String (Student/Admin/Tutor)
+  - tutor_certificates: Array
+  - resetPasswordOTP: String
+  - resetPasswordExpires: Date
+  - bankAccount: Array
+  - status: Boolean
+  + save(): Promise<void>
+  + findOne(query): Promise<User>
+}
+
+class Database {
+  - Stores user data
+}
+
+UserRouter --> UserController
+UserController --> UserModel
+UserModel --> Database
+@enduml

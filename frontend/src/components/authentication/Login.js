@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -15,7 +16,7 @@ const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState(""); // Cho thông báo tài khoản/mật khẩu
+  const [error, setError] = useState(""); // Cho thông báo tài khoản/mật khẩucd
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [captcha, setCaptcha] = useState(generateCaptcha());
@@ -131,7 +132,7 @@ const Login = () => {
       return;
     }
     if (userCaptcha !== captcha) {
-      setError("CAPTCHA không chính xác!");
+      setError("CAPTCHA error");
       setCaptcha(generateCaptcha()); // Tạo CAPTCHA mới nếu sai
       setUserCaptcha(""); // Xóa input CAPTCHA
       return;

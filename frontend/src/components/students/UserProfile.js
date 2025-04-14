@@ -3,19 +3,26 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { FaEye, FaEyeSlash, FaGoogle, FaRedo } from "react-icons/fa";
+
 const UserProfile = () => {
   const [userData, setUserData] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [fullname, setFullname] = useState("User");
+  const [successMessage, setSuccessMessage] = useState("");
+
   const [avatarUrl, setAvatarUrl] = useState(""); // Đường dẫn avatar
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
-  const recaptchaRef = useRef(null);
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Fetch user data
   const fetchUserProfile = async () => {
@@ -98,9 +105,24 @@ const UserProfile = () => {
       setLoading(false);
     }
   };
+
   const handleChangePassword = async () => {
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      toast.error("Password fields cannot be left blank.");
+      return;
+    }
+
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?#&])[A-Za-z\d@$!%*?#&]{6,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      toast.error(
+        "New password must be at least 6 characters, including uppercase, lowercase, numbers and special characters."
+      );
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
-      setError("New password and confirmation do not match.");
+      toast.error("Confirmation password does not match.");
       return;
     }
 
@@ -120,18 +142,21 @@ const UserProfile = () => {
           },
         }
       );
-
-      if (response.data && response.data.success) {
-        alert("Password has been changed successfully.");
-        setShowChangePasswordModal(false);
-      } else {
-        setError(
-          response.data.message ||
-            "Unable to change password. Please try again."
-        );
+      if (response.status === 200) {
+        toast.success("Password changed successfully!");
+        setTimeout(() => {
+          setShowChangePasswordModal(false);
+          setOldPassword("");
+          setNewPassword("");
+          setConfirmPassword("");
+        }, 500); // delay 0.5s
       }
     } catch (err) {
-      setError("An error occurred while changing the password.");
+      if (err.response && err.response.status === 400) {
+        toast.error("Old password is incorrect.");
+      } else {
+        toast.error("An error occurred while changing password.");
+      }
     } finally {
       setLoading(false);
     }
@@ -193,207 +218,221 @@ const UserProfile = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white shadow-xl rounded-lg transition-all hover:shadow-2xl">
-      <h2 className="text-4xl font-extrabold text-gray-800 mb-6 text-center relative">
-        <span className="bg-gradient-to-r from-teal-500 to-blue-500 text-transparent bg-clip-text">
-          User Information
-        </span>
-        <div className="w-16 h-1 bg-teal-500 mx-auto mt-2 rounded-full"></div>
-      </h2>
+    <>
+      <div className="max-w-4xl mx-auto p-6 bg-white shadow-xl rounded-lg transition-all hover:shadow-2xl">
+        <h2 className="text-4xl font-extrabold text-gray-800 mb-6 text-center relative">
+          <span className="bg-gradient-to-r from-teal-500 to-blue-500 text-transparent bg-clip-text">
+            User Information
+          </span>
+          <div className="w-16 h-1 bg-teal-500 mx-auto mt-2 rounded-full"></div>
+        </h2>
+        {userData ? (
+          <div className="flex flex-col items-center mb-6 space-y-4">
+            <label htmlFor="avatar-upload" className="cursor-pointer relative">
+              {/* Hiển thị spinner khi loading */}
+              {loading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-200 bg-opacity-50 rounded-full">
+                  <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              )}
 
-      {userData ? (
-        <div className="flex flex-col items-center mb-6 space-y-4">
-          <label htmlFor="avatar-upload" className="cursor-pointer relative">
-            {/* Hiển thị spinner khi loading */}
-            {loading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-200 bg-opacity-50 rounded-full">
-                <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            )}
+              {/* Avatar */}
+              <img
+                src={userData.avatar || "/default-avatar.png"}
+                alt="Avatar"
+                className={`w-24 h-24 rounded-full object-cover shadow-lg transition-transform transform hover:scale-105 ${
+                  loading ? "opacity-50" : ""
+                }`}
+              />
+            </label>
 
-            {/* Avatar */}
-            <img
-              src={userData.avatar || "/default-avatar.png"}
-              alt="Avatar"
-              className={`w-24 h-24 rounded-full object-cover shadow-lg transition-transform transform hover:scale-105 ${
-                loading ? "opacity-50" : ""
-              }`}
+            {/* Input file ẩn */}
+            <input
+              id="avatar-upload"
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarChange}
+              className="hidden"
             />
-          </label>
-
-          {/* Input file ẩn */}
-          <input
-            id="avatar-upload"
-            type="file"
-            accept="image/*"
-            onChange={handleAvatarChange}
-            className="hidden"
-          />
-
-          {/* Thông tin người dùng */}
-          <div className="text-center space-y-2">
-            <p className="text-2xl font-bold text-gray-800">
-              {userData.fullname || "User's Name"}
-            </p>
-            <p className="text-lg text-gray-500">
-              {userData.birthday
-                ? new Date(userData.birthday).toLocaleDateString()
-                : "DD/MM/YYYY"}
-            </p>
-          </div>
-        </div>
-      ) : (
-        <p className="text-gray-500">No user information available.</p>
-      )}
-
-      {userData && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6 rounded-lg shadow-md">
-          {/* Cột 1 */}
-          <div className="space-y-3">
-            <div className="flex items-center space-x-2">
-              <span className="font-semibold text-gray-700">📧 Email:</span>
-              <span className="text-gray-600">{userData.email}</span>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <span className="font-semibold text-gray-700">📞 Phone:</span>
-              <span className="text-gray-600">
-                {userData.phone || "Not updated"}
-              </span>
-            </div>
-
-            <div className="ml-1 flex items-center space-x-2">
-              <span className="text-2xl">⚥</span>{" "}
-              <span className="font-semibold text-gray-700">Gender:</span>
-              <span className="text-gray-600">
-                {userData.gender || "Not specified"}
-              </span>
+            {/* Thông tin người dùng */}
+            <div className="text-center space-y-2">
+              <p className="text-2xl font-bold text-gray-800">
+                {userData.fullname || "User's Name"}
+              </p>
+              <p className="text-lg text-gray-500">
+                {userData.birthday
+                  ? new Date(userData.birthday).toLocaleDateString()
+                  : "DD/MM/YYYY"}
+              </p>
             </div>
           </div>
-
-          <div className="space-y-3">
-            <div className="flex items-center space-x-2">
-              <span className="font-semibold text-gray-700">🔰 Role:</span>
-              <span className="text-gray-600">{userData.role || "N/A"}</span>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <span className="font-semibold text-gray-700">⚡ Status:</span>
-              <span
-                className={`${
-                  userData.status ? "text-green-600" : "text-red-600"
-                } font-semibold`}
-              >
-                {userData.status ? "Active" : "Inactive"}
-              </span>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="font-semibold text-gray-700 whitespace-nowrap">
-                📍 Address:
-              </span>
-              <span className="text-gray-600 break-words">
-                {userData.address || "Not updated"}
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="mt-6 text-center">
-        <button
-          className="px-6 py-2 bg-teal-500 text-white rounded-full hover:bg-teal-600 focus:outline-none"
-          onClick={() => navigate(`/updateprofile/${userData._id}`)} // Truyền ID vào URL
-        >
-          Edit Profile
-        </button>
-
-        <button
-          className="ml-4 px-6 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:outline-none"
-          onClick={() => setShowChangePasswordModal(true)} // Show pop-up when clicked
-        >
-          Change Password
-        </button>
-        <button
-          className="ml-4 px-6 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 focus:outline-none"
-          onClick={logout} // Add logout functionality
-        >
-          Logout
-        </button>
-        {userData?.role === "Tutor" && (
-          <button
-            className="ml-4 px-6 py-2 bg-green-500 text-white rounded-full hover:bg-green-600 focus:outline-none"
-            onClick={() => navigate("/certificate")}
-          >
-            Certificate
-          </button>
+        ) : (
+          <p className="text-gray-500">No user information available.</p>
         )}
-      </div>
+        {userData && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6 rounded-lg shadow-md">
+            {/* Cột 1 */}
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <span className="font-semibold text-gray-700">📧 Email:</span>
+                <span className="text-gray-600">{userData.email}</span>
+              </div>
 
-      {/* Change password pop-up */}
-      {showChangePasswordModal && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h3 className="text-xl font-bold mb-4">Change Password</h3>
+              <div className="flex items-center space-x-2">
+                <span className="font-semibold text-gray-700">📞 Phone:</span>
+                <span className="text-gray-600">
+                  {userData.phone || "Not updated"}
+                </span>
+              </div>
 
-            <div className="mb-4">
-              <label className="block text-sm font-semibold text-gray-700">
-                Old Password
-              </label>
-              <input
-                type="password"
-                value={oldPassword}
-                onChange={(e) => setOldPassword(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded"
-                placeholder="Enter old password"
-              />
+              <div className="ml-1 flex items-center space-x-2">
+                <span className="text-2xl">⚥</span>{" "}
+                <span className="font-semibold text-gray-700">Gender:</span>
+                <span className="text-gray-600">
+                  {userData.gender || "Not specified"}
+                </span>
+              </div>
             </div>
 
-            <div className="mb-4">
-              <label className="block text-sm font-semibold text-gray-700">
-                New Password
-              </label>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded"
-                placeholder="Enter new password"
-              />
-            </div>
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <span className="font-semibold text-gray-700">🔰 Role:</span>
+                <span className="text-gray-600">{userData.role || "N/A"}</span>
+              </div>
 
-            <div className="mb-4">
-              <label className="block text-sm font-semibold text-gray-700">
-                Confirm New Password
-              </label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded"
-                placeholder="Confirm new password"
-              />
-            </div>
-
-            {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-
-            <div className="flex justify-between">
-              <button
-                className="px-4 py-2 bg-teal-500 text-white rounded"
-                onClick={handleChangePassword}
-              >
-                Save
-              </button>
-              <button
-                className="px-4 py-2 bg-gray-500 text-white rounded"
-                onClick={() => setShowChangePasswordModal(false)}
-              >
-                Cancel
-              </button>
+              <div className="flex items-center space-x-2">
+                <span className="font-semibold text-gray-700">⚡ Status:</span>
+                <span
+                  className={`${
+                    userData.status ? "text-green-600" : "text-red-600"
+                  } font-semibold`}
+                >
+                  {userData.status ? "Active" : "Inactive"}
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="font-semibold text-gray-700 whitespace-nowrap">
+                  📍 Address:
+                </span>
+                <span className="text-gray-600 break-words">
+                  {userData.address || "Not updated"}
+                </span>
+              </div>
             </div>
           </div>
+        )}
+        <div className="mt-6 text-center">
+          <button
+            className="px-6 py-2 bg-teal-500 text-white rounded-full hover:bg-teal-600 focus:outline-none"
+            onClick={() => navigate(`/updateprofile/${userData._id}`)} // Truyền ID vào URL
+          >
+            Edit Profile
+          </button>
+
+          <button
+            className="ml-4 px-6 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:outline-none"
+            onClick={() => setShowChangePasswordModal(true)} // Show pop-up when clicked
+          >
+            Change Password
+          </button>
+          <button
+            className="ml-4 px-6 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 focus:outline-none"
+            onClick={logout} // Add logout functionality
+          >
+            Logout
+          </button>
+          {userData?.role === "Tutor" && (
+            <button
+              className="ml-4 px-6 py-2 bg-green-500 text-white rounded-full hover:bg-green-600 focus:outline-none"
+              onClick={() => navigate("/certificate")}
+            >
+              Certificate
+            </button>
+          )}
         </div>
-      )}
-    </div>
+        {/* Change password pop-up */}
+        {showChangePasswordModal && (
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+              <h3 className="text-xl font-bold mb-4">Change Password</h3>
+
+              <div className="mb-4 relative">
+                <label className="block text-sm font-semibold text-gray-700">
+                  Old Password
+                </label>
+                <input
+                  type={showOldPassword ? "text" : "password"}
+                  value={oldPassword}
+                  onChange={(e) => setOldPassword(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded"
+                  placeholder="Enter old password"
+                />
+                <span
+                  onClick={() => setShowOldPassword(!showOldPassword)}
+                  className="absolute right-3 top-[65%] transform -translate-y-1/2 text-gray-600 cursor-pointer"
+                >
+                  {showOldPassword ? <FaEyeSlash /> : <FaEye />}
+                </span>
+              </div>
+
+              <div className="mb-4 relative">
+                <label className="block text-sm font-semibold text-gray-700">
+                  New Password
+                </label>
+                <input
+                  type={showNewPassword ? "text" : "password"}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded"
+                  placeholder="Enter new password"
+                />
+                <span
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                  className="absolute right-3 top-[65%] transform -translate-y-1/2 text-gray-600 cursor-pointer"
+                >
+                  {showNewPassword ? <FaEyeSlash /> : <FaEye />}
+                </span>
+              </div>
+
+              <div className="mb-4 relative">
+                <label className="block text-sm font-semibold text-gray-700">
+                  Confirm New Password
+                </label>
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded"
+                  placeholder="Confirm new password"
+                />
+                <span
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-[65%] transform -translate-y-1/2 text-gray-600 cursor-pointer"
+                >
+                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                </span>
+              </div>
+
+              <div className="flex justify-between">
+                <button
+                  className="px-4 py-2 bg-teal-500 text-white rounded"
+                  onClick={handleChangePassword}
+                >
+                  Save
+                </button>
+                <button
+                  className="px-4 py-2 bg-gray-500 text-white rounded"
+                  onClick={() => setShowChangePasswordModal(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}{" "}
+      </div>
+      <ToastContainer /> {/* <- Thêm ở đây */}
+    </>
   );
 };
 
