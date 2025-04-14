@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -148,8 +147,11 @@ const Login = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/ ",
-        { username, password }
+        "http://localhost:3000/api/users/login ",
+        {
+          username,
+          password,
+        }
       );
 
       if (response.status === 200) {
