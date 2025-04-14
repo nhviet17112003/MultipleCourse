@@ -47,15 +47,8 @@ const DetailCourse = () => {
         );
         const data = await response.json();
         if (response.ok) {
+          console.log(data.courseDetail); // Debugging: Log the course details
           setCourse(data.courseDetail);
-
-          if (
-            data.courseDetail.comments.some(
-              (comment) => comment.author === fullname
-            )
-          ) {
-            setHasCommented(true);
-          }
         } else {
           console.error("Error fetching course detail:", data.message);
         }
@@ -67,6 +60,38 @@ const DetailCourse = () => {
     };
     fetchCourseDetail();
   }, [id, fullname]);
+
+
+  useEffect(() => {
+    const fetchTutorDetails = async () => {
+      if (course?.tutor) {
+        // console.log("đấ", course.tutor)
+        try {
+          const response = await fetch(
+            `http://localhost:3000/api/users/profile/${course.tutor}`,
+          );
+          console.log("Response Status:", response.status); // Kiểm tra trạng thái phản hồi
+          const data = await response.json();
+          console.log("Tutor Data:", data); // Kiểm tra dữ liệu trả về
+          if (response.ok) {
+            setCourse((prevCourse) => ({
+              ...prevCourse,
+              tutorName: data.fullname,
+              tutorAvatar: data.avatar,
+            }));
+            console.log("Response Status:", response.status); // Phải là 200
+            console.log("Tutor Data:", data); // Phải chứa fullname và avatar/ Kiểm tra avatar giảng viên
+          } else {
+            console.error("Error fetching tutor details:", data.message);
+          }
+        } catch (error) {
+          console.error("Error fetching tutor details:", error);
+        }
+      }
+    };
+  
+    fetchTutorDetails();
+  }, [course]);
 
   const handleAddToCart = async (courseId) => {
     const newCartCount = cartCount + 1;
@@ -179,11 +204,9 @@ const DetailCourse = () => {
                 alt={course.title}
                 className="w-full h-80 object-cover rounded-xl shadow-md transition duration-500 group-hover:scale-105 group-hover:shadow-lg"
               />
-              <div className="absolute top-2 left-2 bg-teal-600 text-white px-3 py-1 rounded-full text-xs uppercase font-semibold shadow-md">
-                {course.category}
-              </div>
             </div>
-            <div className="mt-6 md:mt-0">
+            
+            <div className="mt-6 md:mt-0 relative">
               <h2 className="text-4xl font-extrabold text-teal-700">
                 {course.title}
               </h2>
@@ -191,24 +214,48 @@ const DetailCourse = () => {
                 {course.description}
               </p>
 
-              <div className="mt-6 flex justify-between items-center">
-                <p className="text-3xl text-teal-800 font-semibold">
-                  {course.price} VNĐ
-                </p>
-                <p className="text-sm text-gray-500 italic">
-                  Created on: {new Date(course.createAt).toLocaleDateString()}
-                </p>
+              {/* Category */}
+              <div className="mt-4 flex items-center space-x-2">
+                <span className="bg-gradient-to-r from-green-400 to-teal-500 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-md">
+                  {course.category}
+                </span>
               </div>
 
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleAddToCart(course._id);
-                }}
-                className="mt-6 bg-gradient-to-r from-teal-500 to-teal-700 text-white py-3 px-8 rounded-lg text-lg font-semibold shadow-md hover:shadow-lg transition-transform transform hover:scale-105"
-              >
-                Add to Cart
-              </button>
+              <div className="mt-6 flex justify-between items-center">
+  <p className="text-3xl text-teal-800 font-semibold">
+    {course.price} VNĐ
+  </p>
+  <p className="text-sm text-gray-500 italic">
+    Created on: {new Date(course.createAt).toLocaleDateString()}
+  </p>
+</div>
+
+{/* Tutor Details */}
+{course.tutor && (
+  <div className="flex items-center space-x-4">
+    <img
+      src={course.tutor.avatar || "default-avatar.png"} // Fallback nếu không có avatar
+      alt={course.tutor.fullname || "Unknown Tutor"}
+      className="w-12 h-12 rounded-full shadow-md"
+    />
+    <p className="text-lg text-gray-700 font-medium">
+      Tutor: <span className="text-teal-700 font-semibold">{course.tutor.fullname}</span>
+    </p>
+  </div>
+)}
+
+              {/* Add to Cart Button */}
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAddToCart(course._id);
+                  }}
+                  className="bg-gradient-to-r from-teal-500 to-teal-700 text-white py-3 px-8 rounded-lg text-lg font-semibold shadow-md hover:shadow-lg transition-transform transform hover:scale-105"
+                >
+                  Add to Cart
+                </button>
+              </div>
             </div>
           </div>
         ) : (

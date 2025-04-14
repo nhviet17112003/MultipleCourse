@@ -146,13 +146,10 @@ const Login = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await axios.post(
-        "http://localhost:3000/api/users/login ",
-        {
-          username,
-          password,
-        }
-      );
+      const response = await axios.post("http://localhost:3000/ ", {
+        username,
+        password,
+      });
 
       if (response.status === 200) {
         const { user_id, token, role, fullname, status, tutor_certificates } =
