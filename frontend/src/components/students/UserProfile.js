@@ -143,13 +143,12 @@ const UserProfile = () => {
         }
       );
 
-      if (response.data && response.data.success) {
-        toast.success("Đổi mật khẩu thành công!");
+      if (response.status === 200) {
+        toast.success("Password changed successfully!");
         setShowChangePasswordModal(false);
-      } else {
-        toast.error(
-          response.data.message || "Unable to change password. Please try again."
-        );
+        setOldPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
       }
     } catch (err) {
       if (err.response && err.response.status === 400) {
@@ -254,7 +253,6 @@ const UserProfile = () => {
               onChange={handleAvatarChange}
               className="hidden"
             />
-
             {/* Thông tin người dùng */}
             <div className="text-center space-y-2">
               <p className="text-2xl font-bold text-gray-800">
