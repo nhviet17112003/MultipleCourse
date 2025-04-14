@@ -110,9 +110,9 @@ const ForgetPassword = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-b from-green-100 to-green-200">
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-b from-cyan-500 to-blue-500">
     <div className="bg-white p-10 rounded-lg shadow-xl w-full max-w-md">
-      <h2 className="text-3xl font-bold text-center mb-8 text-green-600">
+      <h2 className="text-3xl font-bold text-center mb-8 text-white">
         {step === 1 && "Forgot Password"}
         {step === 2 && "OTP Confirmation"}
         {step === 3 && "Success!"}
@@ -123,11 +123,11 @@ const ForgetPassword = () => {
         </div>
       )}
       {successMessage && (
-        <div className="bg-green-100 text-green-700 py-3 px-5 mb-6 rounded border border-green-300">
+        <div className="bg-cyan-100 text-cyan-700 py-3 px-5 mb-6 rounded border border-cyan-300">
           {successMessage}
         </div>
       )}
-  
+
       {step === 1 && (
         <div>
           <label
@@ -139,7 +139,7 @@ const ForgetPassword = () => {
           <input
             type="email"
             id="email"
-            className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Your email"
@@ -147,13 +147,13 @@ const ForgetPassword = () => {
           />
           <button
             onClick={handleSendEmail}
-            className="mt-6 w-full bg-green-500 text-white py-3 rounded hover:bg-green-600 transition duration-200"
+            className="mt-6 w-full bg-cyan-500 text-white py-3 rounded hover:bg-cyan-600 transition duration-200"
           >
             Send OTP
           </button>
         </div>
       )}
-  
+
       {step === 2 && (
         <div>
           <label
@@ -165,13 +165,13 @@ const ForgetPassword = () => {
           <input
             type="text"
             id="otp"
-            className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
             value={otp}
             onChange={(e) => setOtp(e.target.value)}
             placeholder="Enter your OTP"
             required
           />
-  
+
           <label
             htmlFor="newPassword"
             className="block text-sm font-medium text-gray-700 mb-2"
@@ -181,13 +181,13 @@ const ForgetPassword = () => {
           <input
             type="password"
             id="newPassword"
-            className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             placeholder="Enter new password"
             required
           />
-  
+
           <label
             htmlFor="confirmPassword"
             className="block text-sm font-medium text-gray-700 mb-2"
@@ -197,21 +197,21 @@ const ForgetPassword = () => {
           <input
             type="password"
             id="confirmPassword"
-            className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder="Confirm new password"
             required
           />
-  
+
           <button
             onClick={handleResetPassword}
-            className="mt-6 w-full bg-green-500 text-white py-3 rounded hover:bg-green-600 transition duration-200"
+            className="mt-6 w-full bg-cyan-500 text-white py-3 rounded hover:bg-cyan-600 transition duration-200"
             disabled={otpExpired}
           >
             Change Password
           </button>
-  
+
           {otpExpired && (
             <button
               onClick={handleResendOTP}
@@ -222,16 +222,16 @@ const ForgetPassword = () => {
           )}
         </div>
       )}
-  
+
       {step === 3 && (
         <div className="text-center">
-          <FaCheckCircle className="text-green-500 text-6xl mx-auto mb-6" />
+          <FaCheckCircle className="text-cyan-500 text-6xl mx-auto mb-6" />
           <p className="text-lg text-gray-700 mb-6">
             Your password has been changed successfully!
           </p>
           <button
             onClick={handleGoToLogin}
-            className="w-full bg-green-500 text-white py-3 rounded hover:bg-green-600 transition duration-200"
+            className="w-full bg-cyan-500 text-white py-3 rounded hover:bg-cyan-600 transition duration-200"
           >
             Back to Login page
           </button>
@@ -239,6 +239,7 @@ const ForgetPassword = () => {
       )}
     </div>
   </div>
+
   );
 };
 
