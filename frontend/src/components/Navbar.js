@@ -262,12 +262,21 @@ const Navbar = () => {
             >
               Home Page
             </button>
-            <button
-              className="hover:text-teal-500 transition-all duration-300"
-              onClick={() => debouncedNavigate("/course-list")}
-            >
-              Course List
-            </button>
+            {role === "Admin" ? (
+              <button
+                className="hover:text-teal-500 transition-all duration-300"
+                onClick={() => debouncedNavigate("/statistic-for-admin")}
+              >
+                Dashboard
+              </button>
+            ) : (
+              <button
+                className="hover:text-teal-500 transition-all duration-300"
+                onClick={() => debouncedNavigate("/course-list")}
+              >
+                Course List
+              </button>
+            )}
             <button
               className="hover:text-teal-500 transition-all duration-300"
               onClick={() => debouncedNavigate("/contact")}
