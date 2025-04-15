@@ -25,7 +25,7 @@ const ForgetPassword = () => {
     if (step === 2) {
       setOtpExpired(false);
       setTimer(200);
-
+  
       const countdown = setInterval(() => {
         setTimer((prev) => {
           if (prev === 1) {
@@ -33,14 +33,20 @@ const ForgetPassword = () => {
             setOtpExpired(true);
             setStep(1); // Quay về bước nhập email
             setError("OTP has expired. Please re-enter your email.");
+  
+            // 👇 Thêm timeout để xóa thông báo sau 3 giây
+            setTimeout(() => {
+              setError("");
+            }, 3000);
           }
           return prev - 1;
         });
       }, 1000);
-
+  
       return () => clearInterval(countdown);
     }
   }, [step]);
+  
   const showSuccess = (message) => {
     setSuccessMessage(message);
     setTimeout(() => setSuccessMessage(""), 3000);
@@ -77,24 +83,28 @@ const ForgetPassword = () => {
   };
 
   const handleResetPassword = async () => {
+    const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&_-])[A-Za-z\d@$!%*?&_-]{8,}$/;
+  
     if (!otp || otp.trim() === "") {
       return showError("OTP is required.");
     }
-
-    if (!newPassword || newPassword.length < 6) {
-      return showError("Password must be at least 6 characters.");
+  
+    if (!passwordRegex.test(newPassword)) {
+      return showError(
+        "Password must be at least 8 characters, contain uppercase, lowercase, numbers and special characters."
+      );
     }
-
+  
     if (newPassword !== confirmPassword) {
       return showError("Passwords do not match.");
     }
-
+  
     try {
       const response = await axios.post(
         "http://localhost:3000/api/users/reset-password",
         { otp, newPassword }
       );
-
+  
       if (response.status === 200) {
         showSuccess(response.data.message);
         setStep(3);
