@@ -55,7 +55,7 @@ const ViewCertificate = () => {
         }
       );
       setCertificates(response.data.certificates);
-      toast.success("Certificates fetched successfully!");
+
     } catch (err) {
       toast.error("Error fetching certificates:", err);
       setError("Could not fetch certificates. Please try again!");
@@ -84,7 +84,7 @@ const ViewCertificate = () => {
         }
       );
       setCertificates(certificates.filter((cert) => cert._id !== id));
-      toast.success("Xóa chứng chỉ thành công!");
+      toast.success("Delete certificate successfully!");
     } catch (error) {
       toast.error("Không thể xóa chứng chỉ, vui lòng thử lại!");
     }
