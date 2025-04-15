@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const ViewCertificate = () => {
@@ -55,8 +55,9 @@ const ViewCertificate = () => {
         }
       );
       setCertificates(response.data.certificates);
+
     } catch (err) {
-      console.error("❌ Error fetching certificates:", err);
+      toast.error("Error fetching certificates:", err);
       setError("Could not fetch certificates. Please try again!");
     } finally {
       setLoading(false);
@@ -83,7 +84,7 @@ const ViewCertificate = () => {
         }
       );
       setCertificates(certificates.filter((cert) => cert._id !== id));
-      toast.success("Xóa chứng chỉ thành công!");
+      toast.success("Delete certificate successfully!");
     } catch (error) {
       toast.error("Không thể xóa chứng chỉ, vui lòng thử lại!");
     }
@@ -138,7 +139,9 @@ const ViewCertificate = () => {
           ))}
         </ul>
       )}
+        <ToastContainer/>
     </div>
+  
   );
 };
 

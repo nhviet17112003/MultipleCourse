@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
@@ -19,16 +19,27 @@ const Signup = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [termsError, setTermsError] = useState("");
   const [emailExists, setEmailExists] = useState(false); // Trạng thái kiểm tra email
-  const [agreeTerms, setAgreeTerms] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false); // Hiển thị popup
   const location = useLocation();
   const navigate = useNavigate();
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+  const [showAccept, setShowAccept] = useState(false);
+  const [canAccept, setCanAccept] = useState(false);
+  const scrollRef = useRef(null);
   const initialRole = location.state?.role || "Student"; // Nếu không có thì mặc định là Student
   const [role, setRole] = useState(initialRole);
-  const handleViewTerms = () => {
-    alert(
-      "Terms and Rules: \n1. Do not share login information.\n2. Respect other users.\n3. Comply with system regulations."
-    );
+  const handleScroll = () => {
+    const element = scrollRef.current;
+    if (element.scrollTop + element.clientHeight >= element.scrollHeight - 2) {
+      setCanAccept(true);
+    }
+  };
+
+  const handleAccept = () => {
+    if (!canAccept) return; // không cho bấm khi chưa scroll hết
+    setAgreeTerms(true);
+    setShowPopup(false);
   };
 
   useEffect(() => {
@@ -177,7 +188,7 @@ const Signup = () => {
     <div className="flex justify-center items-center min-h-screen bg-gray-100 relative">
       {/* Popup thông báo */}
       {showSuccessPopup && (
-        <div className="absolute top-10 bg-teal-500 text-white py-4 px-6 rounded-lg shadow-lg animate-fadeIn">
+        <div className="absolute top-10 bg-cyan-500 text-white py-4 px-6 rounded-lg shadow-lg animate-fadeIn">
           Sign up successfully. Redirecting to login page...
         </div>
       )}
@@ -186,7 +197,7 @@ const Signup = () => {
         onSubmit={handleSubmit}
         className="bg-white p-8 rounded-lg shadow-md w-full max-w-4xl"
       >
-        <h2 className="text-3xl font-semibold text-center mb-6 text-green-600">
+        <h2 className="text-3xl font-semibold text-center mb-6 text-cyan-500">
           Welcome new {role}
         </h2>
 
@@ -216,7 +227,7 @@ const Signup = () => {
               id="fullname"
               value={fullname}
               onChange={(e) => setFullname(e.target.value)}
-              className="mt-2 p-3 w-full border border-green-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm"
+              className="mt-2 p-3 pr-10 w-full border border-cyan-500 rounded-full focus:outline-none focus:ring-2 focus:ring-cyan-500 shadow-sm"
               required
             />
           </div>
@@ -233,7 +244,7 @@ const Signup = () => {
               id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="mt-2 p-3 w-full border border-green-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm"
+              className="mt-2 p-3 pr-10 w-full border border-cyan-500 rounded-full focus:outline-none focus:ring-2 focus:ring-cyan-500 shadow-sm"
               required
             />
           </div>
@@ -250,7 +261,7 @@ const Signup = () => {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-2 p-3 w-full border border-green-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm"
+              className="mt-2 p-3 pr-10 w-full border border-cyan-500 rounded-full focus:outline-none focus:ring-2 focus:ring-cyan-500 shadow-sm"
               required
             />
           </div>
@@ -267,7 +278,7 @@ const Signup = () => {
               id="phone"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="mt-2 p-3 w-full border border-green-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm"
+              className="mt-2 p-3 pr-10 w-full border border-cyan-500 rounded-full focus:outline-none focus:ring-2 focus:ring-cyan-500 shadow-sm"
               required
             />
           </div>
@@ -283,7 +294,7 @@ const Signup = () => {
               id="gender"
               value={gender}
               onChange={(e) => setGender(e.target.value)}
-              className="mt-2 p-3 w-full border border-green-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm"
+              className="mt-2 p-3 pr-10 w-full border border-cyan-500 rounded-full focus:outline-none focus:ring-2 focus:ring-cyan-500 shadow-sm"
               required
             >
               <option value="">Select gender</option>
@@ -305,7 +316,7 @@ const Signup = () => {
               id="birthday"
               value={birthday}
               onChange={(e) => setBirthday(e.target.value)}
-              className="mt-2 p-3 w-full border border-green-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm"
+              className="mt-2 p-3 pr-10 w-full border border-cyan-500 rounded-full focus:outline-none focus:ring-2 focus:ring-cyan-500 shadow-sm"
               required
             />
           </div>
@@ -322,7 +333,7 @@ const Signup = () => {
               id="address"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              className="mt-2 p-3 w-full border border-green-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm"
+              className="mt-2 p-3 pr-10 w-full border border-cyan-500 rounded-full focus:outline-none focus:ring-2 focus:ring-cyan-500 shadow-sm"
               required
             />
           </div>
@@ -336,7 +347,7 @@ const Signup = () => {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-2 p-3 w-full border border-green-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm"
+                className="mt-2 p-3 pr-10 w-full border border-cyan-500 rounded-full focus:outline-none focus:ring-2 focus:ring-cyan-500 shadow-sm"
                 placeholder="Nhập mật khẩu"
               />
               <span
@@ -359,7 +370,7 @@ const Signup = () => {
               <input
                 type={showConfirmPassword ? "text" : "password"}
                 id="confirmPassword"
-                className="mt-2 p-3 w-full border border-green-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm"
+                className="mt-2 p-3 pr-10 w-full border border-cyan-500 rounded-full focus:outline-none focus:ring-2 focus:ring-cyan-500 shadow-sm"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Xác nhận mật khẩu"
@@ -374,24 +385,80 @@ const Signup = () => {
           </div>
         </div>
 
-        <div className="flex items-center mb-4">
-          <input
-            type="checkbox"
-            id="agreeTerms"
-            className="mr-2"
-            checked={agreeTerms}
-            onChange={(e) => setAgreeTerms(e.target.checked)}
-          />
-          <label htmlFor="agreeTerms" className="text-sm text-gray-600">
-            I agree to the
-            <button
-              type="button"
-              className="text-green-500 hover:underline focus:outline-none ml-1"
-              onClick={handleViewTerms}
-            >
-              terms
-            </button>
-          </label>
+        <div>
+          {/* Checkbox */}
+          <div className="flex items-center mb-4">
+            <input
+              type="checkbox"
+              id="agreeTerms"
+              className="mr-2"
+              checked={agreeTerms}
+              onChange={(e) => setAgreeTerms(e.target.checked)}
+            />
+            <label htmlFor="agreeTerms" className="text-sm text-gray-600">
+              Agree to the
+              <button
+                type="button"
+                className="text-cyan-500 hover:underline focus:outline-none ml-1"
+                onClick={() => setShowPopup(true)}
+              >
+                terms
+              </button>
+            </label>
+          </div>
+
+          {/* Popup */}
+          {showPopup && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+              <div className="bg-white p-6 rounded-lg w-96 max-h-[80vh] flex flex-col">
+                <h2 className="text-lg font-semibold mb-2">
+                  Điều khoản & Quy định
+                </h2>
+                <div
+                  ref={scrollRef}
+                  onScroll={handleScroll}
+                  className="overflow-y-auto mb-4 p-2 border border-gray-300 rounded h-48"
+                >
+                  <p className="text-sm text-gray-700">
+                    1. Do not share personal login information.
+                    <br />
+                    2. Respect other users.
+                    <br />
+                    3. Comply with the system's regulations.
+                    <br />
+                    4. Do not post offensive or illegal content.
+                    <br />
+                    5. Do not use your account to sabotage the system.
+                    <br />
+                    6. Strictly comply with the rules when participating in the
+                    system.
+                    <br />
+                    7. All violations will be strictly handled.
+                    <br />
+                    8. The system has the right to suspend accounts when
+                    necessary.
+                    <br />
+                    9. By continuing, you confirm that you have read and
+                    understood the terms.
+                    <br />
+                    10. ...
+                    <br />
+                  </p>
+                </div>
+                <button
+                  className={`px-4 py-2 rounded transition-all duration-300 ${
+                    canAccept
+                      ? "bg-cyan-500 text-white hover:bg-cyan-600 cursor-pointer opacity-100"
+                      : "bg-gray-300 text-gray-600 cursor-not-allowed opacity-50"
+                  }`}
+                  onClick={handleAccept}
+                  disabled={!canAccept}
+                >
+                  Accept
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {termsError && (
@@ -401,7 +468,7 @@ const Signup = () => {
         <button
           type="submit"
           //  className="border-2 border-green-500 text-green-500 rounded-full px-12 py-2 inline-block font-semibold hover:bg-green-500 hover:text-white"
-          className="mt-2 p-3 pr-10 w-full border border-green-500 rounded-full inline-block focus:outline-none focus:ring-2  hover:bg-green-500 hover:text-white"
+          className="mt-2 p-3 pr-10 w-full border border-cyan-500 rounded-full inline-block focus:outline-none focus:ring-2  hover:bg-cyan-500   hover:text-white"
         >
           SIGN UP
         </button>

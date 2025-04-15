@@ -23,7 +23,39 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
   const navigate = useNavigate();
   const [isCompleted, setIsCompleted] = useState(false);
   const [examScore, setExamScore] = useState(0);
+const [userProfile, setUserProfile] = useState(null);
+ 
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:3000/api/users/profile",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch user profile");
+        }
+
+        const data = await response.json();
+        console.log("User profile data:", data);
+        setUserProfile(data);
+      } catch (err) {
+        console.error("Error fetching user profile:", err);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
   useEffect(() => {
     const fetchProgress = async () => {
       if (!progressId) return;
@@ -151,6 +183,7 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
             Authorization: `Bearer ${localStorage.getItem("authToken")}`, // Token xác thực
           },
           body: JSON.stringify({
+            courseId, // ID của khóa học
             lessonId, // ID của bài học
             commentId, // ID của bình luận cần xóa
           }),
@@ -616,44 +649,41 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
                         </div>
                       </div>
 
-                      {currentLesson.comments &&
-                      currentLesson.comments.length > 0 ? (
-                        currentLesson.comments.map((comment) => (
-                          <div key={comment._id} className="p-4 border-b">
-                            <p className="text-sm  font-semibold">
-                              {comment.author}
-                            </p>
-                            <p className="text-gray-700">{comment.comment}</p>
-                            <div className="text-sm text-gray-500">
-                              {new Date(comment.date).toLocaleString()}
-                            </div>
+                      {currentLesson.comments && currentLesson.comments.length > 0 ? (
+  currentLesson.comments.map((comment) => (
+    <div key={comment._id} className="p-4 border-b">
+      <p className="text-sm font-semibold">{comment.author}</p>
+      <p className="text-gray-700">{comment.comment}</p>
+      <div className="text-sm text-gray-500">
+        {new Date(comment.date).toLocaleString()}
+      </div>
 
-                            <div className="flex gap-2 mt-2">
-                              <button
-                                onClick={() => {
-                                  const newComment = prompt(
-                                    "Edit your comment:",
-                                    comment.comment
-                                  );
-                                  if (newComment)
-                                    handleEditComment(comment._id, newComment);
-                                }}
-                                className="text-blue-500 hover:text-blue-700"
-                              >
-                                Edit
-                              </button>
-                              <button
-                                onClick={() => handleDeleteComment(comment._id)}
-                                className="text-red-500 hover:text-red-700"
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-gray-500">No comments yet.</p>
-                      )}
+      {/* Chỉ hiển thị nếu là comment của user hiện tại */}
+      {comment.author === userProfile?.fullname && (
+        <div className="flex gap-2 mt-2">
+          <button
+            onClick={() => {
+              const newComment = prompt("Edit your comment:", comment.comment);
+              if (newComment) handleEditComment(comment._id, newComment);
+            }}
+            className="text-blue-500 hover:text-blue-700"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => handleDeleteComment(comment._id)}
+            className="text-red-500 hover:text-red-700"
+          >
+            Delete
+          </button>
+        </div>
+      )}
+    </div>
+  ))
+) : (
+  <p className="text-gray-500">No comments yet.</p>
+)}
+
                     </div>
                   )}
                 </div>

@@ -142,13 +142,14 @@ const UserProfile = () => {
           },
         }
       );
-
       if (response.status === 200) {
         toast.success("Password changed successfully!");
-        setShowChangePasswordModal(false);
-        setOldPassword("");
-        setNewPassword("");
-        setConfirmPassword("");
+        setTimeout(() => {
+          setShowChangePasswordModal(false);
+          setOldPassword("");
+          setNewPassword("");
+          setConfirmPassword("");
+        }, 500); // delay 0.5s
       }
     } catch (err) {
       if (err.response && err.response.status === 400) {
