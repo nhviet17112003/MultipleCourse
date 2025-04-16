@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Swal from "sweetalert2";
 
 const ViewCertificate = () => {
   const navigate = useNavigate();
@@ -65,17 +66,25 @@ const ViewCertificate = () => {
   };
 
   const deleteCertificate = async (id) => {
-    const confirmDelete = window.confirm(
-      "Bạn có chắc chắn muốn xóa chứng chỉ này không?"
-    );
-    if (!confirmDelete) return;
-
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you really want to delete this certificate?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+    });
+  
+    if (!result.isConfirmed) return;
+  
     const token = localStorage.getItem("authToken");
     if (!token) {
-      toast.error("Token không tồn tại! Vui lòng đăng nhập lại.");
+      toast.error("Token not found! Please log in again.");
       return;
     }
-
+  
     try {
       await axios.delete(
         `http://localhost:3000/api/certificates/delete-tutor-certificate/${id}`,
@@ -84,11 +93,11 @@ const ViewCertificate = () => {
         }
       );
       setCertificates(certificates.filter((cert) => cert._id !== id));
-      toast.success("Delete certificate successfully!");
+      toast.success("Certificate deleted successfully!");
     } catch (error) {
-      toast.error("Không thể xóa chứng chỉ, vui lòng thử lại!");
+      toast.error("Failed to delete certificate. Please try again!");
     }
-  };
+  };  
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
