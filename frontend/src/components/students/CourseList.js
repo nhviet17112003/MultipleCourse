@@ -27,6 +27,7 @@ const CourseList = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [activeFilters, setActiveFilters] = useState([]);
   const [studentsCount, setStudentsCount] = useState({});
+  const [showLoginPopup, setShowLoginPopup] = useState(false);
 
   const categories = {
     "Business & Economics": [
@@ -280,6 +281,13 @@ const CourseList = () => {
   };
 
   const handleAddToCart = async (courseId) => {
+    const token = localStorage.getItem("authToken");
+
+    if (!token) {
+      setShowLoginPopup(true);
+      return;
+    }
+
     const newCartCount = cartCount + 1;
     setCartCount(newCartCount);
     localStorage.setItem("cartCount", newCartCount);
@@ -291,7 +299,7 @@ const CourseList = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -301,12 +309,6 @@ const CourseList = () => {
         toast.success("Add product to cart successfully", {
           position: "top-right",
           autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "colored",
         });
       } else {
         toast.error(`Lỗi: ${data.message}`, {
@@ -618,6 +620,35 @@ const CourseList = () => {
             </div>
           )}
         </div>
+        {showLoginPopup && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+            <div className="bg-white p-8 rounded-2xl shadow-xl w-[90%] max-w-md text-center">
+              <h2 className="text-2xl font-bold text-gray-800 mb-3">
+                Login Required
+              </h2>
+              <p className="text-gray-600 mb-6">
+                You need to log in to add products to your cart.
+              </p>
+              <div className="flex justify-center gap-4">
+                <button
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2 rounded-xl transition duration-200"
+                  onClick={() => {
+                    setShowLoginPopup(false);
+                    window.location.href = "/login"; // or use navigate("/login") if using react-router
+                  }}
+                >
+                  Login
+                </button>
+                <button
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium px-5 py-2 rounded-xl transition duration-200"
+                  onClick={() => setShowLoginPopup(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
