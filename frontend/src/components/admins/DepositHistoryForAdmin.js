@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { FaSearch, FaFilter, FaSortAmountDown, FaWallet } from "react-icons/fa";
+import {
+  FaSearch,
+  FaFilter,
+  FaSortAmountDown,
+  FaSortAmountUp,
+  FaSort,
+  FaWallet,
+} from "react-icons/fa";
 
 const DepositHistoryForAdmin = () => {
   const [deposits, setDeposits] = useState([]);
@@ -11,7 +18,10 @@ const DepositHistoryForAdmin = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [userSearchTerm, setUserSearchTerm] = useState("");
   const [dateFilter, setDateFilter] = useState("");
-  const [sortOrder, setSortOrder] = useState("desc");
+  const [sortConfig, setSortConfig] = useState({
+    key: "payment_date",
+    direction: "desc",
+  });
 
   useEffect(() => {
     const fetchDeposits = async () => {
@@ -63,6 +73,25 @@ const DepositHistoryForAdmin = () => {
     }).format(amount);
   };
 
+  const handleSort = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortIcon = (key) => {
+    if (sortConfig.key !== key) {
+      return <FaSort className="ml-1 text-gray-400" />;
+    }
+    return sortConfig.direction === "asc" ? (
+      <FaSortAmountUp className="ml-1 text-indigo-500" />
+    ) : (
+      <FaSortAmountDown className="ml-1 text-indigo-500" />
+    );
+  };
+
   const filteredDeposits = deposits
     .filter((deposit) => {
       const matchesOrderCode = deposit.order_code
@@ -78,9 +107,19 @@ const DepositHistoryForAdmin = () => {
       return matchesOrderCode && matchesUser && matchesDate;
     })
     .sort((a, b) => {
-      const dateA = new Date(a.payment_date);
-      const dateB = new Date(b.payment_date);
-      return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
+      if (sortConfig.key === "payment_amount") {
+        return sortConfig.direction === "asc"
+          ? a.payment_amount - b.payment_amount
+          : b.payment_amount - a.payment_amount;
+      } else if (sortConfig.key === "payment_date") {
+        return sortConfig.direction === "asc"
+          ? new Date(a.payment_date) - new Date(b.payment_date)
+          : new Date(b.payment_date) - new Date(a.payment_date);
+      } else {
+        return sortConfig.direction === "asc"
+          ? a[sortConfig.key].localeCompare(b[sortConfig.key])
+          : b[sortConfig.key].localeCompare(a[sortConfig.key]);
+      }
     });
 
   const totalAmount = filteredDeposits.reduce(
@@ -171,20 +210,50 @@ const DepositHistoryForAdmin = () => {
             <table className="min-w-full divide-y divide-gray-100">
               <thead className="bg-gray-50/50">
                 <tr>
-                  <th className="px-8 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Order Code
+                  <th
+                    className="px-8 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100/50 transition-colors duration-200"
+                    onClick={() => handleSort("order_code")}
+                  >
+                    <div className="flex items-center">
+                      Order Code
+                      {getSortIcon("order_code")}
+                    </div>
                   </th>
-                  <th className="px-8 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    User
+                  <th
+                    className="px-8 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100/50 transition-colors duration-200"
+                    onClick={() => handleSort("user")}
+                  >
+                    <div className="flex items-center">
+                      User
+                      {getSortIcon("user")}
+                    </div>
                   </th>
-                  <th className="px-8 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Amount
+                  <th
+                    className="px-8 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100/50 transition-colors duration-200"
+                    onClick={() => handleSort("payment_amount")}
+                  >
+                    <div className="flex items-center">
+                      Amount
+                      {getSortIcon("payment_amount")}
+                    </div>
                   </th>
-                  <th className="px-8 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Date
+                  <th
+                    className="px-8 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100/50 transition-colors duration-200"
+                    onClick={() => handleSort("payment_date")}
+                  >
+                    <div className="flex items-center">
+                      Date
+                      {getSortIcon("payment_date")}
+                    </div>
                   </th>
-                  <th className="px-8 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Description
+                  <th
+                    className="px-8 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100/50 transition-colors duration-200"
+                    onClick={() => handleSort("description")}
+                  >
+                    <div className="flex items-center">
+                      Description
+                      {getSortIcon("description")}
+                    </div>
                   </th>
                 </tr>
               </thead>

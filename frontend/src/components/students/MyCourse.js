@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FaSearch, FaFilter, FaTh, FaThList } from "react-icons/fa";
 
 const MyCourses = () => {
   const [orders, setOrders] = useState([]);
@@ -11,6 +12,8 @@ const MyCourses = () => {
   const [certificates, setCertificates] = useState([]);
   const [image, setImage] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [progressFilter, setProgressFilter] = useState("all"); // all, completed, in-progress
+  const [displayMode, setDisplayMode] = useState("all"); // all, category
 
   useEffect(() => {
     const fetchCertificates = async () => {
@@ -179,10 +182,51 @@ const MyCourses = () => {
 
   const filteredOrders = orders.map((order) => ({
     ...order,
-    order_items: order.order_items.filter((item) =>
-      item.course.title.toLowerCase().includes(searchTerm.toLowerCase())
-    ),
+    order_items: order.order_items.filter((item) => {
+      const matchesSearch = item.course.title
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const courseProgress = progressData.find(
+        (progress) => progress.course_id === item.course._id
+      );
+
+      if (progressFilter === "all") return matchesSearch;
+      if (progressFilter === "completed") {
+        return (
+          matchesSearch &&
+          courseProgress &&
+          courseProgress.final_exam?.status === "Completed"
+        );
+      }
+      if (progressFilter === "in-progress") {
+        return (
+          matchesSearch &&
+          courseProgress &&
+          courseProgress.final_exam?.status !== "Completed"
+        );
+      }
+      if (progressFilter === "not-enrolled") {
+        return matchesSearch && !courseProgress;
+      }
+      return matchesSearch;
+    }),
   }));
+
+  const getCoursesByCategory = () => {
+    const coursesByCategory = {};
+
+    filteredOrders.forEach((order) => {
+      order.order_items.forEach((item) => {
+        const category = item.course.category || "Uncategorized";
+        if (!coursesByCategory[category]) {
+          coursesByCategory[category] = [];
+        }
+        coursesByCategory[category].push(item);
+      });
+    });
+
+    return coursesByCategory;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-[#14b8a6] to-indigo-200 py-8">
@@ -194,8 +238,8 @@ const MyCourses = () => {
           </p>
         </div>
 
-        <div className="mb-8">
-          <div className="relative max-w-2xl mx-auto">
+        <div className="mb-8 flex flex-col md:flex-row gap-4 items-center justify-center">
+          <div className="relative max-w-2xl w-full">
             <input
               type="text"
               placeholder="Search your courses..."
@@ -204,19 +248,41 @@ const MyCourses = () => {
               className="w-full px-6 py-4 rounded-xl border border-gray-200 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 shadow-sm"
             />
             <div className="absolute inset-y-0 right-0 flex items-center pr-4">
-              <svg
-                className="h-5 w-5 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+              <FaSearch className="h-5 w-5 text-gray-400" />
+            </div>
+          </div>
+          <div className="flex gap-4">
+            <div className="relative w-full md:w-48">
+              <select
+                value={progressFilter}
+                onChange={(e) => setProgressFilter(e.target.value)}
+                className="w-full px-6 py-4 rounded-xl border border-gray-200 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 shadow-sm appearance-none"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
+                <option value="all">All Courses</option>
+                <option value="completed">Completed</option>
+                <option value="in-progress">In Progress</option>
+                <option value="not-enrolled">Not Enrolled</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                <FaFilter className="h-5 w-5 text-gray-400" />
+              </div>
+            </div>
+            <div className="relative w-full md:w-48">
+              <select
+                value={displayMode}
+                onChange={(e) => setDisplayMode(e.target.value)}
+                className="w-full px-6 py-4 rounded-xl border border-gray-200 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 shadow-sm appearance-none"
+              >
+                <option value="all">All View</option>
+                <option value="category">Category View</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                {displayMode === "all" ? (
+                  <FaTh className="h-5 w-5 text-gray-400" />
+                ) : (
+                  <FaThList className="h-5 w-5 text-gray-400" />
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -244,7 +310,8 @@ const MyCourses = () => {
             </div>
             <p className="text-red-500 text-lg">{error}</p>
           </div>
-        ) : orders.length === 0 ? (
+        ) : filteredOrders.length === 0 ||
+          filteredOrders.every((order) => order.order_items.length === 0) ? (
           <div className="text-center py-12">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 mb-4">
               <svg
@@ -265,9 +332,143 @@ const MyCourses = () => {
               No courses found
             </h3>
             <p className="text-gray-600">
-              You haven't purchased any courses yet. Start your learning journey
-              today!
+              {searchTerm
+                ? "No courses match your search criteria."
+                : progressFilter !== "all"
+                ? `No ${progressFilter.replace("-", " ")} courses found.`
+                : "You haven't purchased any courses yet. Start your learning journey today!"}
             </p>
+          </div>
+        ) : displayMode === "category" ? (
+          <div className="space-y-12">
+            {Object.entries(getCoursesByCategory()).map(
+              ([category, courses]) => (
+                <div key={category} className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold text-gray-800">
+                      {category}
+                    </h2>
+                    <span className="text-gray-500">
+                      {courses.length} courses
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {courses.map((item) => (
+                      <div
+                        key={item._id}
+                        className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 flex flex-col h-full"
+                      >
+                        <div className="relative group">
+                          <img
+                            src={item.course.image || ""}
+                            alt={item.course.title}
+                            className="w-full h-48 object-cover"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                          {certificates.some(
+                            (certificate) =>
+                              certificate.course._id === item.course._id &&
+                              certificate.isPassed
+                          ) && (
+                            <img
+                              src={require("../../assets/passed44.png")}
+                              alt="Passed"
+                              className="absolute top-3 right-3 w-12 h-12 transform hover:scale-110 transition-transform duration-200"
+                            />
+                          )}
+                        </div>
+                        <div className="p-6 flex flex-col flex-grow">
+                          <h2 className="text-xl font-bold text-gray-800 mb-2 line-clamp-2">
+                            {item.course.title}
+                          </h2>
+                          <div className="mt-auto">
+                            {isEnrolled(item.course._id) ? (
+                              <div className="space-y-4">
+                                <div className="space-y-2">
+                                  <div className="flex justify-between text-sm text-gray-600">
+                                    <span>Progress</span>
+                                    <span>
+                                      {getProgressForCourse(
+                                        item.course._id
+                                      ).toFixed(0)}
+                                      %
+                                    </span>
+                                  </div>
+                                  <div className="w-full bg-gray-200 rounded-full h-2">
+                                    <div
+                                      className="bg-indigo-500 h-2 rounded-full transition-all duration-500"
+                                      style={{
+                                        width: `${getProgressForCourse(
+                                          item.course._id
+                                        )}%`,
+                                      }}
+                                    ></div>
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCourseClick(item.course._id);
+                                  }}
+                                  className="w-full py-3 px-4 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors duration-200 flex items-center justify-center space-x-2"
+                                >
+                                  <svg
+                                    className="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                                    />
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    />
+                                  </svg>
+                                  <span>Continue Learning</span>
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="space-y-4">
+                                <p className="text-gray-500 italic text-center">
+                                  Please enroll to start
+                                </p>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEnroll(item.course._id);
+                                  }}
+                                  className="w-full py-3 px-4 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors duration-200"
+                                >
+                                  Enroll Now
+                                </button>
+                              </div>
+                            )}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(
+                                  `/purchased-course-detail/${item.course._id}`
+                                );
+                              }}
+                              className="w-full mt-3 py-2 px-4 text-indigo-600 rounded-lg font-medium hover:bg-indigo-50 transition-colors duration-200"
+                            >
+                              View Details
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -275,7 +476,7 @@ const MyCourses = () => {
               order.order_items.map((item) => (
                 <div
                   key={item._id}
-                  className="bg-white/80 backdrop-blur-sm rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100"
+                  className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 flex flex-col h-full"
                 >
                   <div className="relative group">
                     <img
@@ -296,80 +497,91 @@ const MyCourses = () => {
                       />
                     )}
                   </div>
-                  <div className="p-6">
+                  <div className="p-6 flex flex-col flex-grow">
                     <h2 className="text-xl font-bold text-gray-800 mb-2 line-clamp-2">
                       {item.course.title}
                     </h2>
-                    {isEnrolled(item.course._id) ? (
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm text-gray-600">
-                            <span>Progress</span>
-                            <span>
-                              {getProgressForCourse(item.course._id).toFixed(0)}
-                              %
-                            </span>
+                    <div className="mt-auto">
+                      {isEnrolled(item.course._id) ? (
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm text-gray-600">
+                              <span>Progress</span>
+                              <span>
+                                {getProgressForCourse(item.course._id).toFixed(
+                                  0
+                                )}
+                                %
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-indigo-500 h-2 rounded-full transition-all duration-500"
+                                style={{
+                                  width: `${getProgressForCourse(
+                                    item.course._id
+                                  )}%`,
+                                }}
+                              ></div>
+                            </div>
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div
-                              className="bg-indigo-500 h-2 rounded-full transition-all duration-500"
-                              style={{
-                                width: `${getProgressForCourse(
-                                  item.course._id
-                                )}%`,
-                              }}
-                            ></div>
-                          </div>
-                        </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCourseClick(item.course._id);
-                          }}
-                          className="w-full py-3 px-4 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors duration-200 flex items-center justify-center space-x-2"
-                        >
-                          <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCourseClick(item.course._id);
+                            }}
+                            className="w-full py-3 px-4 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors duration-200 flex items-center justify-center space-x-2"
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                          </svg>
-                          <span>Continue Learning</span>
-                        </button>
-                      </div>
-                    ) : (
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                              />
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                            <span>Continue Learning</span>
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          <p className="text-gray-500 italic text-center">
+                            Please enroll to start
+                          </p>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEnroll(item.course._id);
+                            }}
+                            className="w-full py-3 px-4 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors duration-200"
+                          >
+                            Enroll Now
+                          </button>
+                        </div>
+                      )}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleEnroll(item.course._id);
+                          navigate(
+                            `/purchased-course-detail/${item.course._id}`
+                          );
                         }}
-                        className="w-full py-3 px-4 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors duration-200"
+                        className="w-full mt-3 py-2 px-4 text-indigo-600 rounded-lg font-medium hover:bg-indigo-50 transition-colors duration-200"
                       >
-                        Enroll Now
+                        View Details
                       </button>
-                    )}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/purchased-course-detail/${item.course._id}`);
-                      }}
-                      className="w-full mt-3 py-2 px-4 text-indigo-600 rounded-lg font-medium hover:bg-indigo-50 transition-colors duration-200"
-                    >
-                      View Details
-                    </button>
+                    </div>
                   </div>
                 </div>
               ))
