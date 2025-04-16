@@ -103,25 +103,21 @@ const Cart = () => {
         }
       );
       const data = await response.json();
-// Kiểm tra nếu tài khoản bị ban
-if (data.status === false) {
-  toast.error("Tài khoản của bạn đã bị Ban, không thể mua hàng!");
-  return;
-}
-      if (response.ok) {
-        const data = await response.json();
+
+      // Kiểm tra nếu tài khoản bị ban
+      if (data.status === false) {
+        toast.error("Tài khoản của bạn đã bị Ban, không thể mua hàng!");
+        return;
+      }
+
+      if (response.status === 201) {
+        toast.success("Payment successful!");
         setIsModalOpen(true);
       } else {
-        const errorData = await response.json();
-        console.error(
-          "Lỗi khi tạo đơn hàng:",
-          errorData.message || "Không rõ lỗi"
-        );
-        if (errorData.message === "Not enough balance") {
-          toast.error("Not enough balance! ");
+        if (data.message === "Not enough balance") {
+          toast.error("Not enough balance!");
         } else {
-          console.log(errorData.message);
-          toast.error("Payment failed!");
+          toast.error(data.message || "Payment failed!");
         }
       }
     } catch (error) {
@@ -294,7 +290,7 @@ if (data.status === false) {
                     <span>Subtotal</span>
                     <span>{totalPrice.toLocaleString()} VND</span>
                   </div>
-                  
+
                   <div className="border-t pt-4">
                     <div className="flex justify-between items-center mb-6">
                       <span className="text-lg font-semibold text-gray-800">
