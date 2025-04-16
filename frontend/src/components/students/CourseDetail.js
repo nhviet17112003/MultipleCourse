@@ -4,6 +4,7 @@ import { ToastContainer, toast } from "react-toastify";
 
 import "rc-slider/assets/index.css";
 import "react-toastify/dist/ReactToastify.css";
+
 const DetailCourse = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -61,14 +62,13 @@ const DetailCourse = () => {
     fetchCourseDetail();
   }, [id, fullname]);
 
-
   useEffect(() => {
     const fetchTutorDetails = async () => {
       if (course?.tutor) {
         // console.log("đấ", course.tutor)
         try {
           const response = await fetch(
-            `http://localhost:3000/api/users/profile/${course.tutor}`,
+            `http://localhost:3000/api/users/profile/${course.tutor}`
           );
           console.log("Response Status:", response.status); // Kiểm tra trạng thái phản hồi
           const data = await response.json();
@@ -89,7 +89,7 @@ const DetailCourse = () => {
         }
       }
     };
-  
+
     fetchTutorDetails();
   }, [course]);
 
@@ -192,6 +192,25 @@ const DetailCourse = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <ToastContainer />
       <div className="container mx-auto px-6 py-10">
+        <button
+          onClick={() => navigate("/course-list")}
+          className="mb-6 flex items-center gap-2 text-teal-600 hover:text-teal-800 font-semibold transition duration-200"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M12.707 15.707a1 1 0 01-1.414 0L6.586 11H17a1 1 0 110 2H6.586l4.707 4.707a1 1 0 01-1.414 1.414l-6.414-6.414a1 1 0 010-1.414l6.414-6.414a1 1 0 011.414 1.414L6.586 9H17a1 1 0 110 2H6.586l4.707 4.707a1 1 0 010 1.414z"
+              clipRule="evenodd"
+            />
+          </svg>
+          Back to Courses
+        </button>
+
         {loading ? (
           <p className="text-center text-teal-600 text-xl font-semibold">
             Loading data...
@@ -205,7 +224,7 @@ const DetailCourse = () => {
                 className="w-full h-80 object-cover rounded-xl shadow-md transition duration-500 group-hover:scale-105 group-hover:shadow-lg"
               />
             </div>
-            
+
             <div className="mt-6 md:mt-0 relative">
               <h2 className="text-4xl font-extrabold text-teal-700">
                 {course.title}
@@ -222,27 +241,30 @@ const DetailCourse = () => {
               </div>
 
               <div className="mt-6 flex justify-between items-center">
-  <p className="text-3xl text-teal-800 font-semibold">
-    {course.price} VNĐ
-  </p>
-  <p className="text-sm text-gray-500 italic">
-    Created on: {new Date(course.createAt).toLocaleDateString()}
-  </p>
-</div>
+                <p className="text-3xl text-teal-800 font-semibold">
+                  {course.price} VNĐ
+                </p>
+                <p className="text-sm text-gray-500 italic">
+                  Created on: {new Date(course.createAt).toLocaleDateString()}
+                </p>
+              </div>
 
-{/* Tutor Details */}
-{course.tutor && (
-  <div className="flex items-center space-x-4">
-    <img
-      src={course.tutor.avatar || "default-avatar.png"} // Fallback nếu không có avatar
-      alt={course.tutor.fullname || "Unknown Tutor"}
-      className="w-12 h-12 rounded-full shadow-md"
-    />
-    <p className="text-lg text-gray-700 font-medium">
-      Tutor: <span className="text-teal-700 font-semibold">{course.tutor.fullname}</span>
-    </p>
-  </div>
-)}
+              {/* Tutor Details */}
+              {course.tutor && (
+                <div className="flex items-center space-x-4">
+                  <img
+                    src={course.tutor.avatar || "default-avatar.png"} // Fallback nếu không có avatar
+                    alt={course.tutor.fullname || "Unknown Tutor"}
+                    className="w-12 h-12 rounded-full shadow-md"
+                  />
+                  <p className="text-lg text-gray-700 font-medium">
+                    Tutor:{" "}
+                    <span className="text-teal-700 font-semibold">
+                      {course.tutor.fullname}
+                    </span>
+                  </p>
+                </div>
+              )}
 
               {/* Add to Cart Button */}
               <div className="mt-6 flex justify-end">

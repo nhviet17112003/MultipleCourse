@@ -92,48 +92,39 @@ const Cart = () => {
 
   const handlePayment = async () => {
     try {
-      const token = localStorage.getItem("authToken");
-      console.log("Token đang dùng:", token);
-      console.log("Cart ID:", cartId);
-  
       const response = await fetch(
         `http://localhost:3000/api/orders/create-order/${cartId}`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
           },
         }
       );
       const data = await response.json();
-// Kiểm tra nếu tài khoản bị ban
-if (data.status === false) {
-  toast.error("Tài khoản của bạn đã bị Ban, không thể mua hàng!");
-  return;
-}
-      if (response.ok) {
-        const data = await response.json();
+
+      // Kiểm tra nếu tài khoản bị ban
+      if (data.status === false) {
+        toast.error("Tài khoản của bạn đã bị Ban, không thể mua hàng!");
+        return;
+      }
+
+      if (response.status === 201) {
+        toast.success("Payment successful!");
         setIsModalOpen(true);
       } else {
-        const errorData = await response.json();
-        console.error(
-          "Lỗi khi tạo đơn hàng:",
-          errorData.message || "Không rõ lỗi"
-        );
-        if (errorData.message === "Not enough balance") {
-          toast.error("Not enough balance! ");
+        if (data.message === "Not enough balance") {
+          toast.error("Not enough balance!");
         } else {
-          console.log(errorData.message);
-          toast.error("Payment failed!");
+          toast.error(data.message || "Payment failed!");
         }
       }
     } catch (error) {
-      console.error("Lỗi khi tạo đơn hàng (exception):", error);
-      toast.error("Payment failed! 2");
+      console.error("Lỗi khi tạo đơn hàng:", error);
+      toast.error("Payment failed!");
     }
   };
-  
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       <ToastContainer position="top-right" autoClose={3000} />
