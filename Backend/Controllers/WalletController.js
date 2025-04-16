@@ -276,3 +276,34 @@ exports.showAdminWallet = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+// Get all deposit for admin
+exports.getAllDepositForAdmin = async (req, res) => {
+  try {
+    const deposits = await Payment.find({
+      payment_status: "Paid",
+    })
+      .populate({
+        path: "wallet",
+        select: "user",
+        populate: {
+          path: "user",
+          select: "fullname",
+        },
+      })
+      .select("order_code payment_amount payment_date description");
+
+    const formattedDeposits = deposits.map((deposit) => ({
+      order_code: deposit.order_code,
+      payment_amount: deposit.payment_amount,
+      payment_date: deposit.payment_date,
+      description: deposit.description,
+      user: deposit.wallet?.user?.fullname || "Unknown User",
+    }));
+
+    res.status(200).json({ deposits: formattedDeposits });
+  } catch (err) {
+    console.error("Error fetching deposits:", err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};

@@ -15,7 +15,7 @@ import ReCAPTCHA from "react-google-recaptcha";
 const Navbar = () => {
   const navigate = useNavigate();
   const [fullname, setFullname] = useState("User");
-  const [avatarUrl, setAvatarUrl] = useState(""); // Đường dẫn avatar
+  const [avatarUrl, setAvatarUrl] = useState("");
   const [error, setError] = useState("");
   const [userData, setUserData] = useState(null);
   const { theme, toggleTheme } = useTheme();

@@ -179,6 +179,10 @@ function Sidebar() {
             key: "22",
             label: <Link to="/manage-users">Manage Users</Link>,
           },
+          {
+            key: "23",
+            label: <Link to="/deposit-history-for-admin">Wallet History</Link>,
+          },
         ],
       },
     ];
