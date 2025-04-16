@@ -1,10 +1,15 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const AdminActivityHistorySchema = new Schema({
-  admin: {
+const ActivityHistorySchema = new Schema({
+  user: {
     type: Schema.Types.ObjectId,
-    ref: "Admin",
+    ref: "Users",
+    required: true,
+  },
+  role: {
+    type: String,
+    enum: ["Admin", "Tutor", "Student"],
     required: true,
   },
   entry_date: {
@@ -17,7 +22,4 @@ const AdminActivityHistorySchema = new Schema({
   },
 });
 
-module.exports = mongoose.model(
-  "AdminActivityHistory",
-  AdminActivityHistorySchema
-);
+module.exports = mongoose.model("ActivityHistory", ActivityHistorySchema);

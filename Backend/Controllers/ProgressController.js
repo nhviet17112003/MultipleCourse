@@ -147,6 +147,12 @@ exports.getProgressByCourse = async (req, res) => {
       let student = await User.findById(order_items[i].user).select(
         "_id fullname avatar"
       );
+
+      if (!student) {
+        console.log(`User with ID ${order_items[i].user} not found`);
+        continue; // Skip this iteration if the user is not found
+      }
+
       let progress = progresses.find(
         (progress) => progress.student_id.toString() === student._id.toString()
       );

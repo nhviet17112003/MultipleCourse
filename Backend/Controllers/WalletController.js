@@ -1,6 +1,6 @@
 const Wallet = require("../Models/Wallet");
 const Payment = require("../Models/Payment");
-const AdminActivityHistory = require("../Models/AdminActivityHistory");
+const ActivityHistory = require("../Models/ActivityHistory");
 const User = require("../Models/Users");
 const WalletAdmin = require("../Models/WalletAdmin");
 const mongoose = require("mongoose");
@@ -167,14 +167,15 @@ exports.confirmWithdrawRequest = async (req, res) => {
     walletAdmin.current_balance -= withdrawal.amount;
 
     // Lưu lại lịch sử hoạt động của admin
-    const adminActivity = new AdminActivityHistory({
-      admin: req.user._id,
+    const newActivity = new ActivityHistory({
+      user: req.user._id,
+      role: "Admin",
       description: `Approved withdrawal request of ${withdrawal.amount} VND for user ${user.fullname}`,
     });
 
     await walletAdmin.save();
     await wallet.save();
-    await adminActivity.save();
+    await newActivity.save();
     res
       .status(200)
       .json({ message: "Withdrawal request confirmed successfully." });
@@ -218,13 +219,14 @@ exports.rejectWithdrawRequest = async (req, res) => {
 
     // Cập nhật trạng thái lệnh rút
     withdrawal.status = "Rejected";
-    const adminActivity = new AdminActivityHistory({
-      admin: req.user._id,
+    const newActivity = new ActivityHistory({
+      user: req.user._id,
+      role: "Admin",
       description: `Rejected withdrawal request of ${withdrawal.amount} VND for user ${user.fullname}`,
     });
 
     await wallet.save();
-    await adminActivity.save();
+    await newActivity.save();
 
     res
       .status(200)
