@@ -102,12 +102,7 @@ const Cart = () => {
           },
         }
       );
-      const data = await response.json();
-// Kiểm tra nếu tài khoản bị ban
-if (data.status === false) {
-  toast.error("Tài khoản của bạn đã bị Ban, không thể mua hàng!");
-  return;
-}
+      
       if (response.ok) {
         const data = await response.json();
         setIsModalOpen(true);
