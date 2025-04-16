@@ -92,38 +92,44 @@ const Cart = () => {
 
   const handlePayment = async () => {
     try {
+      const token = localStorage.getItem("authToken");
+      console.log("Token đang dùng:", token);
+      console.log("Cart ID:", cartId);
+  
       const response = await fetch(
         `http://localhost:3000/api/orders/create-order/${cartId}`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
-      
+  
+      console.log("Status code:", response.status);
+  
       if (response.ok) {
         const data = await response.json();
+        console.log("Tạo đơn hàng thành công:", data);
         setIsModalOpen(true);
       } else {
         const errorData = await response.json();
-        console.error(
-          "Lỗi khi tạo đơn hàng:",
-          errorData.message || "Không rõ lỗi"
-        );
+        console.error("Chi tiết lỗi từ server:", errorData);
+  
         if (errorData.message === "Not enough balance") {
           toast.error("Not enough balance! ");
         } else {
-          console.log(errorData.message);
-          toast.error("Payment failed!");
+          console.log("Thông báo lỗi khác:", errorData.message);
+          toast.error("Payment failed! 1");
         }
       }
     } catch (error) {
-      console.error("Lỗi khi tạo đơn hàng:", error);
-      toast.error("Payment failed!");
+      console.error("Lỗi khi tạo đơn hàng (exception):", error);
+      toast.error("Payment failed! 2");
     }
   };
+  
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       <ToastContainer position="top-right" autoClose={3000} />
