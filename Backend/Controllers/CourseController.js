@@ -80,7 +80,7 @@ exports.getCourseOfTutor = async (req, res) => {
 exports.getCourseById = async (req, res) => {
   try {
     const course = await Course.findById(req.params.id)
-      .populate("tutor", "fullname email avatar")
+      .populate("tutor", "fullname email avatar address phone gender birthday")
       .exec();
     if (!course) {
       return res.status(404).json({ message: "Course not found" });

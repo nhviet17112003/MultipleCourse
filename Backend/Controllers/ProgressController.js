@@ -145,7 +145,7 @@ exports.getProgressByCourse = async (req, res) => {
 
     for (let i = 0; i < order_items.length; i++) {
       let student = await User.findById(order_items[i].user).select(
-        "_id fullname avatar"
+        "_id fullname avatar email role address birthday gender phone"
       );
 
       if (!student) {

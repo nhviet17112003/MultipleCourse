@@ -492,7 +492,6 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative overflow-hidden">
-      {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-indigo-200 rounded-full opacity-20 blur-3xl"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-200 rounded-full opacity-20 blur-3xl"></div>
@@ -500,7 +499,6 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
 
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8 relative">
         <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
-          {/* Main Content */}
           <div
             className={`w-full ${isVideoExpanded ? "lg:w-full" : "lg:w-2/3"}`}
           >
@@ -943,7 +941,7 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
                       }
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-medium text-gray-800 text-sm sm:text-base">
+                        <span className="font-medium text-gray-800 text-sm sm:text-base break-words whitespace-normal max-w-[200px] sm:max-w-[250px]">
                           {lesson.title}
                         </span>
                         {isLessonCompleted(lesson._id) ? (
