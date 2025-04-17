@@ -20,6 +20,7 @@ const CourseList = () => {
   const [filter, setFilter] = useState("");
   const [sortOption, setSortOption] = useState("default");
   const [priceRange, setPriceRange] = useState([0, 10000000]);
+  const [maxPrice, setMaxPrice] = useState(10000000);
   const [ratingFilter, setRatingFilter] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -217,6 +218,12 @@ const CourseList = () => {
           );
         }
 
+        const maxCoursePrice = Math.max(
+          ...filteredCourses.map((course) => course.price)
+        );
+        setMaxPrice(maxCoursePrice);
+        setPriceRange([0, maxCoursePrice]);
+
         setCourses(filteredCourses);
         const studentCounts = {};
         await Promise.all(
@@ -355,8 +362,6 @@ const CourseList = () => {
       return 0;
     });
 
-  console.log("Final filtered courses before rendering:", filteredCourses);
-
   return (
     <div className="min-h-screen bg-gray-100">
       <Spin spinning={spinning} fullscreen />
@@ -418,17 +423,17 @@ const CourseList = () => {
             <div className="flex-1">
               <p className="text-gray-800 text-center font-semibold mb-2">
                 Price: {priceRange[0]} -{" "}
-                {priceRange[1] >= 1000000 ? "All" : priceRange[1]}
+                {priceRange[1] >= maxPrice ? "All" : priceRange[1]}
               </p>
               <Slider
                 range
                 min={0}
-                max={1000000}
+                max={maxPrice}
                 step={10000}
                 value={priceRange}
                 onChange={(value) => {
-                  if (value[1] >= 1000000) {
-                    setPriceRange([value[0], 1000000]);
+                  if (value[1] >= maxPrice) {
+                    setPriceRange([value[0], maxPrice]);
                     updateFilters("price", `${value[0]} - All`);
                   } else {
                     setPriceRange(value);
@@ -534,7 +539,7 @@ const CourseList = () => {
                 onClick={() => {
                   setFilter("");
                   setSortOption("default");
-                  setPriceRange([0, 1000000]);
+                  setPriceRange([0, maxPrice]);
                   setRatingFilter(0);
                   setSelectedCategory("");
                   setActiveFilters([]);
