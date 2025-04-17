@@ -58,6 +58,7 @@ import ViewCertificate from "./components/tutors/ViewCertificate";
 import UpdateCourseModal from "./components/tutors/UpdateCourseModal";
 import TutorRequests from "./components/tutors/TutorRequests";
 import PurchasedCourseDetail from "./components/students/PurchasedCourseDetail";
+import DepositHistoryForAdmin from "./components/admins/DepositHistoryForAdmin";
 // import RequestDetail from "./components/tutors/RequestDetail";
 
 function Layout() {
@@ -152,6 +153,10 @@ function Layout() {
             <Route
               path="/wallet-manage-for-admin"
               element={<WalletManageForAdmin />}
+            />
+            <Route
+              path="/deposit-history-for-admin"
+              element={<DepositHistoryForAdmin />}
             />
             <Route
               path="/coursemanagertutor/:courseId"

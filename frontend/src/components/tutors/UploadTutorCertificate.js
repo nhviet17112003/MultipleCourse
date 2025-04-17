@@ -10,13 +10,24 @@ const UploadTutorCertificate = () => {
   const [loading, setLoading] = useState(false); // Uploading status
   const [message, setMessage] = useState(""); // Error or success message
   const [certificates, setCertificates] = useState([]); // Array to store certificates
-
+  const [titleError, setTitleError] = useState("");
+  const [urlError, setUrlError] = useState("");
+  
   useEffect(() => {
     if (userId) {
       console.log("User ID from URL: ", userId); // Confirm the userId is correctly fetched
     }
   }, [userId]);
-
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => {
+        setMessage("");
+      }, 4000);
+  
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
+  
   // Handle certificate URL input change
   const handleUrlChange = (e) => {
     setCertificateUrl(e.target.value);
@@ -34,7 +45,15 @@ const UploadTutorCertificate = () => {
       setMessage("Please provide both certificate title and URL.");
       return;
     }
-
+  
+    // Kiểm tra URL phải bắt đầu bằng http:// hoặc https://
+    if (
+      !certificateUrl.startsWith("https://") &&
+      !certificateUrl.startsWith("http://")
+    ) {
+      setMessage("Certificate URL must start with http:// or https://");
+      return;
+    }
     const newCertificate = { title, certificate_url: certificateUrl };
 
     // Check if the certificate already exists in the array
@@ -89,6 +108,8 @@ const UploadTutorCertificate = () => {
             placeholder="Enter certificate title"
             className="mt-1 p-2 w-full border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
           />
+         
+
         </div>
 
         <div>
@@ -100,6 +121,7 @@ const UploadTutorCertificate = () => {
             placeholder="Enter certificate URL"
             className="mt-1 p-2 w-full border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
           />
+        
         </div>
 
         <button
@@ -117,7 +139,8 @@ const UploadTutorCertificate = () => {
       </button>
       </form>
 
-      {message && <p className="mt-4 text-center text-red-500">{message}</p>}
+      {message && <p className="text-red-500 text-sm mt-2">{message}</p>}
+
 
       {/* Display uploaded certificates */}
       {certificates.length > 0 && (

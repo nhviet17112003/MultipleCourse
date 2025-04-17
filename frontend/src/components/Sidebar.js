@@ -4,6 +4,8 @@ import {
   AppstoreOutlined,
   MailOutlined,
   SettingOutlined,
+  LeftOutlined,
+  RightOutlined,
 } from "@ant-design/icons";
 import { Menu } from "antd";
 import { Link } from "react-router-dom";
@@ -12,6 +14,7 @@ function Sidebar() {
   const { theme } = useTheme();
   const [current, setCurrent] = useState("1");
   const [role, setRole] = useState(localStorage.getItem("role") || "Guest");
+  const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -120,7 +123,7 @@ function Sidebar() {
             key: "10",
             label: <Link to="/withdrawal-history">Withdrawal History</Link>,
           },
-          { key: "11", label: <Link to="/wallet">Wallet</Link> },
+          { key: "11", label: <Link to="/wallet">My Wallet</Link> },
         ],
       },
 
@@ -179,6 +182,10 @@ function Sidebar() {
             key: "22",
             label: <Link to="/manage-users">Manage Users</Link>,
           },
+          {
+            key: "23",
+            label: <Link to="/deposit-history-for-admin">Wallet History</Link>,
+          },
         ],
       },
     ];
@@ -190,26 +197,42 @@ function Sidebar() {
   if (hideNavbarRoutes.some((route) => location.pathname.startsWith(route))) {
     return null; // Không render Navbar
   }
+
+  const toggleCollapsed = () => {
+    setCollapsed(!collapsed);
+  };
+
   return (
-    <div
-      className={
-        theme === "dark"
-          ? "bg-gray-800 text-white"
-          : "bg-gray-200 text-black max-h-screen"
-      }
-    >
-      <Menu
-        theme={theme}
-        onClick={onClick}
-        style={{
-          height: "100vh",
-          width: 256,
-        }}
-        defaultOpenKeys={["sub1"]}
-        selectedKeys={[current]}
-        mode="inline"
-        items={items}
-      />
+    <div className="flex">
+      <div
+        className={`relative transition-all duration-300 ease-in-out ${
+          theme === "dark"
+            ? "bg-gray-800 text-white"
+            : "bg-gray-200 text-black max-h-screen"
+        } ${collapsed ? "w-12" : "w-64"}`}
+      >
+        <button
+          onClick={toggleCollapsed}
+          className={`absolute top-1/2 -right-1 z-50 p-1 rounded-full transform -translate-y-1/2 ${
+            theme === "dark" ? "bg-gray-700" : "bg-gray-300"
+          } hover:opacity-80 transition-all duration-300`}
+        >
+          {collapsed ? <RightOutlined /> : <LeftOutlined />}
+        </button>
+        <Menu
+          theme={theme}
+          onClick={onClick}
+          style={{
+            height: "100vh",
+            width: collapsed ? 48 : 256,
+          }}
+          defaultOpenKeys={["sub1"]}
+          selectedKeys={[current]}
+          mode="inline"
+          items={items}
+          inlineCollapsed={collapsed}
+        />
+      </div>
     </div>
   );
 }

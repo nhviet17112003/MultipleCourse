@@ -28,7 +28,7 @@ const OrderRouter = require("./Routers/OrderRouter");
 const CommentRouter = require("./Routers/CommentRouter");
 const WalletRouter = require("./Routers/WalletRouter");
 const CertificateRouter = require("./Routers/CertificateRouter");
-const AdminActivityHistory = require("./Routers/AdminActivityHistoryRouter");
+const ActivityHistory = require("./Routers/ActivityHistoryRouter");
 const RequestRouter = require("./Routers/RequestRouter");
 var app = express();
 const cors = require("cors");
@@ -58,7 +58,7 @@ app.use("/api/payment", PaymentRouter);
 app.use("/api/progress", ProgressRouter);
 app.use("/api/wallet", WalletRouter);
 app.use("/api/certificates", CertificateRouter);
-app.use("/api/admin-activity", AdminActivityHistory);
+app.use("/api/activities", ActivityHistory);
 app.use("/api/requests", RequestRouter);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

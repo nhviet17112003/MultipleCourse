@@ -15,7 +15,7 @@ import ReCAPTCHA from "react-google-recaptcha";
 const Navbar = () => {
   const navigate = useNavigate();
   const [fullname, setFullname] = useState("User");
-  const [avatarUrl, setAvatarUrl] = useState(""); // Đường dẫn avatar
+  const [avatarUrl, setAvatarUrl] = useState("");
   const [error, setError] = useState("");
   const [userData, setUserData] = useState(null);
   const { theme, toggleTheme } = useTheme();
@@ -262,12 +262,28 @@ const Navbar = () => {
             >
               Home Page
             </button>
-            <button
-              className="hover:text-teal-500 transition-all duration-300"
-              onClick={() => debouncedNavigate("/course-list")}
-            >
-              Course List
-            </button>
+            {role === "Admin" ? (
+              <button
+                className="hover:text-teal-500 transition-all duration-300"
+                onClick={() => debouncedNavigate("/statistic-for-admin")}
+              >
+                Dashboard
+              </button>
+            ) : role === "Tutor" ? (
+              <button
+                className="hover:text-teal-500 transition-all duration-300"
+                onClick={() => debouncedNavigate("/courses-list-tutor")}
+              >
+                Course List
+              </button>
+            ) : (
+              <button
+                className="hover:text-teal-500 transition-all duration-300"
+                onClick={() => debouncedNavigate("/course-list")}
+              >
+                Course List
+              </button>
+            )}
             <button
               className="hover:text-teal-500 transition-all duration-300"
               onClick={() => debouncedNavigate("/contact")}
@@ -298,7 +314,7 @@ const Navbar = () => {
                   className="ml-3 bg-blue-500 hover:bg-blue-600 text-white"
                   onClick={() => debouncedNavigate("/deposit")}
                 >
-                  Top Up
+                  Deposit
                 </Button>
               )}
             </div>

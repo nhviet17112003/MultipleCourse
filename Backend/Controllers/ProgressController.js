@@ -145,8 +145,14 @@ exports.getProgressByCourse = async (req, res) => {
 
     for (let i = 0; i < order_items.length; i++) {
       let student = await User.findById(order_items[i].user).select(
-        "_id fullname avatar"
+         "_id fullname avatar email role address birthday gender phone"
       );
+
+      if (!student) {
+        console.log(`User with ID ${order_items[i].user} not found`);
+        continue; // Skip this iteration if the user is not found
+      }
+
       let progress = progresses.find(
         (progress) => progress.student_id.toString() === student._id.toString()
       );
@@ -175,6 +181,13 @@ exports.getProgressByCourse = async (req, res) => {
           student: student,
           status: "Enrolled",
           percent: percent,
+          // completedLessons: lesson.filter(l => l.status === "Completed"),
+          // totalLessons: lesson.length,
+          // final_exam_status: final_exam.status,
+          // final_exam_score: final_exam.score,
+          // final_exam: progress.final_exam,
+          // progress: progress,
+          // lesson: lesson,
         });
       }
     }

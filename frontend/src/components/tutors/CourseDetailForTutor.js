@@ -22,6 +22,8 @@ import {
   List,
   Rate,
   Result,
+  Empty,
+  Descriptions,
 } from "antd";
 import { Comment } from "@ant-design/compatible";
 import {
@@ -78,6 +80,21 @@ const CourseDetailForTutor = () => {
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
   const [selectedComments, setSelectedComments] = useState([]);
   const [showAllLessons, setShowAllLessons] = useState(false);
+
+  const [selectedStudent, setSelectedStudent] = useState(null);
+const [isStudentDetailModalOpen, setIsStudentDetailModalOpen] = useState(false);
+const [studentProgress, setStudentProgress] = useState([]);
+
+const openStudentDetailModal = (student) => {
+  setSelectedStudent(student.student);
+  setStudentProgress(student.completedLessons || []);
+  setIsStudentDetailModalOpen(true);
+};
+
+const closeStudentDetailModal = () => {
+  setIsStudentDetailModalOpen(false);
+  setSelectedStudent(null);
+};
 
   const isDarkMode = theme === "dark";
 
@@ -303,15 +320,15 @@ const CourseDetailForTutor = () => {
   const studentColumns = [
     {
       title: "Avatar",
-      dataIndex: "student",
-      key: "avatar",
-      render: (student) => <Avatar src={student.avatar} size="large" />,
-    },
-    {
-      title: "Full Name",
-      dataIndex: "student",
-      key: "fullname",
-      render: (student) => <Text>{student.fullname}</Text>,
+    dataIndex: "student",
+    key: "avatar",
+    render: (student) => <Avatar src={student.avatar} size="large" />,
+  },
+  {
+    title: "Full Name",
+    dataIndex: "student",
+    key: "fullname",
+    render: (student) => <Text>{student.fullname}</Text>,
     },
     {
       title: "Status",
@@ -660,13 +677,17 @@ const CourseDetailForTutor = () => {
               bordered={false}
             >
               {students.length > 0 ? (
-                <Table
-                  dataSource={students}
-                  columns={studentColumns}
-                  rowKey={(record) => record.student._id}
-                  pagination={{ pageSize: 10 }}
-                  className="w-full"
-                />
+              <Table
+              dataSource={students}
+              columns={studentColumns}
+              rowKey={(record) => record.student._id}
+              pagination={{ pageSize: 10 }}
+              className="w-full"
+              onRow={(record) => ({
+                onClick: () => openStudentDetailModal(record),
+                style: { cursor: 'pointer' }
+              })}
+            />
               ) : (
                 <Alert
                   message="No students enrolled"
@@ -1164,6 +1185,82 @@ const CourseDetailForTutor = () => {
           />
         )}
       </Modal>
+
+      <Modal
+  title={
+    <Text strong className={isDarkMode ? "text-white" : ""}>
+      Student Details
+    </Text>
+  }
+  open={isStudentDetailModalOpen}
+  onCancel={closeStudentDetailModal}
+  footer={[
+    <Button key="close" type="primary" onClick={closeStudentDetailModal}>
+      Close
+    </Button>,
+  ]}
+  width={700}
+  className={isDarkMode ? "dark-theme-modal" : ""}
+>
+  {selectedStudent && (
+    <div className="space-y-6">
+      <div className="flex items-center">
+        <Avatar 
+          src={selectedStudent.avatar} 
+          size={64} 
+          icon={!selectedStudent.avatar && <UserOutlined />} 
+        />
+        <div className="ml-4">
+          <Title level={4} className={isDarkMode ? "text-white" : ""}>
+            {selectedStudent.fullname}
+            
+          </Title>
+          <Text type="secondary">{selectedStudent.email}</Text>
+        </div>
+      </div>
+      
+      <Divider className={isDarkMode ? "bg-gray-600" : ""} />
+      
+      <Descriptions 
+        title="Student Information" 
+        bordered 
+        column={{ xxl: 2, xl: 2, lg: 2, md: 2, sm: 1, xs: 1 }}
+      >
+        <Descriptions.Item label="Address">{selectedStudent.address}</Descriptions.Item>
+        <Descriptions.Item label="Phone">{selectedStudent.phone}</Descriptions.Item>
+        <Descriptions.Item label="Gender">{selectedStudent.gender}</Descriptions.Item>
+        <Descriptions.Item label="Birthday">
+          {new Date(selectedStudent.birthday).toLocaleDateString()}
+        </Descriptions.Item>
+      </Descriptions>
+      
+      {/* <Divider orientation="left">Course Progress</Divider> */}
+      
+      {/* <List
+        header={<div>Completed Lessons</div>}
+        bordered
+        dataSource={studentProgress}
+        renderItem={(lesson) => (
+          <List.Item>
+            <List.Item.Meta
+              avatar={<BookOutlined />}
+              title={lesson.title || "Untitled Lesson"}
+              description={`Completed on: ${new Date(lesson.status).toLocaleDateString()}`}
+            />
+          </List.Item>
+        )}
+        locale={{
+          emptyText: (
+            <Empty
+              description="No completed lessons yet"
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+            />
+          )
+        }}
+      /> */}
+    </div>
+  )}
+</Modal>
 
       <ToastContainer position="top-right" autoClose={3000} />
     </Layout>

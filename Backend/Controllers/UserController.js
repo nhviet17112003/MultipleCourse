@@ -4,7 +4,7 @@ const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const Users = require("../Models/Users");
 const Wallet = require("../Models/Wallet");
-const AdminActivityHistory = require("../Models/AdminActivityHistory");
+const AdminActivityHistory = require("../Models/ActivityHistory");
 const config = require("../Configurations/Config");
 const multer = require("multer");
 const admin = require("firebase-admin");
@@ -584,16 +584,16 @@ exports.googleLoginCallback = async (req, res, next) => {
       _id: user._id,
       email: user.email,
     });
-    // res.cookie("Token", token, { maxAge: 7200000, path: "/" }); // dùng cookie để lưu token
-    res.cookie("Token", token, {
-      maxAge: 7200000,
-      path: "/",
-      httpOnly: true, // chỉ cho phép truy cập cookie từ server
-      secure: true, // bắt buộc khi dùng HTTPS
-      sameSite: "None", // cho phép gửi cookie cross-origin
-    });
+    res.cookie("Token", token, { maxAge: 7200000, path: "/" }); // dùng cookie để lưu token
+    // res.cookie("Token", token, {
+    //   maxAge: 7200000,
+    //   path: "/",
+    //   httpOnly: true, // chỉ cho phép truy cập cookie từ server
+    //   secure: true, // bắt buộc khi dùng HTTPS
+    //   sameSite: "None", // cho phép gửi cookie cross-origin
+    // });
     // return res.redirect("https://multi-course-rfc1.vercel.app/course-list");
-    return res.redirect("https://localhost:3001/course-list");
+    return res.redirect("http://localhost:3001/course-list");
   })(req, res, next);
 };
 
@@ -604,6 +604,26 @@ exports.getUserByToken = async (req, res) => {
       return res.status(400).json({ message: "User not found" });
     }
     res.status(200).json(user);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+//Get tutor activities
+exports.getTutorActivities = async (req, res) => {
+  try {
+    const user = await Users.findOne({ _id: req.user._id });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+    if (user.role !== "Tutor") {
+      return res.status(400).json({ message: "You are not a tutor" });
+    }
+    const activities = await AdminActivityHistory.find({
+      admin: user._id,
+    }).populate("admin", "fullname email");
+    res.status(200).json(activities);
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Internal Server Error" });

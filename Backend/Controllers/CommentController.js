@@ -1,6 +1,6 @@
 const Course = require("../Models/Courses");
 const Lesson = require("../Models/Lessons");
-const AdminActivityHistory = require("../Models/AdminActivityHistory");
+const ActivityHistory = require("../Models/ActivityHistory");
 
 //Comment For Course
 
@@ -313,14 +313,15 @@ exports.updateCommentStatusById = async (req, res) => {
     comment.status = !comment.status;
     await course.save();
 
-    const adminActivity = new AdminActivityHistory({
-      admin: req.user._id,
+    const newActivity = new ActivityHistory({
+      user: req.user._id,
+      role: "Admin",
       description: `Change comment status of user ${comment.author} to ${
         comment.status ? "active" : "inactive"
       }\nComment: ${comment.comment}`,
     });
 
-    await adminActivity.save();
+    await newActivity.save();
 
     res.status(200).json({
       message: `Comment is now ${comment.status ? "active" : "inactive"}`,
@@ -350,20 +351,20 @@ exports.updateLessonCommentStatusById = async (req, res) => {
     await lesson.save();
 
     if (comment.status === false) {
-      const adminActivity = new AdminActivityHistory({
+      const newActivity = new ActivityHistory({
         admin: req.user._id,
         description: `Change comment status of user ${comment.author} to inactive\n
       Comment: ${comment.comment}`,
       });
-      await adminActivity.save();
+      await newActivity.save();
       res.status(200).json({ message: "Comment is now inactive" });
     } else {
-      const adminActivity = new AdminActivityHistory({
+      const newActivity = new ActivityHistory({
         admin: req.user._id,
         description: `Change comment status of user ${comment.author} to active\n
       Comment: ${comment.comment}`,
       });
-      await adminActivity.save();
+      await newActivity.save();
       res.status(200).json({ message: "Comment is now active" });
     }
   } catch (err) {

@@ -3,7 +3,7 @@ const Lesson = require("../Models/Lessons");
 const Request = require("../Models/Requests");
 const Order = require("../Models/Orders");
 const User = require("../Models/Users");
-const AdminActivityHistory = require("../Models/AdminActivityHistory");
+const ActivityHistory = require("../Models/ActivityHistory");
 const multer = require("multer");
 const admin = require("firebase-admin");
 const nodemailer = require("nodemailer");
@@ -79,7 +79,9 @@ exports.getCourseOfTutor = async (req, res) => {
 //Get Course By ID
 exports.getCourseById = async (req, res) => {
   try {
-    const course = await Course.findById(req.params.id).populate('tutor', 'fullname email avatar').exec();
+    const course = await Course.findById(req.params.id)
+      .populate("tutor", "fullname email avatar address phone gender birthday")
+      .exec();
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
     }
@@ -123,6 +125,13 @@ exports.requetsCreateCourse = async (req, res) => {
         category,
       });
 
+      await newCourse.save();
+      const newActivity = new ActivityHistory({
+        user: req.user._id,
+        role: "Tutor",
+        description: `Requested to create a new course with \nID: ${newCourse._id} \ntitle: ${title}`,
+      });
+
       const newRequest = new Request({
         tutor,
         course: newCourse._id,
@@ -137,8 +146,8 @@ exports.requetsCreateCourse = async (req, res) => {
         status: "Pending",
       });
 
+      await newActivity.save();
       await newRequest.save();
-      await newCourse.save();
       res.status(201).json(newCourse);
     });
   } catch (err) {
@@ -164,15 +173,16 @@ exports.processCreateCourse = async (req, res) => {
       return res.status(404).json({ message: "Tutor not found" });
     }
 
-    const newAdminActivity = new AdminActivityHistory({
-      admin: req.user._id,
+    const newActivity = new ActivityHistory({
+      user: req.user._id,
+      role: "Admin",
     });
 
     if (status === "Rejected") {
       request.status = "Rejected";
-      newAdminActivity.description = `Rejected the request to create a new course with ID: ${request.course}`;
+      newActivity.description = `Rejected the request to create a new course with ID: ${request.course}`;
       await request.save();
-      await newAdminActivity.save();
+      await newActivity.save();
       return res.status(200).json({ message: "Request has been rejected" });
     }
 
@@ -184,10 +194,10 @@ exports.processCreateCourse = async (req, res) => {
 
       course.status = true;
       request.status = "Approved";
-      newAdminActivity.description = `Approved the request to create a new course with ID: ${request.course}`;
+      newActivity.description = `Approved the request to create a new course with ID: ${request.course}`;
       await course.save();
       await request.save();
-      await newAdminActivity.save();
+      await newActivity.save();
 
       // Gửi email thông báo cho tutor
       const tutor = await User.findById(course.tutor);
@@ -307,6 +317,12 @@ exports.requestUpdateCourse = async (req, res) => {
       content.push({ title: "NewCategory", value: category });
     }
 
+    const newActivity = new ActivityHistory({
+      user: req.user._id,
+      role: "Tutor",
+      description: `Requested to update course with ID: ${course._id} \n content: ${content}`,
+    });
+
     const newRequest = new Request({
       tutor: req.user._id,
       course: course._id,
@@ -339,15 +355,16 @@ exports.processUpdateCourse = async (req, res) => {
       return res.status(400).json({ message: "Request has been rejected" });
     }
 
-    const newAdminActivity = new AdminActivityHistory({
-      admin: req.user._id,
+    const newActivity = new ActivityHistory({
+      user: req.user._id,
+      role: "Admin",
     });
 
     if (status === "Rejected") {
       request.status = "Rejected";
-      newAdminActivity.description = `Rejected the request to update course with ID: ${request.course}`;
+      newActivity.description = `Rejected the request to update course with ID: ${request.course}`;
       await request.save();
-      await newAdminActivity.save();
+      await newActivity.save();
       return res.status(200).json({ message: "Request has been rejected" });
     }
 
@@ -430,10 +447,10 @@ exports.processUpdateCourse = async (req, res) => {
         course.category = newCategory;
       }
       request.status = "Approved";
-      newAdminActivity.description = `Approved the request to update course with ID: ${request.course}`;
+      newActivity.description = `Approved the request to update course with ID: ${request.course}`;
       await course.save();
       await request.save();
-      await newAdminActivity.save();
+      await newActivity.save();
 
       // Gửi email thông báo cho tutor
       const transporter = nodemailer.createTransport({
@@ -539,6 +556,12 @@ exports.requestDeleteCourse = async (req, res) => {
       return res.status(400).json({ message: "Request is already pending" });
     }
 
+    const newActivity = new ActivityHistory({
+      user: req.user._id,
+      role: "Tutor",
+      description: `Requested to delete course with ID: ${course._id}/n title: ${course.title}`,
+    });
+
     const newRequest = new Request({
       tutor: req.user._id,
       course: course._id,
@@ -552,6 +575,7 @@ exports.requestDeleteCourse = async (req, res) => {
       status: "Pending",
     });
 
+    await newActivity.save();
     await newRequest.save();
     res.status(201).json({ message: "Request sent to admin" });
   } catch (err) {
@@ -576,15 +600,15 @@ exports.processDeleteCourse = async (req, res) => {
       return res.status(400).json({ message: "Request has been rejected" });
     }
 
-    const newAdminActivity = new AdminActivityHistory({
-      admin: req.user._id,
+    const newActivity = new ActivityHistory({
+      user: req.user._id,
     });
 
     if (status === "Rejected") {
       request.status = "Rejected";
-      newAdminActivity.description = `Rejected the request to delete course with ID: ${request.course}`;
+      newActivity.description = `Rejected the request to delete course with ID: ${request.course}`;
       await request.save();
-      await newAdminActivity.save();
+      await newActivity.save();
       return res.status(200).json({ message: "Request has been rejected" });
     }
 
@@ -611,9 +635,9 @@ exports.processDeleteCourse = async (req, res) => {
       // Xóa khóa học
       await course.deleteOne();
       request.status = "Approved";
-      newAdminActivity.description = `Approved the request to delete course with ID: ${request.course}`;
+      newActivity.description = `Approved the request to delete course with ID: ${request.course}`;
       await request.save();
-      await newAdminActivity.save();
+      await newActivity.save();
 
       // Gửi email thông báo cho tutor
       const transporter = nodemailer.createTransport({
@@ -725,6 +749,14 @@ exports.updateCourseImage = async (req, res) => {
       }
 
       course.image = imageUrl;
+
+      const newActivity = new ActivityHistory({
+        user: req.user._id,
+        role: "Tutor",
+        description: `Updated the image of course with ID: ${course._id}`,
+      });
+
+      await newActivity.save();
       await course.save();
       res.status(200).json(course);
     });
@@ -748,8 +780,9 @@ exports.changeCourseStatus = async (req, res) => {
       return res.status(404).json({ message: "Tutor not found" });
     }
 
-    const newAdminActivity = new AdminActivityHistory({
-      admin: req.user._id,
+    const newActivity = new ActivityHistory({
+      user: req.user._id,
+      role: "Admin",
       description: `Changed the status of course with ID: ${
         req.params.course_id
       } form ${course.status} to ${!course.status}`,
@@ -757,7 +790,7 @@ exports.changeCourseStatus = async (req, res) => {
 
     course.status = !course.status;
     await course.save();
-    await newAdminActivity.save();
+    await newActivity.save();
     if (course.status == false) {
       // Gửi email thông báo cho tutor
       const transporter = nodemailer.createTransport({

@@ -102,4 +102,12 @@ router.get(
   userController.getUserByToken
 );
 
+router.get(
+  "/tutor-activities",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  auth.verifyTutor,
+  userController.getTutorActivities
+);
+
 module.exports = router;
