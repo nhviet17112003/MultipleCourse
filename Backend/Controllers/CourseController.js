@@ -320,7 +320,7 @@ exports.requestUpdateCourse = async (req, res) => {
     const newActivity = new ActivityHistory({
       user: req.user._id,
       role: "Tutor",
-      description: `Requested to update course with ID: ${course._id} \n content: ${content}`,
+      description: `Requested to update course with ID: ${course._id}`,
     });
 
     const newRequest = new Request({
@@ -331,6 +331,7 @@ exports.requestUpdateCourse = async (req, res) => {
       status: "Pending",
     });
 
+    await newActivity.save();
     await newRequest.save();
     res.status(201).json({ message: "Request sent to admin" });
   } catch (err) {
@@ -576,6 +577,7 @@ exports.requestDeleteCourse = async (req, res) => {
     });
 
     await newActivity.save();
+    console.log(newActivity);
     await newRequest.save();
     res.status(201).json({ message: "Request sent to admin" });
   } catch (err) {
