@@ -121,4 +121,12 @@ router.get(
   auth.verifyTutor,
   orderController.getRevenueForThisYearForTutor
 );
+
+router.get(
+  "/buyers-history-tutor",
+  cors.corsWithOptions,
+  auth.verifyUser,
+  auth.verifyTutor,
+  orderController.getPurchasedCoursesForTutor
+);
 module.exports = router;
