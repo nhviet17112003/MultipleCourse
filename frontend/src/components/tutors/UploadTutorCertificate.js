@@ -1,170 +1,272 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useParams,useNavigate  } from "react-router-dom"; // Add the useParams hook
+import { useParams, useNavigate } from "react-router-dom";
+import { 
+  Form, 
+  Input, 
+  Button, 
+  Card, 
+  Typography, 
+  List, 
+  Divider, 
+  Space, 
+  Alert, 
+  message as antMessage,
+  Tag,
+  Tooltip,
+  Badge
+} from "antd";
+import {
+  LinkOutlined,
+  FileAddOutlined,
+  CheckCircleOutlined,
+  ExclamationCircleOutlined,
+  RollbackOutlined,
+  PaperClipOutlined,
+  FilePdfOutlined
+} from "@ant-design/icons";
+
+const { Title, Text } = Typography;
 
 const UploadTutorCertificate = () => {
-  const navigate = useNavigate(); // Hook để điều hướng
-  const { userId } = useParams(); // Get userId from URL
-  const [certificateUrl, setCertificateUrl] = useState(""); // Store certificate URL
-  const [title, setTitle] = useState(""); // Store certificate title
-  const [loading, setLoading] = useState(false); // Uploading status
-  const [message, setMessage] = useState(""); // Error or success message
-  const [certificates, setCertificates] = useState([]); // Array to store certificates
-  const [titleError, setTitleError] = useState("");
-  const [urlError, setUrlError] = useState("");
-  
+  const navigate = useNavigate();
+  const { userId } = useParams();
+  const [form] = Form.useForm();
+  const [certificateUrl, setCertificateUrl] = useState("");
+  const [title, setTitle] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [messageType, setMessageType] = useState(""); // "success", "error", "info"
+  const [certificates, setCertificates] = useState([]);
+
   useEffect(() => {
     if (userId) {
-      console.log("User ID from URL: ", userId); // Confirm the userId is correctly fetched
+      console.log("User ID from URL: ", userId);
     }
   }, [userId]);
+
   useEffect(() => {
-    if (message) {
+    if (statusMessage) {
       const timer = setTimeout(() => {
-        setMessage("");
+        setStatusMessage("");
+        setMessageType("");
       }, 4000);
-  
+
       return () => clearTimeout(timer);
     }
-  }, [message]);
-  
-  // Handle certificate URL input change
+  }, [statusMessage]);
+
   const handleUrlChange = (e) => {
     setCertificateUrl(e.target.value);
   };
 
-  // Handle certificate title input change
   const handleTitleChange = (e) => {
     setTitle(e.target.value);
   };
 
-  // Handle certificate upload submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const showMessage = (type, content) => {
+    setStatusMessage(content);
+    setMessageType(type);
+  };
+
+  const handleSubmit = async (values) => {
+    // Get values from the form
+    const { title, certificateUrl } = values;
+
     if (!certificateUrl || !title) {
-      setMessage("Please provide both certificate title and URL.");
+      showMessage("error", "Please provide both certificate title and URL.");
       return;
     }
-  
-    // Kiểm tra URL phải bắt đầu bằng http:// hoặc https://
+
+    // Check if URL starts with http:// or https://
     if (
       !certificateUrl.startsWith("https://") &&
       !certificateUrl.startsWith("http://")
     ) {
-      setMessage("Certificate URL must start with http:// or https://");
+      showMessage("error", "Certificate URL must start with http:// or https://");
       return;
     }
+
     const newCertificate = { title, certificate_url: certificateUrl };
 
-    // Check if the certificate already exists in the array
+    // Check if the certificate already exists
     const isExist = certificates.some(
       (cert) =>
-        cert.title === newCertificate.title && cert.certificate_url === newCertificate.certificate_url
+        cert.title === newCertificate.title && 
+        cert.certificate_url === newCertificate.certificate_url
     );
 
-    if (!isExist) {
-      setCertificates([...certificates, newCertificate]); // Add the new certificate to the array
-      setCertificateUrl(""); // Clear URL input
-      setTitle(""); // Clear Title input
-    } else {
-      setMessage("This certificate already exists.");
+    if (isExist) {
+      showMessage("error", "This certificate already exists.");
       return;
     }
 
     setLoading(true);
     try {
-      // Send data to the API, passing userId in the endpoint
+      // Send data to the API
       const response = await axios.post(
-        `http://localhost:3000/api/users/upload-certificate/${userId}`, // Use userId in the URL
-        { certificates: [...certificates, newCertificate] }, // Send the certificates array
+        `http://localhost:3000/api/users/upload-certificate/${userId}`,
+        { certificates: [...certificates, newCertificate] },
         {
           headers: {
-            "Content-Type": "application/json", // Ensure sending data in JSON format
+            "Content-Type": "application/json",
           },
         }
       );
 
       setLoading(false);
-      setMessage(response.data.message);
+      showMessage("success", response.data.message || "Certificate uploaded successfully!");
 
-      // Update the certificates list with the data returned from the API
-      setCertificates(response.data.certificates); // Update certificates after successful upload
+      // Update the certificates list and reset form
+      setCertificates(response.data.certificates || [...certificates, newCertificate]);
+      form.resetFields();
+      
+      // Show success message using Ant Design's message
+      antMessage.success("Certificate added successfully!");
     } catch (error) {
       setLoading(false);
-      setMessage("Failed to upload certificates. Please try again.");
+      showMessage("error", "Failed to upload certificates. Please try again.");
+      antMessage.error("Upload failed. Please try again.");
     }
   };
 
+  // Determine if a URL is likely a PDF
+  const isPDFUrl = (url) => {
+    return url.toLowerCase().includes('.pdf');
+  };
+
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
-      <h2 className="text-2xl font-semibold text-center mb-6">Upload Tutor Certificates</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Certificate Title:</label>
-          <input
-            type="text"
-            value={title}
-            onChange={handleTitleChange}
-            placeholder="Enter certificate title"
-            className="mt-1 p-2 w-full border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-          />
-         
-
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Certificate URL:</label>
-          <input
-            type="text"
-            value={certificateUrl}
-            onChange={handleUrlChange}
-            placeholder="Enter certificate URL"
-            className="mt-1 p-2 w-full border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-          />
-        
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full mt-4 py-2 px-4 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 disabled:bg-gray-400"
-        >
-          {loading ? "Uploading..." : "Upload Certificates"}
-        </button>
-        <button
-        onClick={() => navigate("/courses-list-tutor")} // Điều hướng về trang login
-        className="mb-4 py-2 px-4 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-600"
+    <div style={{ background: "#f0f2f5", padding: "24px", minHeight: "100vh" }}>
+      <Card 
+        style={{ 
+          maxWidth: "800px", 
+          margin: "0 auto",
+          borderRadius: "8px",
+          boxShadow: "0 1px 2px rgba(0,0,0,0.03), 0 2px 4px rgba(0,0,0,0.03)"
+        }}
       >
-        Skip
-      </button>
-      </form>
+        <Title level={2} style={{ textAlign: "center", marginBottom: "24px" }}>
+          <FileAddOutlined style={{ marginRight: "12px", color: "#1890ff" }} />
+          Upload Tutor Certificates
+        </Title>
 
-      {message && <p className="text-red-500 text-sm mt-2">{message}</p>}
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+          initialValues={{ title: "", certificateUrl: "" }}
+        >
+          <Form.Item
+            name="title"
+            label="Certificate Title"
+            rules={[
+              { required: true, message: "Please enter certificate title" },
+              { min: 3, message: "Title must be at least 3 characters" }
+            ]}
+          >
+            <Input 
+              placeholder="Enter certificate title (e.g. 'TESOL Certification')" 
+              prefix={<PaperClipOutlined style={{ color: "#bfbfbf" }} />}
+              value={title}
+              onChange={handleTitleChange}
+            />
+          </Form.Item>
 
+          <Form.Item
+            name="certificateUrl"
+            label="Certificate URL"
+            rules={[
+              { required: true, message: "Please enter certificate URL" },
+              { 
+                pattern: /^(https?:\/\/)/, 
+                message: "URL must start with http:// or https://" 
+              }
+            ]}
+            extra="Enter a link to your certificate PDF or verification page"
+          >
+            <Input 
+              placeholder="https://example.com/my-certificate.pdf" 
+              prefix={<LinkOutlined style={{ color: "#bfbfbf" }} />}
+              value={certificateUrl}
+              onChange={handleUrlChange}
+            />
+          </Form.Item>
 
-      {/* Display uploaded certificates */}
-      {certificates.length > 0 && (
-        <div className="mt-6">
-          
-          <h3 className="text-xl font-semibold mb-4">Uploaded Certificates:</h3>
-          
-          <ul className="space-y-2">
-            {certificates.map((cert, index) => (
-              <li key={index} className="flex items-center space-x-2">
-                <span className="font-medium">{cert.title}</span> -{" "}
-                <a
-                  href={cert.certificate_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-500 hover:underline"
-                >
-                  {cert.certificate_url}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+          <Space style={{ width: "100%", justifyContent: "space-between", marginTop: "24px" }}>
+            <Button 
+              icon={<RollbackOutlined />} 
+              onClick={() => navigate("/courses-list-tutor")}
+            >
+              Skip for now
+            </Button>
+            <Button 
+              type="primary" 
+              htmlType="submit" 
+              loading={loading}
+              icon={<CheckCircleOutlined />}
+            >
+              {loading ? "Uploading..." : "Upload Certificate"}
+            </Button>
+          </Space>
+        </Form>
+
+        {statusMessage && (
+          <Alert
+            message={statusMessage}
+            type={messageType}
+            showIcon
+            style={{ marginTop: "16px" }}
+          />
+        )}
+
+        {certificates.length > 0 && (
+          <>
+            <Divider orientation="left" style={{ marginTop: "32px" }}>
+              <Badge count={certificates.length} style={{ backgroundColor: '#1890ff' }}>
+                <Text strong style={{ fontSize: "16px", marginRight: "8px" }}>
+                  Uploaded Certificates
+                </Text>
+              </Badge>
+            </Divider>
+            
+            <List
+              itemLayout="horizontal"
+              dataSource={certificates}
+              renderItem={(cert, index) => (
+                <List.Item>
+                  <List.Item.Meta
+                    avatar={
+                      isPDFUrl(cert.certificate_url) ? 
+                        <FilePdfOutlined style={{ fontSize: 24, color: '#ff4d4f' }} /> : 
+                        <LinkOutlined style={{ fontSize: 24, color: '#1890ff' }} />
+                    }
+                    title={
+                      <Space>
+                        <Text strong>{cert.title}</Text>
+                        <Tag color={isPDFUrl(cert.certificate_url) ? "red" : "blue"}>
+                          {isPDFUrl(cert.certificate_url) ? "PDF" : "Certificate"}
+                        </Tag>
+                      </Space>
+                    }
+                    description={
+                      <Tooltip title="Open certificate link">
+                        <a
+                          href={cert.certificate_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: "#1890ff" }}
+                        >
+                          {cert.certificate_url}
+                        </a>
+                      </Tooltip>
+                    }
+                  />
+                </List.Item>
+              )}
+            />
+          </>
+        )}
+      </Card>
     </div>
   );
 };

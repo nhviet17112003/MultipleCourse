@@ -7,7 +7,7 @@ exports.getAllActivityOfAdmin = async (req, res) => {
     if (!activity) {
       return res.status(404).json({ message: "Activity not found" });
     }
-    res.json(activity);
+    res.status(200).json(activity);
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal server error" });
@@ -17,13 +17,14 @@ exports.getAllActivityOfAdmin = async (req, res) => {
 exports.getAllActivityOfTutor = async (req, res) => {
   try {
     const activity = await Activity.find({
-      tutor: req.user._id,
+      user: req.user._id,
       role: "Tutor",
     });
     if (!activity) {
       return res.status(404).json({ message: "Activity not found" });
     }
-    res.json(activity);
+    res.status(200).json(activity);
+
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal server error" });

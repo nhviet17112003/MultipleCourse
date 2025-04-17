@@ -66,7 +66,7 @@ const CourseListForTutor = () => {
     const interval = setInterval(() => {
       ptg += 5;
       setPercent(ptg);
-      if (ptg > 120) {
+      if (ptg > 20) {
         clearInterval(interval);
         setSpinning(false);
         setPercent(0);
