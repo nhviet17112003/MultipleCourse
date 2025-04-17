@@ -15,9 +15,13 @@ const DetailCourse = () => {
   const [cartCount, setCartCount] = useState(0);
   const [newRating, setNewRating] = useState(5);
   const [hasCommented, setHasCommented] = useState(false);
+  const [showTutorPopup, setShowTutorPopup] = useState(false);
 
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
+  const toggleTutorPopup = () => {
+    setShowTutorPopup(!showTutorPopup);
+  };
 
   // Kiểm tra đăng nhập và lấy thông tin fullname
   useEffect(() => {
@@ -251,18 +255,21 @@ const DetailCourse = () => {
 
               {/* Tutor Details */}
               {course.tutor && (
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center gap-4 mt-8">
                   <img
-                    src={course.tutor.avatar || "default-avatar.png"} // Fallback nếu không có avatar
+                    src={course.tutor.avatar || "default-avatar.png"}
                     alt={course.tutor.fullname || "Unknown Tutor"}
-                    className="w-12 h-12 rounded-full shadow-md"
+                    className="w-16 h-16 rounded-full object-cover shadow-md border-2 border-teal-500"
                   />
-                  <p className="text-lg text-gray-700 font-medium">
-                    Tutor:{" "}
-                    <span className="text-teal-700 font-semibold">
+                  <div className="flex flex-col">
+                    <span className="text-base text-gray-500">Tutor</span>
+                    <span
+                      onClick={toggleTutorPopup}
+                      className="text-teal-700 font-bold text-xl cursor-pointer hover:underline"
+                    >
                       {course.tutor.fullname}
                     </span>
-                  </p>
+                  </div>
                 </div>
               )}
 
@@ -371,6 +378,75 @@ const DetailCourse = () => {
             </ul>
           ) : (
             <p className="text-gray-500 mt-2">No comments yet.</p>
+          )}
+          {showTutorPopup && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+              <div className="bg-white p-6 rounded-lg shadow-lg w-[500px] relative">
+                <button
+                  onClick={toggleTutorPopup}
+                  className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+                >
+                  ✖
+                </button>
+
+                <h2 className="text-2xl font-bold text-center mb-4">
+                  Tutor Details
+                </h2>
+
+                <div className="flex flex-col items-center">
+                  <img
+                    src={course.tutor.avatar || "default-avatar.png"}
+                    alt={course.tutor.fullname || "Unknown Tutor"}
+                    className="w-24 h-24 rounded-full mb-2"
+                  />
+                  <h3 className="text-xl font-semibold">
+                    {course.tutor.fullname}
+                  </h3>
+                  <p className="text-gray-500">{course.tutor.email}</p>
+                </div>
+
+                <hr className="my-4" />
+
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">
+                    Tutor Information
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
+                    <div>
+                      <p className="font-semibold">Address</p>
+                      <p>{course.tutor.address || "N/A"}</p>
+                    </div>
+                    <div>
+                      <p className="font-semibold">Phone</p>
+                      <p>{course.tutor.phone || "N/A"}</p>
+                    </div>
+                    <div>
+                      <p className="font-semibold">Gender</p>
+                      <p>{course.tutor.gender || "N/A"}</p>
+                    </div>
+                    <div>
+                      <p className="font-semibold">Birthday</p>
+                      <p>
+                        {course.tutor.birthday
+                          ? new Date(course.tutor.birthday).toLocaleDateString(
+                              "en-GB"
+                            )
+                          : "N/A"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end mt-6">
+                  <button
+                    onClick={toggleTutorPopup}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </div>
