@@ -72,12 +72,19 @@ const UserProfile = () => {
   const handleAvatarChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
+  
+    // Kiểm tra loại tệp (extension)
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setError("Only JPG, PNG, and WEBP files are allowed.");
+      return;
+    }
+  
     const formData = new FormData();
     formData.append("avatar", file);
-
+  
     const token = localStorage.getItem("authToken");
-
+  
     try {
       setLoading(true);
       const response = await axios.post(
@@ -90,10 +97,10 @@ const UserProfile = () => {
           },
         }
       );
-
+  
       if (response.data && response.data.avatar) {
         setUserData({ ...userData, avatar: response.data.avatar });
-
+  
         // Reload lại trang sau khi cập nhật avatar thành công
         window.location.reload();
       } else {
@@ -105,6 +112,7 @@ const UserProfile = () => {
       setLoading(false);
     }
   };
+  
 
   const handleChangePassword = async () => {
     if (!oldPassword || !newPassword || !confirmPassword) {

@@ -124,7 +124,6 @@ exports.getProgressByCourse = async (req, res) => {
     }
     //Nếu trong đã mua khóa học nhưng chưa có progress thì in ra chưa enroll
     //Nếu đã có progress thì in ra progress theo phần trăm dựa theo số khóa học đã hoàn thành
-
     const order_items = await Order.find({
       "order_items.course": course_id,
     });
@@ -138,6 +137,7 @@ exports.getProgressByCourse = async (req, res) => {
     }
 
     const students = [];
+    const lessonlist = [];
 
     //Nếu trong order_items có course_id thì kiểm tra xem đã có progress chưa
     //Nếu chưa có thì in ra chưa enroll
@@ -145,7 +145,7 @@ exports.getProgressByCourse = async (req, res) => {
 
     for (let i = 0; i < order_items.length; i++) {
       let student = await User.findById(order_items[i].user).select(
-         "_id fullname avatar email role address birthday gender phone"
+        "_id fullname avatar email role address birthday gender phone"
       );
 
       if (!student) {
@@ -156,11 +156,31 @@ exports.getProgressByCourse = async (req, res) => {
       let progress = progresses.find(
         (progress) => progress.student_id.toString() === student._id.toString()
       );
+
+      const lessons = await Lesson.find({
+        course_id: course_id,
+      });
+
+      lessonlist.push({
+        lesson: [
+          ...lessons.map((lesson) => {
+            return {
+              lesson_id: lesson._id,
+              title: lesson.title,
+              status: "Not Started",
+              note: "",
+              progress_time: 0,
+            };
+          }),
+        ],
+      });
+
       if (!progress) {
         students.push({
           student: student,
           status: "Not Enrolled",
           percent: 0,
+          lessons: lessonlist,
         });
       } else {
         let lesson = progress.lesson;
@@ -181,13 +201,7 @@ exports.getProgressByCourse = async (req, res) => {
           student: student,
           status: "Enrolled",
           percent: percent,
-          // completedLessons: lesson.filter(l => l.status === "Completed"),
-          // totalLessons: lesson.length,
-          // final_exam_status: final_exam.status,
-          // final_exam_score: final_exam.score,
-          // final_exam: progress.final_exam,
-          // progress: progress,
-          // lesson: lesson,
+          lessons: lessonlist,
         });
       }
     }
