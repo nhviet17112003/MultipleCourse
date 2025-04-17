@@ -93,15 +93,29 @@ exports.googlePassport = passport.use(
           if (user) {
             return done(null, user);
           } else {
-            user = new User({ username: profile.displayName });
-            user.googleId = profile.id;
-            user.email = profile.emails[0].value;
-            user.fullname = profile.displayName;
-            user.avatar = profile.picture;
-            user.role = "Student";
-            user.save().then((user) => {
-              return done(null, user);
-            });
+            // Check if email exists but without googleId
+            User.findOne({ email: profile.emails[0].value }).then(
+              (existingUser) => {
+                if (existingUser && !existingUser.googleId) {
+                  return done(null, false, {
+                    message: "Email is already in use.",
+                  });
+                } else {
+                  // Generate username = 4 last digits of googleId + displayName
+                  const newusername =
+                    profile.displayName + "x" + profile.id.slice(-4);
+                  user = new User({ username: newusername });
+                  user.googleId = profile.id;
+                  user.email = profile.emails[0].value;
+                  user.fullname = profile.displayName;
+                  user.avatar = profile.picture;
+                  user.role = "Student";
+                  user.save().then((user) => {
+                    return done(null, user);
+                  });
+                }
+              }
+            );
           }
         })
         .catch((err) => {

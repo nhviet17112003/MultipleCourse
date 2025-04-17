@@ -564,10 +564,13 @@ exports.googleLoginCallback = async (req, res, next) => {
     if (err) {
       return next(err);
     }
+
+    // Bổ sung đoạn xử lý nếu email đã tồn tại nhưng không có googleId
     if (!user) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Authentication failed" });
+      const message = info?.message || "Authentication failed";
+      return res.redirect(
+        `http://localhost:3001/login?error=${encodeURIComponent(message)}`
+      );
     }
 
     const existsWallet = await Wallet.findOne({ user: user._id });
@@ -584,15 +587,14 @@ exports.googleLoginCallback = async (req, res, next) => {
       _id: user._id,
       email: user.email,
     });
-    res.cookie("Token", token, { maxAge: 7200000, path: "/" }); // dùng cookie để lưu token
-    // res.cookie("Token", token, {
-    //   maxAge: 7200000,
-    //   path: "/",
-    //   httpOnly: true, // chỉ cho phép truy cập cookie từ server
-    //   secure: true, // bắt buộc khi dùng HTTPS
-    //   sameSite: "None", // cho phép gửi cookie cross-origin
-    // });
-    // return res.redirect("https://multi-course-rfc1.vercel.app/course-list");
+
+    res.cookie("Token", token, {
+      maxAge: 24 * 60 * 60 * 1000 * 7, // 7 days
+      path: "/",
+      // httpOnly: true, // bảo vệ khỏi XSS
+      // sameSite: "None",
+      // secure: true,
+    });
     return res.redirect("http://localhost:3001/course-list");
   })(req, res, next);
 };
