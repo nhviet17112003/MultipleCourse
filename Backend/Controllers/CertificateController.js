@@ -6,8 +6,8 @@ const StudentCertificate = require("../Models/StudentCertificates");
 const User = require("../Models/Users");
 const StudentExamRS = require("../Models/StudentExamResults");
 
-const width = 800;
-const height = 600;
+const width = 1000; // Increased width
+const height = 700; // Increased height
 const canvas = createCanvas(width, height);
 const ctx = canvas.getContext("2d");
 
@@ -45,6 +45,8 @@ exports.generateCertificate = async (req, res) => {
       return res.status(404).json({ message: "Course not found" });
     }
 
+    const tutor = await User.findById(course.tutor);
+
     const studentExamRS = await StudentExamRS.findOne({
       student: req.user._id,
       course: course_id,
@@ -66,42 +68,65 @@ exports.generateCertificate = async (req, res) => {
       return res.status(400).json({ message: "You are not passed" });
     }
 
-    // Nền sáng
-    ctx.fillStyle = "#ffffff";
+    // Nền có gradient
+    const gradient = ctx.createLinearGradient(0, 0, 0, height);
+    gradient.addColorStop(0, "#fdfbfb");
+    gradient.addColorStop(1, "#ebedee");
+    ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, width, height);
 
-    // Viền chứng chỉ
-    ctx.strokeStyle = "#999999";
-    ctx.lineWidth = 3;
-    ctx.strokeRect(20, 20, width - 40, height - 40);
+    // Viền vàng sang trọng
+    ctx.strokeStyle = "#d4af37";
+    ctx.lineWidth = 6;
+    ctx.strokeRect(30, 30, width - 60, height - 60);
 
-    // Logo góc trên trái
-    const logo = await loadImage("./public/images/logo.png"); // Thay đường dẫn logo
-    ctx.drawImage(logo, 50, 50, 150, 150);
+    // Thêm viền phụ bên trong
+    ctx.strokeStyle = "#8b7d6b";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(50, 50, width - 100, height - 100);
+
+    // Logo
+    const logo = await loadImage("./public/images/logo.png");
+    const logoWidth = 80;
+    const logoHeight = 80;
+    ctx.drawImage(logo, (width - logoWidth) / 2, 40, logoWidth, logoHeight);
 
     // Tiêu đề
-    ctx.fillStyle = "#000000";
-    ctx.font = "bold 42px Arial";
+    ctx.fillStyle = "#1a1a1a";
+    ctx.font = "bold 40px Georgia";
     ctx.textAlign = "center";
-    ctx.fillText("CERTIFICATE OF COMPLETION", width / 2, 150);
+    ctx.fillText("🎓 CERTIFICATE OF COMPLETION 🎓", width / 2, 180);
 
-    // Họ tên người nhận
-    ctx.fillStyle = "#003366";
-    ctx.font = "bold 36px Arial";
-    ctx.fillText(fullname || "John Doe", width / 2, 250);
+    // Tên học viên
+    ctx.fillStyle = "#2c3e50";
+    ctx.font = "italic 36px 'Times New Roman'";
+    ctx.fillText(fullname || "John Doe", width / 2, 260);
 
-    // Văn bản chứng nhận
-    ctx.fillStyle = "#000000";
-    ctx.font = "24px Arial";
-    ctx.fillText("has successfully completed the course", width / 2, 300);
+    // Nội dung
+    ctx.fillStyle = "#34495e";
+    ctx.font = "22px Arial";
+    ctx.fillText("has successfully completed the course", width / 2, 310);
+    ctx.font = "bold 26px Arial";
     ctx.fillText(`"${course.title}"`, width / 2, 350);
 
-    // Chữ ký giảng viên
-    ctx.fillText("Instructor", width - 200, height - 120);
-    ctx.beginPath();
-    ctx.moveTo(width - 250, height - 140);
-    ctx.lineTo(width - 100, height - 140);
-    ctx.stroke();
+    // Ngày cấp
+    ctx.font = "18px Arial";
+    ctx.fillText(
+      `Date Issued: ${new Date().toLocaleDateString()}`,
+      width / 2,
+      400
+    );
+
+    // Chữ ký
+    if (tutor && tutor.fullname) {
+      ctx.font = "20px Arial";
+      ctx.fillText("Instructor", width - 190, height - 90);
+      ctx.font = "italic 20px Arial";
+      ctx.fillText(tutor.fullname, width - 190, height - 120);
+    } else {
+      console.error("Tutor not found or fullname is missing");
+      return res.status(404).json({ message: "Tutor not found" });
+    }
 
     // Tạo buffer từ canvas
     const buffer = Buffer.from(canvas.toBuffer("image/png").buffer);
