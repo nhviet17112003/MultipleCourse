@@ -33,6 +33,75 @@ const CreateCourse = () => {
   const [percent, setPercent] = useState(0);
   const { theme } = useTheme();
   const [fileList, setFileList] = useState([]);
+
+  const categories = {
+    "Business & Economics": [
+      "Digital Marketing (SEO, Google Ads, Facebook Ads)",
+      "Entrepreneurship & Startups",
+      "E-commerce (Shopify, Amazon, Shopee)",
+      "Financial Management & Investment",
+      "Human Resources (HR) & Recruitment",
+      "Project Management (Agile, Scrum, PMP)",
+      "Business Strategy & Consulting",
+      "Supply Chain & Logistics",
+      "Stock Market & Cryptocurrency",
+      "Marketing",
+      "Others",
+    ],
+    "Design & Multimedia": [
+      "Graphic Design (Photoshop, Illustrator)",
+      "UI/UX Design (Figma, Adobe XD)",
+      "3D Modeling & Animation",
+      "Video Editing & Production",
+      "Motion Graphics",
+      "Interior Design",
+      "Fashion Design",
+      "Game Design",
+      "Design",
+      "Others",
+    ],
+    "Languages & Linguistics": [
+      "English for Business & Communication",
+      "TOEIC, IELTS, TOEFL Preparation",
+      "French, German, Spanish, Japanese, Chinese",
+      "Vietnamese for Foreigners",
+      "Translation & Interpretation",
+      "Academic Writing & Research Skills",
+      "Others",
+    ],
+    "Soft Skills": [
+      "Communication Skills",
+      "Public Speaking & Presentation",
+      "Leadership & Management",
+      "Emotional Intelligence",
+      "Time Management",
+      "Negotiation & Persuasion",
+      "Teamwork & Collaboration",
+      "Critical Thinking & Problem-Solving",
+      "Stress Management & Resilience",
+      "Creativity & Innovation",
+      "Others",
+    ],
+    "Engineering & Technology": [
+      "Software Development",
+      "Web Development",
+      "Mobile App Development",
+      "Artificial Intelligence & Machine Learning",
+      "Data Science & Big Data",
+      "Cybersecurity",
+      "Cloud Computing",
+      "Blockchain Technology",
+      "Electrical & Electronics Engineering",
+      "Mechanical Engineering",
+      "Civil Engineering",
+      "Robotics & Automation",
+      "Networking & IT Security",
+      "Embedded Systems",
+      "Programming",
+      "Others",
+    ],
+  };
+  const [selectedCategory, setSelectedCategory] = useState(null);
   
   useEffect(() => {
     const token = localStorage.getItem("authToken");
@@ -220,14 +289,38 @@ const CreateCourse = () => {
             label={<Text className={`text-lg ${theme === "dark" ? "text-gray-200" : "text-gray-700"}`}>Category</Text>}
             rules={[{ required: true, message: "Please select a category" }]}
           >
-            <Select size="large" placeholder="Select category">
-              <Option value="Programming">Programming</Option>
-              <Option value="Design">Design</Option>
-              <Option value="Marketing">Marketing</Option>
-              <Option value="Business">Business</Option>
-              <Option value="Photography">Photography</Option>
-              <Option value="Music">Music</Option>
-            </Select>
+      <Select size="large" placeholder="Select category" className="w-64">
+      <Select.Option value="Programming">Programming</Select.Option>
+      <Select.Option value="Design">Design</Select.Option>
+      <Select.Option value="Marketing">Marketing</Select.Option>
+      <Select.Option value="Business">Business</Select.Option>
+      <Select.Option value="Photography">Photography</Select.Option>
+      <Select.Option value="Music">Music</Select.Option>
+      <Select.Option value="Education">Education</Select.Option>
+      <Select.Option value="Healthcare">Healthcare</Select.Option>
+      <Select.Option value="Finance">Finance</Select.Option>
+      <Select.Option value="Engineering">Engineering</Select.Option>
+      <Select.Option value="Science">Science</Select.Option>
+      <Select.Option value="Art">Art</Select.Option>
+      <Select.Option value="Literature">Literature</Select.Option>
+      <Select.Option value="Culinary">Culinary</Select.Option>
+      <Select.Option value="Sports">Sports</Select.Option>
+      <Select.Option value="Agriculture">Agriculture</Select.Option>
+      <Select.Option value="Tourism">Tourism</Select.Option>
+      <Select.Option value="Technology">Technology</Select.Option>
+      <Select.Option value="Manufacturing">Manufacturing</Select.Option>
+      <Select.Option value="Architecture">Architecture</Select.Option>
+      <Select.Option value="Journalism">Journalism</Select.Option>
+      <Select.Option value="Law">Law</Select.Option>
+      <Select.Option value="Psychology">Psychology</Select.Option>
+      <Select.Option value="Film">Film & Media</Select.Option>
+      <Select.Option value="Retail">Retail</Select.Option>
+      <Select.Option value="Transportation">Transportation</Select.Option>
+      <Select.Option value="Environmental">Environmental</Select.Option>
+      <Select.Option value="Fashion">Fashion</Select.Option>
+      <Select.Option value="Real Estate">Real Estate</Select.Option>
+      <Select.Option value="Telecommunications">Telecommunications</Select.Option>
+    </Select>
           </Form.Item>
 
           <Form.Item

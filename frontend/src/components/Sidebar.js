@@ -126,6 +126,11 @@ function Sidebar() {
           { key: "11", label: <Link to="/wallet">My Wallet</Link> },
         ],
       },
+      {
+        key: "sub7",
+        icon: <AppstoreOutlined />,
+        label: <Link to="/activity-history-tutor">Activity History</Link>,
+      },
 
       {
         key: "sub5",

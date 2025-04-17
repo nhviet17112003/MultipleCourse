@@ -13,6 +13,9 @@ import {
   Statistic,
   Row,
   Col,
+  Modal,
+  List,
+  Tooltip,
 } from "antd";
 import { useEffect, useState } from "react";
 import {
@@ -28,11 +31,17 @@ import {
   UserSwitchOutlined,
   UserDeleteOutlined,
   IdcardOutlined,
+  FileDoneOutlined,
+  LockOutlined,
+  EyeOutlined,
+  CopyOutlined,
+  TrophyOutlined,
 } from "@ant-design/icons";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Paragraph from "antd/es/skeleton/Paragraph";
 
-const { Title, Text } = Typography;
+const { Title, Text, Link } = Typography;
 
 const ManageUser = () => {
   const [users, setUsers] = useState([]);
@@ -40,6 +49,9 @@ const ManageUser = () => {
   const [error, setError] = useState(null);
   const [searchText, setSearchText] = useState("");
   const [filterRole, setFilterRole] = useState(null);
+  const [certificateModalVisible, setCertificateModalVisible] = useState(false);
+  const [selectedCertificates, setSelectedCertificates] = useState([]);
+  const [selectedUserName, setSelectedUserName] = useState("");
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -60,6 +72,7 @@ const ManageUser = () => {
         }
 
         const data = await response.json();
+        console.log(data);
         setUsers(data);
       } catch (err) {
         setError(err.message);
@@ -109,6 +122,12 @@ const ManageUser = () => {
     setFilterRole(null);
   };
 
+  const showCertificates = (certificates, userName) => {
+    setSelectedCertificates(certificates);
+    setSelectedUserName(userName);
+    setCertificateModalVisible(true);
+  };
+
   const filteredData = users
     .filter((user) => {
       if (!searchText) return true;
@@ -130,6 +149,7 @@ const ManageUser = () => {
       phone: user.phone || "N/A",
       role: user.role,
       status: user.status,
+      tutor_certificates: user.tutor_certificates || [],
     }));
 
   // User statistics
@@ -254,7 +274,12 @@ const ManageUser = () => {
       width: 80,
       render: (record) =>
         record.role !== "Admin" && (
-          <DropDownMenu record={record} setUsers={setUsers} users={users} />
+          <DropDownMenu 
+            record={record} 
+            setUsers={setUsers} 
+            users={users} 
+            showCertificates={showCertificates}
+          />
         ),
     },
   ];
@@ -355,7 +380,6 @@ const ManageUser = () => {
                   value={activeUsers}
                   prefix={<CheckOutlined className="text-green-500 mr-2" />}
                   valueStyle={{ color: "#52c41a", fontWeight: "bold" }}
-                  // suffix={<small className="text-gray-500">{`(${((activeUsers/totalUsers)*100).toFixed(1)}%)`}</small>}
                 />
               </Card>
             </Col>
@@ -370,7 +394,6 @@ const ManageUser = () => {
                   value={inactiveUsers}
                   prefix={<StopOutlined className="text-red-500 mr-2" />}
                   valueStyle={{ color: "#ff4d4f", fontWeight: "bold" }}
-                  // suffix={<small className="text-gray-500">{`(${((inactiveUsers/totalUsers)*100).toFixed(1)}%)`}</small>}
                 />
               </Card>
             </Col>
@@ -430,6 +453,113 @@ const ManageUser = () => {
           )}
         />
       </Card>
+
+      {/* Certificate Modal */}
+      <Modal
+      title={
+        <div className="flex items-center gap-3">
+          <TrophyOutlined className="text-yellow-500 text-xl" />
+          <span className="text-lg font-medium">{selectedUserName}'s Achievements</span>
+        </div>
+      }
+      open={certificateModalVisible}
+      onCancel={() => setCertificateModalVisible(false)}
+      footer={[
+        <Button
+          key="close"
+          onClick={() => setCertificateModalVisible(false)}
+          size="large"
+          className="px-8"
+        >
+          Close
+        </Button>,
+      ]}
+      width={700}
+      className="certificate-modal"
+      centered
+      bodyStyle={{ padding: '20px 24px', maxHeight: '70vh', overflow: 'auto' }}
+    >
+      <List
+        itemLayout="vertical"
+        dataSource={selectedCertificates}
+        renderItem={(certificate, index) => (
+          <List.Item
+            className="rounded-lg mb-4 bg-gray-50 border border-gray-100 hover:border-blue-200 transition-all"
+            key={certificate._id || index}
+          >
+            <div className="p-5 w-full">
+              <div className="flex justify-between items-start mb-3">
+                <div>
+                  <Title level={4} className="m-0 text-blue-700">
+                    {certificate.title}
+                  </Title>
+                  {certificate.issueDate && (
+                    <Text type="secondary" className="text-sm mt-1 block">
+                      Issued: {certificate.issueDate}
+                    </Text>
+                  )}
+                </div>
+                <Tag color="blue" className="rounded-full px-4 py-1 text-sm font-medium">
+                  Certificate #{index + 1}
+                </Tag>
+              </div>
+              
+              {certificate.description && (
+                <Paragraph className="text-gray-600 mt-2 mb-4" ellipsis={{ rows: 2, expandable: true }}>
+                  {certificate.description}
+                </Paragraph>
+              )}
+              
+              <div className="flex flex-wrap items-center gap-3 mt-4">
+                <Button
+                  type="primary"
+                  icon={<EyeOutlined />}
+                  href={certificate.certificate_url}
+                  target="_blank"
+                  className="flex items-center"
+                  size="middle"
+                >
+                  View Certificate
+                </Button>
+                
+                <Tooltip title="Copy URL">
+                  <Button 
+                    icon={<CopyOutlined />}
+                    onClick={() => {
+                      navigator.clipboard.writeText(certificate.certificate_url);
+                      // You could add notification here
+                    }}
+                  >
+                    Copy Link
+                  </Button>
+                </Tooltip>
+                
+                {certificate.verifyUrl && (
+                  <Button
+                    type="link"
+                    href={certificate.verifyUrl}
+                    target="_blank"
+                    className="text-green-600"
+                  >
+                    <CheckOutlined /> Verify
+                  </Button>
+                )}
+              </div>
+            </div>
+          </List.Item>
+        )}
+        locale={{
+          emptyText: (
+            <div className="text-center py-12">
+              <FileDoneOutlined className="text-5xl text-gray-300 mb-3" />
+              <p className="text-gray-500 text-lg">No certificates found</p>
+              <Button type="primary" className="mt-4">Add Certificate</Button>
+            </div>
+          ),
+        }}
+      />
+    </Modal>
+
       <ToastContainer position="bottom-right" theme="colored" />
     </div>
   );
@@ -437,7 +567,7 @@ const ManageUser = () => {
 
 export default ManageUser;
 
-const DropDownMenu = ({ record, setUsers, users }) => {
+const DropDownMenu = ({ record, setUsers, users, showCertificates }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
 
@@ -478,34 +608,55 @@ const DropDownMenu = ({ record, setUsers, users }) => {
       toggleUserStatus(record.key);
     }
   };
-
-  const items = [
-    {
-      key: "1",
-      label: (
-        <div
-          onClick={handleStatusToggleClick}
-          className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 rounded-md transition-colors duration-150"
-        >
-          {record.status ? (
-            <>
-              <UserDeleteOutlined className="h-4 w-4 text-red-500" />
-              <span>Ban User</span>
-            </>
-          ) : (
-            <>
-              <UserAddOutlined className="h-4 w-4 text-green-500" />
-              <span>Activate User</span>
-            </>
-          )}
-        </div>
-      ),
-    },
-  ];
+  
+  // Build dropdown items based on user role and available data
+  const getDropdownItems = () => {
+    let items = [
+      {
+        key: "1",
+        label: (
+          <div
+            onClick={handleStatusToggleClick}
+            className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 rounded-md transition-colors duration-150"
+          >
+            {record.status ? (
+              <>
+                <UserDeleteOutlined className="h-4 w-4 text-red-500" />
+                <span>Ban User</span>
+              </>
+            ) : (
+              <>
+                <UserAddOutlined className="h-4 w-4 text-green-500" />
+                <span>Activate User</span>
+              </>
+            )}
+          </div>
+        ),
+      }
+    ];
+    
+    // Add certificate view option for tutors with certificates
+    if (record.role === "Tutor" && record.tutor_certificates?.length > 0) {
+      items.push({
+        key: "2",
+        label: (
+          <div
+            onClick={() => showCertificates(record.tutor_certificates, record.fullname)}
+            className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 rounded-md transition-colors duration-150"
+          >
+            <FileDoneOutlined className="h-4 w-4 text-blue-500" />
+            <span>View Certificates ({record.tutor_certificates.length})</span>
+          </div>
+        ),
+      });
+    }
+    
+    return items;
+  };
 
   return (
     <div className="flex justify-center">
-      <Dropdown menu={{ items }} trigger={["click"]} placement="bottomRight">
+      <Dropdown menu={{ items: getDropdownItems() }} trigger={["click"]} placement="bottomRight">
         <Button
           type="text"
           icon={<EllipsisOutlined />}
