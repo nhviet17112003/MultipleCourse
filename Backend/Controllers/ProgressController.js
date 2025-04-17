@@ -156,6 +156,8 @@ exports.getProgressByCourse = async (req, res) => {
       let progress = progresses.find(
         (progress) => progress.student_id.toString() === student._id.toString()
       );
+      //tìm lesson title theo lesson_id trong progress
+
       if (!progress) {
         students.push({
           student: student,
