@@ -1234,7 +1234,7 @@ const closeStudentDetailModal = () => {
         </Descriptions.Item>
       </Descriptions>
       
-      <Divider orientation="left">Course Progress</Divider>
+      {/* <Divider orientation="left">Course Progress</Divider> */}
       
       {/* <List
         header={<div>Completed Lessons</div>}
