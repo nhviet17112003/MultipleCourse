@@ -19,6 +19,10 @@ const ProgressSchema = new Schema({
         ref: "Lessons",
         required: true,
       },
+      title: {
+        type: String,
+        required: true,
+      },
       status: {
         type: String,
         default: "Not Started",
