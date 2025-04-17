@@ -24,7 +24,6 @@ exports.getAllActivityOfTutor = async (req, res) => {
       return res.status(404).json({ message: "Activity not found" });
     }
     res.status(200).json(activity);
-
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal server error" });
