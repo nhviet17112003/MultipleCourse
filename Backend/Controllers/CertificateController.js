@@ -87,9 +87,9 @@ exports.generateCertificate = async (req, res) => {
 
     // Logo
     const logo = await loadImage("./public/images/logo.png");
-    const logoWidth = 80;
-    const logoHeight = 80;
-    ctx.drawImage(logo, (width - logoWidth) / 2, 40, logoWidth, logoHeight);
+    const logoWidth = 100;
+    const logoHeight = 100;
+    ctx.drawImage(logo, (width - logoWidth) / 2, 60, logoWidth, logoHeight);
 
     // Tiêu đề
     ctx.fillStyle = "#1a1a1a";
@@ -109,6 +109,24 @@ exports.generateCertificate = async (req, res) => {
     ctx.font = "bold 26px Arial";
     ctx.fillText(`"${course.title}"`, width / 2, 350);
 
+    const watermark = await loadImage("./public/images/logo.png");
+
+    // Kích thước logo watermark nhỏ
+    const watermarkSize = 80;
+
+    // Lặp các đường chéo
+    for (let y = -height; y < height * 2; y += watermarkSize * 2) {
+      for (let x = -width; x < width * 2; x += watermarkSize * 2) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(-Math.PI / 4); // Xoay -45 độ
+        ctx.globalAlpha = 0.09; // Độ trong suốt cho watermark
+        ctx.drawImage(watermark, 0, 0, watermarkSize, watermarkSize);
+        ctx.restore();
+      }
+    }
+    ctx.globalAlpha = 1.0; // Trở lại bình thường cho phần nội dung chính
+
     // Ngày cấp
     ctx.font = "18px Arial";
     ctx.fillText(
@@ -120,9 +138,9 @@ exports.generateCertificate = async (req, res) => {
     // Chữ ký
     if (tutor && tutor.fullname) {
       ctx.font = "20px Arial";
-      ctx.fillText("Instructor", width - 190, height - 90);
+      ctx.fillText("Instructor", width - 210, height - 160);
       ctx.font = "italic 20px Arial";
-      ctx.fillText(tutor.fullname, width - 190, height - 120);
+      ctx.fillText(tutor.fullname, width - 210, height - 130);
     } else {
       console.error("Tutor not found or fullname is missing");
       return res.status(404).json({ message: "Tutor not found" });

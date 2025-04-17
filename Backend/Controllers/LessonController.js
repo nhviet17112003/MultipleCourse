@@ -1,8 +1,10 @@
 const Course = require("../Models/Courses");
 const Lesson = require("../Models/Lessons");
-const progress = require("../Models/Progress");
+const Progress = require("../Models/Progress");
+const Activity = require("../Models/ActivityHistory");
 const multer = require("multer");
 const admin = require("firebase-admin");
+const ActivityHistory = require("../Models/ActivityHistory");
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -58,6 +60,12 @@ exports.createLesson = async (req, res) => {
         return res.status(404).json({ message: "Course not found" });
       }
 
+      if (course.status) {
+        return res
+          .status(400)
+          .json({ message: "Course is active, cannot create lesson." });
+      }
+
       const { number, title, description } = req.body;
       const existLesson = await Lesson.findOne({ course_id, number });
       if (existLesson) {
@@ -100,23 +108,31 @@ exports.createLesson = async (req, res) => {
         document_url: documentUrl,
       });
 
-      const progresses = await progress.find({ course_id });
+      const progresses = await Progress.find({ course_id });
       // Tạo progress cho bài học mới đối với những progress chưa hoàn thành tất cả
       // Nếu bài học đã hoàn thành thì không cần tạo progress mới
       for (const progressItem of progresses) {
-        const lessonIndex = progressItem.lesson.findIndex(
-          (item) => item.lesson_id.toString() === lesson._id.toString()
-        );
-        if (lessonIndex === -1) {
-          progressItem.lesson.push({
-            lesson_id: lesson._id,
-            status: "Not Started",
-            note: "",
-            progress_time: 0,
-          });
-          await progressItem.save();
+        if (progresses.final_exam.status === "Completed") {
+          continue;
+        } else {
+          if (lessonIndex === -1) {
+            progressItem.lesson.push({
+              lesson_id: lesson._id,
+              status: "Not Started",
+              note: "",
+              progress_time: 0,
+            });
+            await progressItem.save();
+          }
         }
       }
+
+      const newActivity = new ActivityHistory({
+        user: req.user._id,
+        role: "Tutor",
+        description: `Created lesson ${title} for course ${course.title}`,
+      });
+      await newActivity.save();
 
       await lesson.save();
       res.status(201).json(lesson);
@@ -177,6 +193,11 @@ exports.updateLesson = async (req, res) => {
       return res
         .status(404)
         .json({ message: "You are not tutor of this course" });
+    }
+    if (course.status) {
+      return res
+        .status(400)
+        .json({ message: "Course is active, cannot update lesson." });
     }
 
     const uploadMiddleware = upload.fields([
@@ -293,18 +314,12 @@ exports.updateLesson = async (req, res) => {
         }
       }
 
-      const progresses = await progress.find({ course_id: lesson.course_id });
-      //nếu những progress nào hoàn thành hết thì không cập nhật thêm
-      //chỉ cập nhật những progress nào chưa hoàn thành
-      for (const progressItem of progresses) {
-        const lessonIndex = progressItem.lesson.findIndex(
-          (item) => item.lesson_id.toString() === lesson._id.toString()
-        );
-        if (lessonIndex !== -1) {
-          progressItem.lesson[lessonIndex].status = "Not Started";
-          await progressItem.save();
-        }
-      }
+      const newActivity = new ActivityHistory({
+        user: req.user._id,
+        role: "Tutor",
+        description: `Updated lesson ${lesson.title} for course ${course.title}`,
+      });
+      await newActivity.save();
 
       await lesson.save();
       res.status(200).json({ message: "Lesson updated successfully", lesson });
@@ -332,6 +347,11 @@ exports.deleteLesson = async (req, res) => {
       return res
         .status(404)
         .json({ message: "You are not tutor of this course" });
+    }
+    if (course.status) {
+      return res
+        .status(400)
+        .json({ message: "Course is active, cannot delete lesson." });
     }
 
     const bucket = admin.storage().bucket();
