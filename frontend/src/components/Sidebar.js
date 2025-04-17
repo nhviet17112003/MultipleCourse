@@ -100,14 +100,12 @@ function Sidebar() {
       },
       {
         key: "sub3",
-        label: "Manage Requests",
+       
         icon: <AppstoreOutlined />,
-        children: [
-          {
-            key: "8",
+       
+      
             label: <Link to="/request-list">Request List</Link>,
-          },
-        ],
+      
       },
 
       {
@@ -130,6 +128,11 @@ function Sidebar() {
         key: "sub7",
         icon: <AppstoreOutlined />,
         label: <Link to="/activity-history-tutor">Activity History</Link>,
+      },
+      {
+        key: "sub8",
+        icon: <AppstoreOutlined />,
+        label: <Link to="/buyer-history-tutor">Buyer History</Link>,
       },
 
       {

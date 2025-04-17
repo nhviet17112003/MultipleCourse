@@ -376,12 +376,12 @@ const Navbar = () => {
                     Logout
                   </button>
                   <div className="w-full flex justify-center py-3">
-                    <Switch
+                    {/* <Switch
                       onClick={toggleTheme}
                       checkedChildren="Dark"
                       unCheckedChildren="Light"
                       defaultChecked={theme === "dark"}
-                    />
+                    /> */}
                   </div>
                 </div>
               )}
