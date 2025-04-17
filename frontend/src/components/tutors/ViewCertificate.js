@@ -4,7 +4,33 @@ import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Swal from "sweetalert2";
+import {
+  Card,
+  Button,
+  List,
+  Typography,
+  Spin,
+  Empty,
+  Space,
+  Alert,
+  Tag,
+  Modal,
+  Tooltip,
+  Divider,
+  PageHeader
+} from "antd";
+import {
+  FileAddOutlined,
+  DeleteOutlined,
+  LinkOutlined,
+  FilePdfOutlined,
+  ExclamationCircleOutlined,
+  LockOutlined,
+  RightCircleOutlined
+} from "@ant-design/icons";
+
+const { Title, Text } = Typography;
+const { confirm } = Modal;
 
 const ViewCertificate = () => {
   const navigate = useNavigate();
@@ -56,101 +82,164 @@ const ViewCertificate = () => {
         }
       );
       setCertificates(response.data.certificates);
-
     } catch (err) {
-      toast.error("Error fetching certificates:", err);
+      toast.error("Error fetching certificates");
       setError("Could not fetch certificates. Please try again!");
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  const deleteCertificate = async (id) => {
-    const result = await Swal.fire({
-      title: "Are you sure?",
-      text: "Do you really want to delete this certificate?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Yes, delete it!",
-      cancelButtonText: "Cancel",
-    });
-  
-    if (!result.isConfirmed) return;
-  
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      toast.error("Token not found! Please log in again.");
-      return;
-    }
-  
-    try {
-      await axios.delete(
-        `http://localhost:3000/api/certificates/delete-tutor-certificate/${id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
+  const deleteCertificate = (id) => {
+    confirm({
+      title: 'Are you sure you want to delete this certificate?',
+      icon: <ExclamationCircleOutlined />,
+      content: 'This action cannot be undone',
+      okText: 'Yes, delete it',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+          toast.error("Token not found! Please log in again.");
+          return;
         }
-      );
-      setCertificates(certificates.filter((cert) => cert._id !== id));
-      toast.success("Certificate deleted successfully!");
-    } catch (error) {
-      toast.error("Failed to delete certificate. Please try again!");
-    }
+      
+        try {
+          await axios.delete(
+            `http://localhost:3000/api/certificates/delete-tutor-certificate/${id}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          setCertificates(certificates.filter((cert) => cert._id !== id));
+          toast.success("Certificate deleted successfully!");
+        } catch (error) {
+          toast.error("Failed to delete certificate. Please try again!");
+        }
+      },
+    });
   };  
 
-  return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      <h2 className="text-2xl font-bold mb-4">📜 Certificate List</h2>
-      <button
-        onClick={() => {
-          if (!userId) {
-            console.error("❌ User ID is NULL or UNDEFINED!");
-            toast.error("User ID not found! Please log in again.");
-            return;
-          }
-          navigate(`/uploadtutorcertificate/${userId}`);
-        }}
-        className="mb-4 px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition"
+  const renderCertificateItem = (item) => {
+    // Detect if URL is likely a PDF
+    const isPDF = item.certificate_url.toLowerCase().includes('.pdf');
+    
+    return (
+      <List.Item
+        key={item._id}
+        actions={[
+          <Tooltip title="Delete certificate">
+            <Button 
+              type="primary" 
+              danger 
+              icon={<DeleteOutlined />}
+              onClick={() => deleteCertificate(item._id)}
+            >
+              Delete
+            </Button>
+          </Tooltip>
+        ]}
       >
-        📤 Upload Certificate
-      </button>
-
-      {loading ? (
-        <p className="text-gray-700">⏳ Loading certificates...</p>
-      ) : error ? (
-        <p className="text-red-500">❌ {error}</p>
-      ) : certificates.length === 0 ? (
-        <p className="text-gray-600">🚫 No certificates available.</p>
-      ) : (
-        <ul className="space-y-4">
-          {certificates.map((cert) => (
-            <li key={cert._id} className="p-4 bg-white rounded-lg shadow-md">
-              <p className="font-semibold">🏷️ Title: {cert.title}</p>
-              <p>
-                🔗 URL: {" "}
-                <a
-                  href={cert.certificate_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-500 underline"
-                >
-                  {cert.certificate_url}
-                </a>
-              </p>
-              <button
-                onClick={() => deleteCertificate(cert._id)}
-                className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg shadow-md hover:bg-red-700 transition"
+        <List.Item.Meta
+          avatar={isPDF ? <FilePdfOutlined style={{ fontSize: 24, color: '#ff4d4f' }} /> : <LockOutlined style={{ fontSize: 24, color: '#1890ff' }} />}
+          title={
+            <Space>
+              <Text strong>{item.title}</Text>
+              <Tag color={isPDF ? "red" : "blue"}>{isPDF ? "PDF" : "Certificate"}</Tag>
+            </Space>
+          }
+          description={
+            <Space direction="vertical">
+              <Text type="secondary">
+                <LinkOutlined /> Certificate URL:
+              </Text>
+              <a
+                href={item.certificate_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="certificate-link"
               >
-                ❌ Delete
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-        <ToastContainer/>
+                <Button type="link" icon={<RightCircleOutlined />}>
+                  View Certificate
+                </Button>
+              </a>
+            </Space>
+          }
+        />
+      </List.Item>
+    );
+  };
+
+  return (
+    <div className="certificate-container" style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
+      <Card
+        bordered={false}
+        style={{ borderRadius: '8px', boxShadow: '0 1px 2px rgba(0,0,0,0.03), 0 2px 4px rgba(0,0,0,0.03)' }}
+      >
+        <Title level={2} style={{ marginBottom: '24px' }}>
+          <FilePdfOutlined style={{ marginRight: '12px', color: '#1890ff' }} />
+          Certificate Management
+        </Title>
+        
+        <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Text type="secondary">Manage your professional certificates and qualifications</Text>
+          <Button
+            type="primary"
+            icon={<FileAddOutlined />}
+            size="large"
+            onClick={() => {
+              if (!userId) {
+                console.error("❌ User ID is NULL or UNDEFINED!");
+                toast.error("User ID not found! Please log in again.");
+                return;
+              }
+              navigate(`/uploadtutorcertificate/${userId}`);
+            }}
+          >
+            Upload Certificate
+          </Button>
+        </div>
+        
+        <Divider style={{ margin: '8px 0 24px' }} />
+        
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            <Spin size="large" tip="Loading certificates..." />
+          </div>
+        ) : error ? (
+          <Alert
+            message="Error"
+            description={error}
+            type="error"
+            showIcon
+          />
+        ) : certificates.length === 0 ? (
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={
+              <span>
+                No certificates available. Upload your first certificate to get started.
+              </span>
+            }
+          />
+        ) : (
+          <List
+            itemLayout="horizontal"
+            dataSource={certificates}
+            renderItem={renderCertificateItem}
+            pagination={{
+              onChange: page => {
+                console.log(page);
+              },
+              pageSize: 5,
+            }}
+          />
+        )}
+      </Card>
+      <ToastContainer />
     </div>
-  
   );
 };
 

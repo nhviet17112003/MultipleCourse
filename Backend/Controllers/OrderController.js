@@ -341,6 +341,72 @@ exports.getAllPurchasedCoursesWithUsers = async (req, res) => {
   }
 };
 
+//API show người mua và khóa học của tutor cho tutor
+
+exports.getPurchasedCoursesForTutor = async (req, res) => {
+  try {
+    const tutorId = req.user._id; // Lấy ID tutor từ token
+
+    // Tìm tất cả khóa học do tutor này tạo
+    const courses = await Course.find({ tutor: tutorId });
+
+    if (!courses.length) {
+      return res
+        .status(200)
+        .json({ message: "No courses found for this tutor." });
+    }
+
+    // Lấy danh sách course ID
+    const courseIds = courses.map((course) => course._id);
+
+    // Tìm tất cả đơn hàng có chứa các khóa học của tutor
+    const orders = await Order.find({
+      "order_items.course": { $in: courseIds },
+    })
+      .populate("order_items.course", "title") // Lấy tên khóa học
+      .populate("user", "fullname email") // Lấy thông tin user (tên + email)
+      .lean();
+
+    // Dùng Map để lưu danh sách khóa học và những user đã mua
+    const purchasedCoursesMap = new Map();
+
+    orders.forEach((order) => {
+      order.order_items.forEach((item) => {
+        if (item.course) {
+          const courseId = item.course._id.toString();
+
+          if (!purchasedCoursesMap.has(courseId)) {
+            purchasedCoursesMap.set(courseId, {
+              course: item.course,
+              buyers: [],
+            });
+          }
+
+          // Thêm user vào danh sách buyers nếu chưa có
+          const courseData = purchasedCoursesMap.get(courseId);
+          if (
+            !courseData.buyers.some(
+              (buyer) => buyer._id.toString() === order.user._id.toString()
+            )
+          ) {
+            courseData.buyers.push({
+              ...order.user,
+              order_date: order.order_date, // Thêm ngày đặt hàng
+            });
+          }
+        }
+      });
+    });
+
+    // Chuyển Map thành array và trả về JSON
+    const purchasedCourses = Array.from(purchasedCoursesMap.values());
+
+    res.status(200).json(purchasedCourses);
+  } catch (err) {
+    console.error("Error fetching purchased courses:", err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 //API Show thành viên trong khóa học đó cho tutor
 
 exports.getCourseMembersForTutor = async (req, res) => {
@@ -498,6 +564,73 @@ exports.getRevenueForThisYearForTutor = async (req, res) => {
     res.status(200).json({ totalRevenueThisYear });
   } catch (err) {
     console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+//API show người mua và khóa học của tutor cho tutor
+
+exports.getPurchasedCoursesForTutor = async (req, res) => {
+  try {
+    const tutorId = req.user._id; // Lấy ID tutor từ token
+
+    // Tìm tất cả khóa học do tutor này tạo
+    const courses = await Course.find({ tutor: tutorId });
+
+    if (!courses.length) {
+      return res
+        .status(200)
+        .json({ message: "No courses found for this tutor." });
+    }
+
+    // Lấy danh sách course ID
+    const courseIds = courses.map((course) => course._id);
+
+    // Tìm tất cả đơn hàng có chứa các khóa học của tutor
+    const orders = await Order.find({
+      "order_items.course": { $in: courseIds },
+    })
+      .populate("order_items.course", "title") // Lấy tên khóa học
+      .populate("user", "fullname email") // Lấy thông tin user (tên + email)
+      .lean();
+
+    // Dùng Map để lưu danh sách khóa học và những user đã mua
+    const purchasedCoursesMap = new Map();
+
+    orders.forEach((order) => {
+      order.order_items.forEach((item) => {
+        if (item.course) {
+          const courseId = item.course._id.toString();
+
+          if (!purchasedCoursesMap.has(courseId)) {
+            purchasedCoursesMap.set(courseId, {
+              course: item.course,
+              buyers: [],
+            });
+          }
+
+          // Thêm user vào danh sách buyers nếu chưa có
+          const courseData = purchasedCoursesMap.get(courseId);
+          if (
+            !courseData.buyers.some(
+              (buyer) => buyer._id.toString() === order.user._id.toString()
+            )
+          ) {
+            courseData.buyers.push({
+              ...order.user,
+              order_date: order.order_date, // Thêm ngày đặt hàng
+            });
+          }
+        }
+      });
+    });
+
+    // Chuyển Map thành array và trả về JSON
+    const purchasedCourses = Array.from(purchasedCoursesMap.values());
+
+    res.status(200).json(purchasedCourses);
+  } catch (err) {
+    console.error("Error fetching purchased courses:", err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

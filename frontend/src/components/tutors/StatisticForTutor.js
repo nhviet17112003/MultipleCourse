@@ -180,7 +180,7 @@ export default function TutorStatistics() {
         </Card>
 
         {/* Course Earnings Pie Chart */}
-        {courseEarningsData.length > 0 && (
+        {/* {courseEarningsData.length > 0 && (
           <Card 
             title={
               <div className="flex items-center">
@@ -222,7 +222,7 @@ export default function TutorStatistics() {
               </PieChart>
             </ResponsiveContainer>
           </Card>
-        )}
+        )} */}
       </Card>
     </div>
   );

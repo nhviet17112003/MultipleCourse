@@ -59,6 +59,9 @@ import UpdateCourseModal from "./components/tutors/UpdateCourseModal";
 import TutorRequests from "./components/tutors/TutorRequests";
 import PurchasedCourseDetail from "./components/students/PurchasedCourseDetail";
 import DepositHistoryForAdmin from "./components/admins/DepositHistoryForAdmin";
+import { ActivityIcon } from "lucide-react";
+import ActivityHistoryTutor from "./components/tutors/ActivityHistoryTutor";
+import BuyerHistoryTuor from "./components/tutors/BuyerHistoryTutor";
 // import RequestDetail from "./components/tutors/RequestDetail";
 
 function Layout() {
@@ -224,6 +227,8 @@ function Layout() {
               element={<UpdateCourseModal />}
             />
             <Route path="/request-list" element={<TutorRequests />} />
+            <Route path="/activity-history-tutor" element={<ActivityHistoryTutor />} />
+            <Route path="/buyer-history-tutor" element={<BuyerHistoryTuor />} />
             {/* <Route
               path="/request-list/:requestId"
               element={<RequestDetail />}

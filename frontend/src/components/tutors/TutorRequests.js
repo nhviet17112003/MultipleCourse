@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Badge, Button, Modal, Typography, Tag, Tooltip, Dropdown, Menu, Space, Input, Select, DatePicker, Row, Col, Card } from 'antd';
+import { Table, Badge, Button, Modal, Typography, Tag, Tooltip, Dropdown, Space, Input, Select, DatePicker, Row, Col, Card, List } from 'antd';
 import { 
   ExclamationCircleOutlined, 
   ReloadOutlined, 
   EyeOutlined, 
   StopOutlined,
   MoreOutlined,
-  DeleteOutlined,
   FilterOutlined,
-  SearchOutlined
+  SearchOutlined,
+  InfoCircleOutlined
 } from '@ant-design/icons';
 import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
@@ -53,6 +53,23 @@ const styles = {
   },
   filterRow: {
     marginBottom: '16px'
+  },
+  changeIcon: {
+    cursor: 'pointer',
+    fontSize: '20px',
+    color: '#1890ff',
+    transition: 'all 0.3s'
+  },
+  modalTag: {
+    marginBottom: '8px',
+    fontSize: '14px',
+    wordBreak: 'break-word',
+    whiteSpace: 'normal',
+    maxWidth: '100%'
+  },
+  modalItem: {
+    marginBottom: '8px',
+    wordBreak: 'break-word'
   }
 };
 
@@ -62,6 +79,12 @@ const TutorRequests = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Modal states
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedChanges, setSelectedChanges] = useState([]);
+  const [selectedCourse, setSelectedCourse] = useState('');
+  const [selectedRequestType, setSelectedRequestType] = useState('');
+
   // Filter states
   const [searchText, setSearchText] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
@@ -70,8 +93,8 @@ const TutorRequests = () => {
   const [showFilters, setShowFilters] = useState(false);
 
   // Sorting states
-  const [sortField, setSortField] = useState('request_date');
-  const [sortOrder, setSortOrder] = useState('descend');
+  const [sortField, setSortField] = useState(null);
+  const [sortOrder, setSortOrder] = useState(null);
 
   useEffect(() => {
     fetchRequests();
@@ -183,23 +206,29 @@ const TutorRequests = () => {
     return <Badge status={config.status} text={status} />;
   };
 
-  const renderContentPreview = (content) => {
+  // Show change details in modal
+  const showChangeDetails = (content, course_title, request_type) => {
+    setSelectedChanges(content || []);
+    setSelectedCourse(course_title);
+    setSelectedRequestType(request_type);
+    setModalVisible(true);
+  };
+
+  const renderContentIcon = (content, record) => {
     if (!content || !Array.isArray(content) || content.length === 0) {
       return <Text type="secondary">No content</Text>;
     }
 
-    const totalChanges = content.length;
-    const firstChange = content[0];
-
     return (
-      <Tooltip title="Click Details to see all changes">
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <Tag color="blue">{firstChange.title}: {firstChange.value}</Tag>
-          {totalChanges > 1 && (
-            <Tag color="purple">+{totalChanges - 1} more changes</Tag>
-          )}
-        </div>
-      </Tooltip>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Tooltip title="View change details">
+          <EyeOutlined 
+            style={styles.changeIcon} 
+            onClick={() => showChangeDetails(content, record.course_title, record.request_type)}
+            className="changes-icon"
+          />
+        </Tooltip>
+      </div>
     );
   };
 
@@ -262,7 +291,9 @@ const TutorRequests = () => {
       title: 'Changes',
       dataIndex: 'content',
       key: 'content',
-      render: renderContentPreview
+      render: (content, record) => renderContentIcon(content, record),
+      align: 'center',
+      width: '100px'
     },
     {
       title: 'Date',
@@ -277,8 +308,7 @@ const TutorRequests = () => {
           })}
         </Tooltip>
       ),
-      sorter: (a, b) => new Date(a.request_date) - new Date(b.request_date),
-      defaultSortOrder: 'descend'
+      sorter: (a, b) => new Date(a.request_date) - new Date(b.request_date)
     },
     {
       title: 'Status',
@@ -306,29 +336,39 @@ const TutorRequests = () => {
   // Custom styles to add to your CSS file
   const customStyles = `
     .ant-table-row-pending {
-      background-color: #e6f7ff;
-    }
-    
-    .ant-table-row-pending:hover > td {
-      background-color: #bae7ff !important;
+      background-color: #e6f7ff1a;
     }
     
     .ant-table-row-approved {
-      background-color: #f6ffed;
-    }
-    
-    .ant-table-row-approved:hover > td {
-      background-color: #d9f7be !important;
+      background-color: #f6ffed1a;
     }
     
     .ant-table-row-rejected {
-      background-color: #fff1f0;
+      background-color: #fff2f01a;
     }
     
-    .ant-table-row-rejected:hover > td {
-      background-color: #ffccc7 !important;
+    .changes-icon:hover {
+      color: #40a9ff;
+      transform: scale(1.2);
+    }
+    
+    .ant-modal-body {
+      max-height: 60vh;
+      overflow-y: auto;
     }
   `;
+
+  // Get appropriate color for change value based on its type
+  const getChangeValueColor = (title) => {
+    const lowerTitle = title.toLowerCase();
+    if (lowerTitle.includes('add') || lowerTitle.includes('create'))
+      return 'green';
+    if (lowerTitle.includes('remove') || lowerTitle.includes('delete'))
+      return 'red';
+    if (lowerTitle.includes('update') || lowerTitle.includes('change'))
+      return 'blue';
+    return 'default';
+  };
 
   return (
     <div style={styles.container}>
@@ -338,7 +378,7 @@ const TutorRequests = () => {
       <div style={styles.card}>
         <div style={styles.header}>
           <div>
-            <Title level={3} style={styles.titleContainer}>Tutor Requests</Title>
+            <Title level={3} style={styles.titleContainer}>Requests List</Title>
             <Text type="secondary">Manage your course requests</Text>
           </div>
           <Space>
@@ -432,11 +472,69 @@ const TutorRequests = () => {
               if (sorter.field && sorter.order) {
                 setSortField(sorter.field);
                 setSortOrder(sorter.order);
+              } else {
+                setSortField(null);
+                setSortOrder(null);
               }
             }}
           />
         </div>
       </div>
+      
+      {/* Modal for displaying change details */}
+      <Modal
+        title={
+          <div>
+            <Space>
+              <InfoCircleOutlined style={{ color: '#1890ff' }} />
+              <span>Change Details</span>
+            </Space>
+            <Text strong style={{ display: 'block', marginTop: '8px' }}>
+              {selectedCourse} - {selectedRequestType && 
+                <Tag color={selectedRequestType.includes('Created') ? 'green' : 'blue'}>
+                  {selectedRequestType}
+                </Tag>
+              }
+            </Text>
+          </div>
+        }
+        open={modalVisible}
+        onCancel={() => setModalVisible(false)}
+        footer={[
+          <Button key="close" onClick={() => setModalVisible(false)}>
+            Close
+          </Button>
+        ]}
+        width={600}
+      >
+        <List
+          itemLayout="vertical"
+          dataSource={selectedChanges}
+          renderItem={(item) => (
+            <List.Item style={styles.modalItem}>
+              <div style={{ marginBottom: '8px' }}>
+                <Tag 
+                  color="default" 
+                  style={{ fontWeight: 'bold', fontSize: '14px' }}
+                >
+                  {item.title}
+                </Tag>
+              </div>
+              <div>
+                <Tag 
+                  color={getChangeValueColor(item.title)} 
+                  style={styles.modalTag}
+                >
+                  {item.value}
+                </Tag>
+              </div>
+            </List.Item>
+          )}
+          locale={{ emptyText: 'No changes to display' }}
+          style={{ width: '100%' }}
+        />
+      </Modal>
+      
       <ToastContainer />
     </div>
   );

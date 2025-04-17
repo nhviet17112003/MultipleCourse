@@ -79,12 +79,38 @@ const UpdateCourseModal = ({ course, onClose, onUpdate }) => {
           onChange={(value) => handleChange("category", value)}
           className="w-full rounded-lg"
         >
-           <Option value="Programming">Programming</Option>
-              <Option value="Design">Design</Option>
-              <Option value="Marketing">Marketing</Option>
-              <Option value="Business">Business</Option>
-              <Option value="Photography">Photography</Option>
-              <Option value="Music">Music</Option>
+          
+      <Select.Option value="Programming">Programming</Select.Option>
+      <Select.Option value="Design">Design</Select.Option>
+      <Select.Option value="Marketing">Marketing</Select.Option>
+      <Select.Option value="Business">Business</Select.Option>
+      <Select.Option value="Photography">Photography</Select.Option>
+      <Select.Option value="Music">Music</Select.Option>
+      <Select.Option value="Education">Education</Select.Option>
+      <Select.Option value="Healthcare">Healthcare</Select.Option>
+      <Select.Option value="Finance">Finance</Select.Option>
+      <Select.Option value="Engineering">Engineering</Select.Option>
+      <Select.Option value="Science">Science</Select.Option>
+      <Select.Option value="Art">Art</Select.Option>
+      <Select.Option value="Literature">Literature</Select.Option>
+      <Select.Option value="Culinary">Culinary</Select.Option>
+      <Select.Option value="Sports">Sports</Select.Option>
+      <Select.Option value="Agriculture">Agriculture</Select.Option>
+      <Select.Option value="Tourism">Tourism</Select.Option>
+      <Select.Option value="Technology">Technology</Select.Option>
+      <Select.Option value="Manufacturing">Manufacturing</Select.Option>
+      <Select.Option value="Architecture">Architecture</Select.Option>
+      <Select.Option value="Journalism">Journalism</Select.Option>
+      <Select.Option value="Law">Law</Select.Option>
+      <Select.Option value="Psychology">Psychology</Select.Option>
+      <Select.Option value="Film">Film & Media</Select.Option>
+      <Select.Option value="Retail">Retail</Select.Option>
+      <Select.Option value="Transportation">Transportation</Select.Option>
+      <Select.Option value="Environmental">Environmental</Select.Option>
+      <Select.Option value="Fashion">Fashion</Select.Option>
+      <Select.Option value="Real Estate">Real Estate</Select.Option>
+      <Select.Option value="Telecommunications">Telecommunications</Select.Option>
+    
         </Select>
       </div>
 
