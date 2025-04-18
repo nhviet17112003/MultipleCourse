@@ -237,7 +237,7 @@ const Login = () => {
       align="middle"
       style={{
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #e0f7fa, #f0f2f5)",
+        background: "#f3f4f6", // gray-100
       }}
     >
       <Col xs={22} sm={16} md={12} lg={8}>
