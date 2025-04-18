@@ -45,7 +45,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
-app.use(cors({ origin: "http://localhost:3001", credentials: true }));
+app.use(cors({ origin: ["http://localhost:3001", "http://localhost:3002"], credentials: true }));
 // app.use(cors({ origin: "https://multi-course-rfc1.vercel.app", credentials: true }));
 app.use("/api/users", UserRouter);
 app.use("/api/courses", CourseRouter);

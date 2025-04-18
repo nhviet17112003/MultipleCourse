@@ -114,7 +114,6 @@ exports.updateProgress = async (req, res) => {
   }
 };
 
-//Show students progresses of course
 exports.getProgressByCourse = async (req, res) => {
   try {
     const course_id = req.params.course_id;
@@ -137,7 +136,6 @@ exports.getProgressByCourse = async (req, res) => {
     }
 
     const students = [];
-    const lessonlist = [];
 
     //Nếu trong order_items có course_id thì kiểm tra xem đã có progress chưa
     //Nếu chưa có thì in ra chưa enroll
@@ -157,30 +155,11 @@ exports.getProgressByCourse = async (req, res) => {
         (progress) => progress.student_id.toString() === student._id.toString()
       );
 
-      const lessons = await Lesson.find({
-        course_id: course_id,
-      });
-
-      lessonlist.push({
-        lesson: [
-          ...lessons.map((lesson) => {
-            return {
-              lesson_id: lesson._id,
-              title: lesson.title,
-              status: "Not Started",
-              note: "",
-              progress_time: 0,
-            };
-          }),
-        ],
-      });
-
       if (!progress) {
         students.push({
           student: student,
-          status: "Not Enrolled",
+          status: progress ? progress.status : "Not Enrolled",
           percent: 0,
-          lessons: lessonlist,
         });
       } else {
         let lesson = progress.lesson;
@@ -201,7 +180,6 @@ exports.getProgressByCourse = async (req, res) => {
           student: student,
           status: "Enrolled",
           percent: percent,
-          lessons: lessonlist,
         });
       }
     }

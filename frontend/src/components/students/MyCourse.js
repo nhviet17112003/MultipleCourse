@@ -1,19 +1,73 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaSearch, FaFilter, FaTh, FaThList } from "react-icons/fa";
+import { 
+  Layout, 
+  Typography, 
+  Input, 
+  Card, 
+  Button, 
+  Row, 
+  Col, 
+  Spin, 
+  Empty, 
+  Progress, 
+  Tag, 
+  Modal, 
+  Tabs, 
+  message, 
+  Statistic, 
+  Dropdown,
+  Menu,
+  Skeleton,
+  Tooltip,
+  Select
+} from "antd";
+import { 
+  SearchOutlined, 
+  AppstoreOutlined, 
+  PlayCircleOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  BookOutlined,
+  TrophyOutlined,
+  HeartOutlined,
+  HeartFilled,
+  MoreOutlined,
+  FilterOutlined,
+  SortAscendingOutlined,
+  EyeOutlined,
+  FireOutlined,
+  ThunderboltOutlined,
+  ShoppingCartOutlined
+} from "@ant-design/icons";
+
+const { Content } = Layout;
+const { Title, Text } = Typography;
+const { Meta } = Card;
+const { TabPane } = Tabs;
+const { Option } = Select;
 
 const MyCourses = () => {
   const [orders, setOrders] = useState([]);
   const [progressData, setProgressData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [modalContent, setModalContent] = useState(null);
   const navigate = useNavigate();
   const [certificates, setCertificates] = useState([]);
-  const [image, setImage] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [progressFilter, setProgressFilter] = useState("all"); // all, completed, in-progress
-  const [displayMode, setDisplayMode] = useState("all"); // all, category
+  const [favorites, setFavorites] = useState([]);
+  const [activeTab, setActiveTab] = useState("all");
+  const [sortBy, setSortBy] = useState("recent");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [availableCategories, setAvailableCategories] = useState([]);
+  const [showCategoryFilter, setShowCategoryFilter] = useState(false);
+  const [stats, setStats] = useState({
+    total: 0,
+    completed: 0,
+    inProgress: 0,
+    notStarted: 0,
+    certified: 0
+  });
 
   useEffect(() => {
     const fetchCertificates = async () => {
@@ -21,7 +75,6 @@ const MyCourses = () => {
         const response = await fetch(
           `http://localhost:3000/api/certificates/get-all-certificates`,
           {
-            method: "GET",
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${localStorage.getItem("authToken")}`,
@@ -29,37 +82,36 @@ const MyCourses = () => {
           }
         );
 
-        if (response.status === 404) {
-          return;
+        if (response.ok) {
+          const data = await response.json();
+          setCertificates(data.certificates || []);
         }
-
-        if (!response.ok) {
-          return;
-        }
-
-        const data = await response.json();
-        setCertificates(data.certificates);
       } catch (error) {
-        if (error.message !== "Failed to fetch") {
-        }
+        console.log("Error fetching certificates");
       }
     };
 
+    // Load favorites from localStorage
+    const storedFavorites = localStorage.getItem("favoriteCourses");
+    if (storedFavorites) {
+      setFavorites(JSON.parse(storedFavorites));
+    }
+
     fetchCertificates();
   }, []);
+
   useEffect(() => {
     const fetchOrdersAndProgress = async () => {
       try {
+        setLoading(true);
         const [ordersResponse, progressResponse] = await Promise.all([
           fetch("http://localhost:3000/api/orders/my-orders", {
-            method: "GET",
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${localStorage.getItem("authToken")}`,
             },
           }),
           fetch("http://localhost:3000/api/progress", {
-            method: "GET",
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${localStorage.getItem("authToken")}`,
@@ -68,30 +120,66 @@ const MyCourses = () => {
         ]);
 
         const ordersData = await ordersResponse.json();
-        const progressDataResponse = await progressResponse.json();
-
-        if (progressDataResponse && progressDataResponse.length > 0) {
-          setProgressData(progressDataResponse);
-        } else {
-          setProgressData([]);
+        let progressDataResponse = [];
+        
+        if (progressResponse.ok) {
+          progressDataResponse = await progressResponse.json();
+          if (!Array.isArray(progressDataResponse)) {
+            progressDataResponse = [];
+          }
         }
 
+        setProgressData(progressDataResponse);
         setOrders(ordersData);
+        
+        // Extract all unique categories
+        const allCourses = ordersData.flatMap(order => order.order_items.map(item => item.course));
+        const categories = [...new Set(allCourses.map(course => course.category).filter(Boolean))];
+        setAvailableCategories(categories);
+        
+        // Calculate stats
+        const completedCourses = progressDataResponse.filter(p => p.final_exam?.status === "Completed");
+        const inProgressCourses = progressDataResponse.filter(p => p.final_exam?.status !== "Completed");
+        const certifiedCourses = certificates.filter(cert => cert.isPassed);
+        
+        setStats({
+          total: allCourses.length,
+          completed: completedCourses.length,
+          inProgress: inProgressCourses.length,
+          notStarted: allCourses.length - progressDataResponse.length,
+          certified: certifiedCourses.length
+        });
+
       } catch (err) {
-        setError("Failed to fetch orders or progress.");
+        setError("Failed to fetch data");
+        message.error("Failed to load your courses. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchOrdersAndProgress();
-  }, []);
+  }, [certificates]);
+
+  const toggleFavorite = (courseId) => {
+    let newFavorites;
+    if (favorites.includes(courseId)) {
+      newFavorites = favorites.filter(id => id !== courseId);
+      message.info("Removed from favorites");
+    } else {
+      newFavorites = [...favorites, courseId];
+      message.success("Added to favorites");
+    }
+    setFavorites(newFavorites);
+    localStorage.setItem("favoriteCourses", JSON.stringify(newFavorites));
+  };
 
   const handleCourseClick = (courseId) => {
     if (!isEnrolled(courseId)) {
-      setModalContent({
+      Modal.info({
         title: "Enrollment Required",
-        message: "You need to enroll in this course before accessing it.",
+        content: "You need to enroll in this course before accessing it.",
+        okText: "Got it",
       });
       return;
     }
@@ -124,23 +212,21 @@ const MyCourses = () => {
       const data = await response.json();
 
       if (response.ok) {
-        setModalContent({
-          title: "Success",
-          message: "Enrollment successful!",
-        });
+        message.success("You've successfully enrolled in this course!");
         setProgressData((prev) => [...prev, data]);
+        
+        // Update stats
+        setStats(prev => ({
+          ...prev,
+          inProgress: prev.inProgress + 1,
+          notStarted: prev.notStarted - 1
+        }));
       } else {
-        setModalContent({
-          title: "Enrollment Failed",
-          message: data.message,
-        });
+        message.error(data.message || "Enrollment failed");
       }
     } catch (error) {
       console.error("Enrollment error:", error);
-      setModalContent({
-        title: "Error",
-        message: "An error occurred while enrolling.",
-      });
+      message.error("An error occurred while enrolling.");
     }
   };
 
@@ -156,7 +242,7 @@ const MyCourses = () => {
           (lesson) => lesson.status === "Completed"
         ).length;
 
-        if (courseProgress.final_exam.status === "Completed") {
+        if (courseProgress.final_exam?.status === "Completed") {
           return 100;
         }
 
@@ -164,466 +250,616 @@ const MyCourses = () => {
         return progress;
       }
     }
-
-    console.log("No progress found for course");
     return 0;
   };
+
   const isEnrolled = (courseId) => {
     if (Array.isArray(progressData)) {
-      const result = progressData.some(
+      return progressData.some((progress) => progress.course_id === courseId);
+    }
+    return false;
+  };
+
+  const isCourseCompleted = (courseId) => {
+    if (Array.isArray(progressData)) {
+      const courseProgress = progressData.find(
         (progress) => progress.course_id === courseId
       );
-      return result;
-    } else {
-      console.error("progressData is not an array:", progressData);
-      return false;
+      return courseProgress && courseProgress.final_exam?.status === "Completed";
     }
+    return false;
   };
 
-  const filteredOrders = orders.map((order) => ({
-    ...order,
-    order_items: order.order_items.filter((item) => {
-      const matchesSearch = item.course.title
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-      const courseProgress = progressData.find(
-        (progress) => progress.course_id === item.course._id
-      );
+  const hasCertificate = (courseId) => {
+    return certificates.some(
+      (certificate) =>
+        certificate.course._id === courseId &&
+        certificate.isPassed
+    );
+  };
 
-      if (progressFilter === "all") return matchesSearch;
-      if (progressFilter === "completed") {
-        return (
-          matchesSearch &&
-          courseProgress &&
-          courseProgress.final_exam?.status === "Completed"
-        );
-      }
-      if (progressFilter === "in-progress") {
-        return (
-          matchesSearch &&
-          courseProgress &&
-          courseProgress.final_exam?.status !== "Completed"
-        );
-      }
-      if (progressFilter === "not-enrolled") {
-        return matchesSearch && !courseProgress;
-      }
-      return matchesSearch;
-    }),
-  }));
+  // Reset all filters
+  const resetFilters = () => {
+    setSearchTerm("");
+    setCategoryFilter("all");
+    setSortBy("recent");
+    setActiveTab("all");
+    setShowCategoryFilter(false);
+  };
 
-  const getCoursesByCategory = () => {
-    const coursesByCategory = {};
-
-    filteredOrders.forEach((order) => {
-      order.order_items.forEach((item) => {
-        const category = item.course.category || "Uncategorized";
-        if (!coursesByCategory[category]) {
-          coursesByCategory[category] = [];
-        }
-        coursesByCategory[category].push(item);
+  // Get filtered and sorted courses
+  const getFilteredCourses = () => {
+    let allCourses = [];
+    
+    // Extract all courses first
+    orders.forEach(order => {
+      order.order_items.forEach(item => {
+        allCourses.push(item);
       });
     });
-
-    return coursesByCategory;
+    
+    // Apply search filter
+    if (searchTerm) {
+      allCourses = allCourses.filter(item => 
+        item.course.title.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    // Apply tab filter
+    if (activeTab === "favorites") {
+      allCourses = allCourses.filter(item => favorites.includes(item.course._id));
+    } else if (activeTab === "inProgress") {
+      allCourses = allCourses.filter(item => 
+        isEnrolled(item.course._id) && !isCourseCompleted(item.course._id)
+      );
+    } else if (activeTab === "completed") {
+      allCourses = allCourses.filter(item => isCourseCompleted(item.course._id));
+    } else if (activeTab === "notStarted") {
+      allCourses = allCourses.filter(item => !isEnrolled(item.course._id));
+    } else if (activeTab === "certified") {
+      allCourses = allCourses.filter(item => hasCertificate(item.course._id));
+    }
+    
+    // Apply category filter
+    if (categoryFilter !== "all") {
+      allCourses = allCourses.filter(item => item.course.category === categoryFilter);
+    }
+    
+    // Apply sorting
+    if (sortBy === "recent") {
+      // Most recent purchases first (already sorted this way from API)
+    } else if (sortBy === "title") {
+      allCourses.sort((a, b) => a.course.title.localeCompare(b.course.title));
+    } else if (sortBy === "progress") {
+      allCourses.sort((a, b) => getProgressForCourse(b.course._id) - getProgressForCourse(a.course._id));
+    }
+    
+    return allCourses;
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-r from-[#14b8a6] to-indigo-200 py-8">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">My Courses</h1>
-          <p className="text-gray-600 text-lg">
-            Manage and continue your learning journey
-          </p>
-        </div>
+  // Course card component
+  const CourseCard = ({ item }) => {
+    const progress = getProgressForCourse(item.course._id);
+    const completed = isCourseCompleted(item.course._id);
+    const certified = hasCertificate(item.course._id);
+    const isFavorite = favorites.includes(item.course._id);
+    
+    // Course difficulty indicator (example - you would replace this with actual data)
+    const getDifficultyBadge = () => {
+      // This would ideally come from your course data
+      const difficulty = item.course.difficulty || "Beginner";
+      
+      if (difficulty === "Advanced") {
+        return <Tag color="red">Advanced</Tag>;
+      } else if (difficulty === "Intermediate") {
+        return <Tag color="blue">Intermediate</Tag>;
+      } else {
+        return <Tag color="green">Beginner</Tag>;
+      }
+    };
 
-        <div className="mb-8 flex flex-col md:flex-row gap-4 items-center justify-center">
-          <div className="relative max-w-2xl w-full">
-            <input
-              type="text"
-              placeholder="Search your courses..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-6 py-4 rounded-xl border border-gray-200 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 shadow-sm"
+    const moreMenu = (
+      <Menu>
+        <Menu.Item key="details" onClick={() => navigate(`/purchased-course-detail/${item.course._id}`)}>
+          <EyeOutlined /> View Details
+        </Menu.Item>
+        <Menu.Item key="favorite" onClick={() => toggleFavorite(item.course._id)}>
+          {isFavorite ? <><HeartFilled /> Remove from Favorites</> : <><HeartOutlined /> Add to Favorites</>}
+        </Menu.Item>
+      </Menu>
+    );
+
+    return (
+      <Card
+        className="course-card"
+        hoverable
+        style={{ 
+          height: '100%',
+          borderRadius: '12px', 
+          overflow: 'hidden',
+          transition: 'all 0.3s ease',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+        }}
+        cover={
+          <div style={{ position: 'relative', height: 180 }}>
+            <img
+              alt={item.course.title}
+              src={item.course.image || "https://via.placeholder.com/300x180?text=Course+Image"}
+              style={{ 
+                width: '100%', 
+                height: '100%', 
+                objectFit: 'cover',
+                transition: 'transform 0.5s ease'
+              }}
+              onError={(e) => {
+                e.target.src = "https://via.placeholder.com/300x180?text=Course+Image";
+              }}
             />
-            <div className="absolute inset-y-0 right-0 flex items-center pr-4">
-              <FaSearch className="h-5 w-5 text-gray-400" />
+            <div 
+              style={{ 
+                position: 'absolute', 
+                top: 0, 
+                left: 0, 
+                right: 0, 
+                bottom: 0, 
+                background: 'linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0.7))',
+                zIndex: 1
+              }}
+            />
+            {certified && (
+              <div 
+                style={{ 
+                  position: 'absolute', 
+                  top: 12, 
+                  right: 12, 
+                  zIndex: 2,
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  borderRadius: '50%',
+                  padding: '6px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                }}
+              >
+                <TrophyOutlined style={{ fontSize: 20, color: '#faad14' }} />
+              </div>
+            )}
+            <Button
+              shape="circle"
+              icon={isFavorite ? <HeartFilled /> : <HeartOutlined />}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleFavorite(item.course._id);
+              }}
+              style={{ 
+                position: 'absolute', 
+                top: 12, 
+                left: 12, 
+                zIndex: 2,
+                background: isFavorite ? '#ff4d4f' : 'rgba(255, 255, 255, 0.9)',
+                color: isFavorite ? '#fff' : '#ff4d4f'
+              }}
+            />
+            <div style={{ 
+              position: 'absolute', 
+              bottom: 12, 
+              left: 12, 
+              zIndex: 2,
+              display: 'flex',
+              gap: '8px'
+            }}>
+              <Tag color="blue" style={{ margin: 0 }}>
+                {item.course.category || "General"}
+              </Tag>
+              {getDifficultyBadge()}
             </div>
           </div>
-          <div className="flex gap-4">
-            <div className="relative w-full md:w-48">
-              <select
-                value={progressFilter}
-                onChange={(e) => setProgressFilter(e.target.value)}
-                className="w-full px-6 py-4 rounded-xl border border-gray-200 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 shadow-sm appearance-none"
+        }
+        actions={[
+          isEnrolled(item.course._id) ? (
+            <Tooltip title="Continue Learning">
+              <Button 
+                type="primary" 
+                icon={<PlayCircleOutlined />}
+                style={{ width: '90%' }}
+                onClick={() => handleCourseClick(item.course._id)}
               >
-                <option value="all">All Courses</option>
-                <option value="completed">Completed</option>
-                <option value="in-progress">In Progress</option>
-                <option value="not-enrolled">Not Enrolled</option>
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
-                <FaFilter className="h-5 w-5 text-gray-400" />
-              </div>
+                {completed ? "Review" : "Continue"}
+              </Button>
+            </Tooltip>
+          ) : (
+            <Tooltip title="Start Learning">
+              <Button 
+                type="primary"
+                icon={<ThunderboltOutlined />}
+                style={{ width: '90%' }}
+                onClick={() => handleEnroll(item.course._id)}
+              >
+                Start Now
+              </Button>
+            </Tooltip>
+          ),
+          <Dropdown overlay={moreMenu} placement="bottomRight" trigger={["click"]}>
+            <Button type="text" icon={<MoreOutlined />} />
+          </Dropdown>,
+        ]}
+      >
+        <Meta
+          title={
+            <div style={{ marginBottom: 6 }}>
+              <Tooltip title={item.course.title}>
+                <div style={{ 
+                  whiteSpace: 'nowrap', 
+                  overflow: 'hidden', 
+                  textOverflow: 'ellipsis',
+                  fontSize: '16px',
+                  fontWeight: 'bold'
+                }}>
+                  {item.course.title}
+                </div>
+              </Tooltip>
             </div>
-            <div className="relative w-full md:w-48">
-              <select
-                value={displayMode}
-                onChange={(e) => setDisplayMode(e.target.value)}
-                className="w-full px-6 py-4 rounded-xl border border-gray-200 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 shadow-sm appearance-none"
-              >
-                <option value="all">All View</option>
-                <option value="category">Category View</option>
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
-                {displayMode === "all" ? (
-                  <FaTh className="h-5 w-5 text-gray-400" />
+          }
+          description={
+            <div>
+              {/* Course status indicator */}
+              <div style={{ marginBottom: 12 }}>
+                {certified ? (
+                  <Tag color="gold" icon={<TrophyOutlined />}>Certified</Tag>
+                ) : completed ? (
+                  <Tag color="success" icon={<CheckCircleOutlined />}>Completed</Tag>
+                ) : isEnrolled(item.course._id) ? (
+                  <Tag color="processing" icon={<ClockCircleOutlined />}>In Progress</Tag>
                 ) : (
-                  <FaThList className="h-5 w-5 text-gray-400" />
+                  <Tag icon={<BookOutlined />}>Not Started</Tag>
                 )}
               </div>
+              
+              {/* Progress bar for enrolled courses */}
+              {isEnrolled(item.course._id) && (
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center', 
+                    marginBottom: 4 
+                  }}>
+                    <Text type="secondary" style={{ fontSize: '12px' }}>
+                      Progress
+                    </Text>
+                    {/* <Text strong style={{ fontSize: '12px' }}>{progress.toFixed(0)}%</Text> */}
+                  </div>
+                  <Progress 
+                    percent={progress} 
+                    size="small" 
+                    status={completed ? "success" : "active"}
+                    strokeColor={
+                      completed ? "#52c41a" : {
+                        from: '#108ee9',
+                        to: '#1890ff',
+                      }
+                    }
+                     format={(percent) => `${percent.toFixed(0)}%`}
+                  />
+                </div>
+              )}
             </div>
-          </div>
+          }
+        />
+      </Card>
+    );
+  };
+
+  const filteredCourses = getFilteredCourses();
+
+  return (
+    <Layout style={{ background: '#f5f5f5', minHeight: '100vh' }}>
+      <Content style={{ 
+        width: '98%', 
+        margin: '0 auto',
+        padding: '16px'
+      }}>
+        {/* Header section */}
+        <div style={{ marginBottom: 24 }}>
+          <Title level={2} style={{ textAlign: 'center', marginBottom: 8 }}>
+            My Learning Journey
+          </Title>
+          <Text type="secondary" style={{ display: 'block', textAlign: 'center', fontSize: 16 }}>
+            Track your progress and continue your learning
+          </Text>
         </div>
-
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-          </div>
-        ) : error ? (
-          <div className="text-center py-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
-              <svg
-                className="w-8 h-8 text-red-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        
+        {/* Stats cards */}
+        {!loading && (
+          <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+            <Col xs={12} sm={8} md={8} lg={4} xl={4}>
+              <Card>
+                <Statistic 
+                  title="Total Courses" 
+                  value={stats.total} 
+                  prefix={<BookOutlined />} 
+                  valueStyle={{ color: '#1890ff' }}
                 />
-              </svg>
-            </div>
-            <p className="text-red-500 text-lg">{error}</p>
-          </div>
-        ) : filteredOrders.length === 0 ||
-          filteredOrders.every((order) => order.order_items.length === 0) ? (
-          <div className="text-center py-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 mb-4">
-              <svg
-                className="w-8 h-8 text-indigo-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              </Card>
+            </Col>
+            <Col xs={12} sm={8} md={8} lg={4} xl={4}>
+              <Card>
+                <Statistic 
+                  title="In Progress" 
+                  value={stats.inProgress} 
+                  prefix={<ClockCircleOutlined />} 
+                  valueStyle={{ color: '#fa8c16' }}
                 />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              No courses found
-            </h3>
-            <p className="text-gray-600">
-              {searchTerm
-                ? "No courses match your search criteria."
-                : progressFilter !== "all"
-                ? `No ${progressFilter.replace("-", " ")} courses found.`
-                : "You haven't purchased any courses yet. Start your learning journey today!"}
-            </p>
-          </div>
-        ) : displayMode === "category" ? (
-          <div className="space-y-12">
-            {Object.entries(getCoursesByCategory()).map(
-              ([category, courses]) => (
-                <div key={category} className="p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold text-gray-800">
-                      {category}
-                    </h2>
-                    <span className="text-gray-500">
-                      {courses.length} courses
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {courses.map((item) => (
-                      <div
-                        key={item._id}
-                        className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 flex flex-col h-full"
-                      >
-                        <div className="relative group">
-                          <img
-                            src={item.course.image || ""}
-                            alt={item.course.title}
-                            className="w-full h-48 object-cover"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                          {certificates.some(
-                            (certificate) =>
-                              certificate.course._id === item.course._id &&
-                              certificate.isPassed
-                          ) && (
-                            <img
-                              src={require("../../assets/passed44.png")}
-                              alt="Passed"
-                              className="absolute top-3 right-3 w-12 h-12 transform hover:scale-110 transition-transform duration-200"
-                            />
-                          )}
-                        </div>
-                        <div className="p-6 flex flex-col flex-grow">
-                          <h2 className="text-xl font-bold text-gray-800 mb-2 line-clamp-2">
-                            {item.course.title}
-                          </h2>
-                          <div className="mt-auto">
-                            {isEnrolled(item.course._id) ? (
-                              <div className="space-y-4">
-                                <div className="space-y-2">
-                                  <div className="flex justify-between text-sm text-gray-600">
-                                    <span>Progress</span>
-                                    <span>
-                                      {getProgressForCourse(
-                                        item.course._id
-                                      ).toFixed(0)}
-                                      %
-                                    </span>
-                                  </div>
-                                  <div className="w-full bg-gray-200 rounded-full h-2">
-                                    <div
-                                      className="bg-indigo-500 h-2 rounded-full transition-all duration-500"
-                                      style={{
-                                        width: `${getProgressForCourse(
-                                          item.course._id
-                                        )}%`,
-                                      }}
-                                    ></div>
-                                  </div>
-                                </div>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleCourseClick(item.course._id);
-                                  }}
-                                  className="w-full py-3 px-4 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors duration-200 flex items-center justify-center space-x-2"
-                                >
-                                  <svg
-                                    className="w-5 h-5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                                    />
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                    />
-                                  </svg>
-                                  <span>Continue Learning</span>
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="space-y-4">
-                                <p className="text-gray-500 italic text-center">
-                                  Please enroll to start
-                                </p>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleEnroll(item.course._id);
-                                  }}
-                                  className="w-full py-3 px-4 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors duration-200"
-                                >
-                                  Enroll Now
-                                </button>
-                              </div>
-                            )}
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(
-                                  `/purchased-course-detail/${item.course._id}`
-                                );
-                              }}
-                              className="w-full mt-3 py-2 px-4 text-indigo-600 rounded-lg font-medium hover:bg-indigo-50 transition-colors duration-200"
-                            >
-                              View Details
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )
-            )}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredOrders.map((order) =>
-              order.order_items.map((item) => (
-                <div
-                  key={item._id}
-                  className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 flex flex-col h-full"
-                >
-                  <div className="relative group">
-                    <img
-                      src={item.course.image || ""}
-                      alt={item.course.title}
-                      className="w-full h-48 object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    {certificates.some(
-                      (certificate) =>
-                        certificate.course._id === item.course._id &&
-                        certificate.isPassed
-                    ) && (
-                      <img
-                        src={require("../../assets/passed44.png")}
-                        alt="Passed"
-                        className="absolute top-3 right-3 w-12 h-12 transform hover:scale-110 transition-transform duration-200"
-                      />
-                    )}
-                  </div>
-                  <div className="p-6 flex flex-col flex-grow">
-                    <h2 className="text-xl font-bold text-gray-800 mb-2 line-clamp-2">
-                      {item.course.title}
-                    </h2>
-                    <div className="mt-auto">
-                      {isEnrolled(item.course._id) ? (
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <div className="flex justify-between text-sm text-gray-600">
-                              <span>Progress</span>
-                              <span>
-                                {getProgressForCourse(item.course._id).toFixed(
-                                  0
-                                )}
-                                %
-                              </span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div
-                                className="bg-indigo-500 h-2 rounded-full transition-all duration-500"
-                                style={{
-                                  width: `${getProgressForCourse(
-                                    item.course._id
-                                  )}%`,
-                                }}
-                              ></div>
-                            </div>
-                          </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCourseClick(item.course._id);
-                            }}
-                            className="w-full py-3 px-4 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors duration-200 flex items-center justify-center space-x-2"
-                          >
-                            <svg
-                              className="w-5 h-5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                              />
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                              />
-                            </svg>
-                            <span>Continue Learning</span>
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          <p className="text-gray-500 italic text-center">
-                            Please enroll to start
-                          </p>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEnroll(item.course._id);
-                            }}
-                            className="w-full py-3 px-4 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors duration-200"
-                          >
-                            Enroll Now
-                          </button>
-                        </div>
-                      )}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(
-                            `/purchased-course-detail/${item.course._id}`
-                          );
-                        }}
-                        className="w-full mt-3 py-2 px-4 text-indigo-600 rounded-lg font-medium hover:bg-indigo-50 transition-colors duration-200"
-                      >
-                        View Details
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+              </Card>
+            </Col>
+            <Col xs={12} sm={8} md={8} lg={4} xl={4}>
+              <Card>
+                <Statistic 
+                  title="Completed" 
+                  value={stats.completed} 
+                  prefix={<CheckCircleOutlined />} 
+                  valueStyle={{ color: '#52c41a' }}
+                />
+              </Card>
+            </Col>
+            <Col xs={12} sm={8} md={8} lg={4} xl={4}>
+              <Card>
+                <Statistic 
+                  title="Not Started" 
+                  value={stats.notStarted} 
+                  prefix={<BookOutlined />} 
+                  valueStyle={{ color: '#d9d9d9' }}
+                />
+              </Card>
+            </Col>
+            <Col xs={12} sm={8} md={8} lg={4} xl={4}>
+              <Card>
+                <Statistic 
+                  title="Certified" 
+                  value={stats.certified} 
+                  prefix={<TrophyOutlined />} 
+                  valueStyle={{ color: '#faad14' }}
+                />
+              </Card>
+            </Col>
+            <Col xs={12} sm={8} md={8} lg={4} xl={4}>
+              <Card>
+                <Statistic 
+                  title="Favorites" 
+                  value={favorites.length} 
+                  prefix={<HeartFilled />} 
+                  valueStyle={{ color: '#ff4d4f' }}
+                />
+              </Card>
+            </Col>
+          </Row>
         )}
+        
+        {/* Search and filters */}
+        <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+          <Col xs={24} md={12}>
+            <Input
+              size="large"
+              placeholder="Search your courses..."
+              prefix={<SearchOutlined />}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              allowClear
+              style={{ width: '100%' }}
+            />
+          </Col>
+          <Col xs={12} md={4}>
+            <Dropdown overlay={
+              <Menu onClick={({key}) => setSortBy(key)}>
+                <Menu.Item key="recent">Recent Purchase</Menu.Item>
+                <Menu.Item key="title">Course Title</Menu.Item>
+                <Menu.Item key="progress">Progress</Menu.Item>
+              </Menu>
+            } trigger={["click"]}>
+              <Button size="large" style={{ width: '100%' }} icon={<SortAscendingOutlined />}>
+                Sort By <MoreOutlined />
+              </Button>
+            </Dropdown>
+          </Col>
+          <Col xs={12} md={4}>
+            <Button 
+              size="large" 
+              style={{ width: '100%' }} 
+              icon={<FilterOutlined />} 
+              type={showCategoryFilter ? "primary" : "default"}
+              onClick={() => setShowCategoryFilter(!showCategoryFilter)}
+            >
+              Category Filter
+            </Button>
+          </Col>
+          <Col xs={24} md={4}>
+            <Button 
+              size="large" 
+              style={{ width: '100%' }} 
+              onClick={resetFilters}
+            >
+              Reset All Filters
+            </Button>
+          </Col>
+        </Row>
 
-        {modalContent && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full transform transition-all duration-300">
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-indigo-100 mb-4">
-                  <svg
-                    className="w-6 h-6 text-indigo-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <h2 className="text-xl font-bold text-gray-800 mb-2">
-                  {modalContent.title}
-                </h2>
-                <p className="text-gray-600 mb-6">{modalContent.message}</p>
-                <button
-                  onClick={() => setModalContent(null)}
-                  className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors duration-200"
+        {/* Category filter dropdown */}
+        {showCategoryFilter && (
+          <Row style={{ marginBottom: 24 }}>
+            <Col span={24}>
+              <Card>
+                <Select
+                  size="large"
+                  placeholder="Filter by Category"
+                  style={{ width: '100%' }}
+                  value={categoryFilter}
+                  onChange={(value) => setCategoryFilter(value)}
                 >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
+                  <Option value="all">All Categories</Option>
+                  <Option value="Programming">Programming</Option>
+                  <Option value="Design">Design</Option>
+                  <Option value="Marketing">Marketing</Option>
+                  <Option value="Business">Business</Option>
+                  <Option value="Photography">Photography</Option>
+                  <Option value="Music">Music</Option>
+                  <Option value="Education">Education</Option>
+                  <Option value="Healthcare">Healthcare</Option>
+                  <Option value="Finance">Finance</Option>
+                  <Option value="Engineering">Engineering</Option>
+                  <Option value="Science">Science</Option>
+                  <Option value="Art">Art</Option>
+                  <Option value="Literature">Literature</Option>
+                  <Option value="Culinary">Culinary</Option>
+                  <Option value="Sports">Sports</Option>
+                  <Option value="Agriculture">Agriculture</Option>
+                  <Option value="Tourism">Tourism</Option>
+                  <Option value="Technology">Technology</Option>
+                  <Option value="Manufacturing">Manufacturing</Option>
+                  <Option value="Architecture">Architecture</Option>
+                  <Option value="Journalism">Journalism</Option>
+                  <Option value="Law">Law</Option>
+                  <Option value="Psychology">Psychology</Option>
+                  <Option value="Film">Film & Media</Option>
+                  <Option value="Retail">Retail</Option>
+                  <Option value="Transportation">Transportation</Option>
+                  <Option value="Environmental">Environmental</Option>
+                  <Option value="Fashion">Fashion</Option>
+                  <Option value="Real Estate">Real Estate</Option>
+                  <Option value="Telecommunications">Telecommunications</Option>
+                </Select>
+              </Card>
+            </Col>
+          </Row>
         )}
-      </div>
-    </div>
+        
+        {/* Tabs for different views */}
+        <Card style={{ marginBottom: 24 }}>
+          <Tabs 
+            activeKey={activeTab} 
+            onChange={setActiveTab} 
+            size="large"
+            centered
+            style={{ marginBottom: 24 }}
+          >
+            <TabPane 
+              tab={<><AppstoreOutlined /> All Courses</>} 
+              key="all"
+            />
+            <TabPane 
+              tab={<><ClockCircleOutlined /> In Progress</>} 
+              key="inProgress"
+            />
+            <TabPane 
+              tab={<><CheckCircleOutlined /> Completed</>} 
+              key="completed"
+            />
+            <TabPane 
+              tab={<><BookOutlined /> Not Started</>} 
+              key="notStarted"
+            />
+            <TabPane 
+              tab={<><TrophyOutlined /> Certified</>} 
+              key="certified"
+            />
+            <TabPane 
+              tab={<><HeartFilled /> Favorites</>} 
+              key="favorites"
+            />
+          </Tabs>
+
+          {/* Applied filters display */}
+          {(searchTerm || categoryFilter !== 'all') && (
+            <div style={{ marginBottom: 16, display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <Text strong>Applied Filters:</Text>
+              {searchTerm && (
+                <Tag closable onClose={() => setSearchTerm("")} color="blue">
+                  Search: {searchTerm}
+                </Tag>
+              )}
+              {categoryFilter !== 'all' && (
+                <Tag closable onClose={() => setCategoryFilter("all")} color="green">
+                  Category: {categoryFilter}
+                </Tag>
+              )}
+            </div>
+          )}
+          
+          {/* Course grid */}
+          {loading ? (
+            <div style={{ padding: '20px 0' }}>
+              <Row gutter={[24, 24]}>
+                {/* Show exactly 4 skeleton cards per row */}
+                {[...Array(8)].map((_, index) => (
+                  <Col xs={24} sm={12} md={6} lg={6} xl={6} key={index}>
+                    <Card>
+                      <Skeleton active avatar paragraph={{ rows: 4 }} />
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+            </div>
+          ) : filteredCourses.length === 0 ? (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description={
+                <Text style={{ fontSize: 16 }}>
+                  {searchTerm || categoryFilter !== 'all'
+                    ? "No courses match your search criteria"
+                    : activeTab === "favorites"
+                    ? "You haven't added any courses to favorites yet"
+                    : activeTab === "inProgress"
+                    ? "You don't have any courses in progress"
+                    : activeTab === "completed"
+                    ? "You haven't completed any courses yet"
+                    : activeTab === "notStarted"
+                    ? "All your courses have been started"
+                    : activeTab === "certified"
+                    ? "You don't have any certifications yet"
+                    : "You don't have any courses"}
+                </Text>
+              }
+            >
+              {activeTab === "all" && !searchTerm && categoryFilter === 'all' && (
+                <Button 
+                  type="primary" 
+                  size="large"
+                  onClick={() => navigate('/courses')}
+                  icon={<ShoppingCartOutlined />}
+                >
+                  Browse Courses
+                </Button>
+              )}
+              {(searchTerm || categoryFilter !== 'all') && (
+                <Button 
+                  type="default" 
+                  onClick={resetFilters}
+                >
+                  Clear Filters
+                </Button>
+              )}
+            </Empty>
+          ) : (
+            <Row gutter={[24, 24]}>
+              {/* Set to show exactly 4 course cards per row */}
+              {filteredCourses.map((item) => (
+                <Col xs={24} sm={12} md={6} lg={6} xl={6} key={item._id}>
+                  <CourseCard item={item} />
+                </Col>
+              ))}
+            </Row>
+          )}
+        </Card>
+        
+        {/* Recommendations section - this could be added later */}
+        {/* <Card title={<><FireOutlined /> Recommended Next Steps</>} style={{ marginBottom: 24 }}>
+          <Empty 
+            description={
+              <Text type="secondary">
+                Personalized course recommendations will appear here based on your learning patterns
+              </Text>
+            }
+          />
+        </Card> */}
+      </Content>
+    </Layout>
   );
 };
 
