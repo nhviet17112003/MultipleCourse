@@ -11,7 +11,7 @@ import {
   CartOutlined,
 } from "@ant-design/icons";
 import Cookies from "js-cookie";
-import ReCAPTCHA from "react-google-recaptcha";
+
 const Navbar = () => {
   const navigate = useNavigate();
   const [fullname, setFullname] = useState("User");
@@ -24,7 +24,7 @@ const Navbar = () => {
   const [balance, setBalance] = useState(0);
   const [role, setRole] = useState(localStorage.getItem("role") || null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const recaptchaRef = useRef(null);
+
   const isHome = location.pathname === "/";
   const [loadingWallet, setLoadingWallet] = useState(true);
   const [errorWallet, setErrorWallet] = useState(null);
