@@ -33,6 +33,53 @@ const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const canvasRef = useRef(null);
   const navigate = useNavigate();
+  // Chỉ tạo captcha khi ở trang login
+  useEffect(() => {
+    if (window.location.pathname === "/login") {
+      const newCaptcha = generateCaptcha();
+      setCaptcha(newCaptcha);
+    }
+  }, []); // Chỉ chạy một lần khi component mount
+
+  // Chỉ vẽ captcha khi ở trang login
+  useEffect(() => {
+    if (window.location.pathname === "/login") {
+      drawCaptcha(captcha);
+    }
+  }, [captcha]);
+
+  // Kiểm tra token chỉ khi ở trang login
+  useEffect(() => {
+    if (window.location.pathname === "/login") {
+      const queryParams = new URLSearchParams(window.location.search);
+      const errorFromUrl = queryParams.get("error");
+      if (errorFromUrl) {
+        setError(errorFromUrl);
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+      }
+
+      const token = localStorage.getItem("authToken");
+      const storedRole = localStorage.getItem("role");
+
+      if (token && storedRole) {
+        navigate(
+          storedRole.toLowerCase() === "tutor"
+            ? "/courses-list-tutor"
+            : "/homescreen"
+        );
+      }
+    }
+  }, [isSubmitting, navigate]);
+
+  // Hàm refresh captcha
+  const refreshCaptcha = () => {
+    if (window.location.pathname === "/login") {
+      const newCaptcha = generateCaptcha();
+      setCaptcha(newCaptcha);
+      setUserCaptcha("");
+    }
+  };
 
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
@@ -307,8 +354,8 @@ const Login = () => {
                     height: 48,
                   }}
                 />
-                <Button 
-                  type="link" 
+                <Button
+                  type="link"
                   style={{ padding: 0, marginTop: 8 }}
                   onClick={() => navigate("/forgetpassword")}
                 >
@@ -334,7 +381,7 @@ const Login = () => {
                     <Button
                       type="default"
                       icon={<ReloadOutlined />}
-                      onClick={() => setCaptcha(generateCaptcha())}
+                      onClick={refreshCaptcha} // Thay đổi này
                       style={{ borderRadius: 8 }}
                     />
                   </Col>
