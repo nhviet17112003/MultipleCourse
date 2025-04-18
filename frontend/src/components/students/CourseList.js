@@ -1,12 +1,38 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Spin } from "antd";
-import { FaShoppingCart } from "react-icons/fa";
-import { ToastContainer, toast } from "react-toastify";
-import Slider from "rc-slider";
-import "rc-slider/assets/index.css";
-import "react-toastify/dist/ReactToastify.css";
-import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
+import { 
+  Button, 
+  Spin, 
+  Input, 
+  Select, 
+  Slider, 
+  Card, 
+  Typography, 
+  Space, 
+  Row, 
+  Col, 
+  Avatar, 
+  Tag, 
+  Divider, 
+  Modal, 
+  Empty, 
+  Badge, 
+  Rate, 
+  Layout, 
+  message 
+} from "antd";
+import { 
+  SearchOutlined, 
+  ShoppingCartOutlined, 
+  UserOutlined, 
+  CloseCircleOutlined,
+  FilterOutlined,
+  ReloadOutlined
+} from "@ant-design/icons";
+
+const { Title, Text, Paragraph } = Typography;
+const { Header, Content } = Layout;
+const { Option } = Select;
 
 const CourseList = () => {
   const navigate = useNavigate();
@@ -30,73 +56,38 @@ const CourseList = () => {
   const [studentsCount, setStudentsCount] = useState({});
   const [showLoginPopup, setShowLoginPopup] = useState(false);
 
-  const categories = {
-    "Business & Economics": [
-      "Digital Marketing (SEO, Google Ads, Facebook Ads)",
-      "Entrepreneurship & Startups",
-      "E-commerce (Shopify, Amazon, Shopee)",
-      "Financial Management & Investment",
-      "Human Resources (HR) & Recruitment",
-      "Project Management (Agile, Scrum, PMP)",
-      "Business Strategy & Consulting",
-      "Supply Chain & Logistics",
-      "Stock Market & Cryptocurrency",
-      "Marketing",
-      "Others",
-    ],
-    "Design & Multimedia": [
-      "Graphic Design (Photoshop, Illustrator)",
-      "UI/UX Design (Figma, Adobe XD)",
-      "3D Modeling & Animation",
-      "Video Editing & Production",
-      "Motion Graphics",
-      "Interior Design",
-      "Fashion Design",
-      "Game Design",
-      "Design",
-      "Others",
-    ],
-    "Languages & Linguistics": [
-      "English for Business & Communication",
-      "TOEIC, IELTS, TOEFL Preparation",
-      "French, German, Spanish, Japanese, Chinese",
-      "Vietnamese for Foreigners",
-      "Translation & Interpretation",
-      "Academic Writing & Research Skills",
-      "Others",
-    ],
-    "Soft Skills": [
-      "Communication Skills",
-      "Public Speaking & Presentation",
-      "Leadership & Management",
-      "Emotional Intelligence",
-      "Time Management",
-      "Negotiation & Persuasion",
-      "Teamwork & Collaboration",
-      "Critical Thinking & Problem-Solving",
-      "Stress Management & Resilience",
-      "Creativity & Innovation",
-      "Others",
-    ],
-    "Engineering & Technology": [
-      "Software Development",
-      "Web Development",
-      "Mobile App Development",
-      "Artificial Intelligence & Machine Learning",
-      "Data Science & Big Data",
-      "Cybersecurity",
-      "Cloud Computing",
-      "Blockchain Technology",
-      "Electrical & Electronics Engineering",
-      "Mechanical Engineering",
-      "Civil Engineering",
-      "Robotics & Automation",
-      "Networking & IT Security",
-      "Embedded Systems",
-      "Programming",
-      "Others",
-    ],
-  };
+  const categories = [
+    "Programming",
+    "Design",
+    "Marketing",
+    "Business",
+    "Photography",
+    "Music",
+    "Education",
+    "Healthcare",
+    "Finance",
+    "Engineering",
+    "Science",
+    "Art",
+    "Literature",
+    "Culinary",
+    "Sports",
+    "Agriculture",
+    "Tourism",
+    "Technology",
+    "Manufacturing",
+    "Architecture",
+    "Journalism",
+    "Law",
+    "Psychology",
+    "Film & Media",
+    "Retail",
+    "Transportation",
+    "Environmental",
+    "Fashion",
+    "Real Estate",
+    "Telecommunications"
+  ];
 
   const updateFilters = (type, value) => {
     setActiveFilters((prevFilters) => {
@@ -141,26 +132,6 @@ const CourseList = () => {
         break;
     }
   };
-
-  const renderStars = (rating) => {
-    const stars = [];
-    for (let i = 1; i <= 5; i++) {
-      if (i <= rating) {
-        stars.push(<FaStar key={i} className="text-yellow-500" />);
-      } else if (i - 0.5 === rating) {
-        stars.push(<FaStarHalfAlt key={i} className="text-yellow-500" />);
-      } else {
-        stars.push(<FaRegStar key={i} className="text-gray-400" />);
-      }
-    }
-    return <span className="inline-flex">{stars}</span>;
-  };
-
-  const ratingCounts = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map((rating) => ({
-    rating,
-    count: courses.filter((course) => (course.average_rating ?? 0) >= rating)
-      .length,
-  }));
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -313,23 +284,20 @@ const CourseList = () => {
 
       const data = await response.json();
       if (response.ok) {
-        toast.success("Add product to cart successfully", {
-          position: "top-right",
-          autoClose: 3000,
-        });
+        message.success("Add product to cart successfully");
       } else {
-        toast.error(`Lỗi: ${data.message}`, {
-          position: "top-right",
-          autoClose: 3000,
-        });
+        message.error(`Error: ${data.message}`);
       }
     } catch (error) {
-      toast.error("Error, please try again!", {
-        position: "top-right",
-        autoClose: 3000,
-      });
+      message.error("Error, please try again!");
     }
   };
+
+  const ratingCounts = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map((rating) => ({
+    rating,
+    count: courses.filter((course) => (course.average_rating ?? 0) >= rating)
+      .length,
+  }));
 
   const filteredCourses = courses
     .filter((course) => {
@@ -344,9 +312,7 @@ const CourseList = () => {
       const ratingMatch = (course.average_rating ?? 0) >= ratingFilter;
       const categoryMatch =
         !selectedCategory ||
-        course.category === selectedCategory ||
-        (categories[selectedCategory] &&
-          categories[selectedCategory].includes(course.category));
+        course.category === selectedCategory;
 
       return (
         (titleMatch || tutorMatch) && priceMatch && ratingMatch && categoryMatch
@@ -362,300 +328,281 @@ const CourseList = () => {
       return 0;
     });
 
+  const renderCategoryDropdown = () => (
+    <Select
+      placeholder="Select Category"
+      style={{ width: "100%" }}
+      value={selectedCategory || undefined}
+      onChange={(value) => {
+        setSelectedCategory(value);
+        updateFilters("category", value);
+      }}
+    >
+      {categories.map(category => (
+        <Select.Option key={category} value={category}>{category}</Select.Option>
+      ))}
+    </Select>
+  );
+
+  const handleClearFilters = () => {
+    setFilter("");
+    setSortOption("default");
+    setPriceRange([0, maxPrice]);
+    setRatingFilter(0);
+    setSelectedCategory("");
+    setActiveFilters([]);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100">
-      <Spin spinning={spinning} fullscreen />
-
-      <ToastContainer />
-
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-6 bg-white p-6 rounded-lg shadow-md">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex-1">
-              <input
-                type="text"
-                placeholder="🔍 Search by course or tutor name..."
-                value={filter}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setFilter(value);
-                  updateFilters("search", value);
-                }}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-              />
-            </div>
-            <div className="w-32">
-              <select
-                value={sortOption}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setSortOption(value);
-                  updateFilters("sort", value);
-                }}
-                className="w-full p-3 text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-              >
-                <option value="default">Sort by</option>
-                <option value="asc">Price Low to High</option>
-                <option value="desc">Price High to Low</option>
-                <option value="rating-asc">Rating Low to High</option>
-                <option value="rating-desc">Rating High to Low</option>
-              </select>
-            </div>
-            <div className="w-32">
-              <select
-                value={ratingFilter}
-                onChange={(e) => {
-                  const value = Number(e.target.value);
-                  setRatingFilter(value);
-                  updateFilters("rating", `From ${value} ⭐`);
-                }}
-                className="w-full p-3 text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-              >
-                <option value={0}>All Rating</option>
-                {ratingCounts.map(({ rating, count }) => (
-                  <option key={rating} value={rating}>
-                    From {rating} ⭐ ({count})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex-1">
-              <p className="text-gray-800 text-center font-semibold mb-2">
-                Price: {priceRange[0]} -{" "}
-                {priceRange[1] >= maxPrice ? "All" : priceRange[1]}
-              </p>
-              <Slider
-                range
-                min={0}
-                max={maxPrice}
-                step={10000}
-                value={priceRange}
-                onChange={(value) => {
-                  if (value[1] >= maxPrice) {
-                    setPriceRange([value[0], maxPrice]);
-                    updateFilters("price", `${value[0]} - All`);
-                  } else {
-                    setPriceRange(value);
-                    updateFilters("price", `${value[0]} - ${value[1]}`);
-                  }
-                }}
-                className="w-full"
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-row justify-between items-center mt-4 gap-4">
-            <div className="relative w-64">
-              <button
-                className="w-full p-3 text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 flex justify-between items-center"
-                onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-              >
-                {selectedCategory || "Select Category"}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 text-gray-500"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
+    <Layout style={{ minHeight: "100vh", background: "#f0f2f5" }}>
+      <Spin spinning={spinning} tip="Loading..." size="large" />
+      
+      <Content style={{ padding: "24px", width: 1200, margin: "0 auto" }}>
+        <Card style={{ marginBottom: 24 }} title={<Title level={4}>Course List</Title>}>
+          <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+            {/* Search and Filter Section */}
+            <Row gutter={[16, 16]}>
+              <Col xs={24} md={12}>
+                <Input
+                  placeholder="Search by course or tutor name..."
+                  value={filter}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setFilter(value);
+                    if (value) {
+                      updateFilters("search", value);
+                    } else {
+                      removeFilter("search", "");
+                    }
+                  }}
+                  prefix={<SearchOutlined />}
+                  size="large"
+                />
+              </Col>
+              <Col xs={12} md={6}>
+                <Select
+                  style={{ width: "100%" }}
+                  value={sortOption}
+                  onChange={(value) => {
+                    setSortOption(value);
+                    updateFilters("sort", value);
+                  }}
+                  size="large"
                 >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
+                  <Option value="default">Sort by</Option>
+                  <Option value="asc">Price Low to High</Option>
+                  <Option value="desc">Price High to Low</Option>
+                  <Option value="rating-asc">Rating Low to High</Option>
+                  <Option value="rating-desc">Rating High to Low</Option>
+                </Select>
+              </Col>
+              <Col xs={12} md={6}>
+                <Select
+                  style={{ width: "100%" }}
+                  value={ratingFilter}
+                  onChange={(value) => {
+                    setRatingFilter(value);
+                    if (value > 0) {
+                      updateFilters("rating", `From ${value} ★`);
+                    } else {
+                      removeFilter("rating", "");
+                    }
+                  }}
+                  size="large"
+                >
+                  <Option value={0}>All Rating</Option>
+                  {ratingCounts.map(({ rating, count }) => (
+                    <Option key={rating} value={rating}>
+                      From {rating} ★ ({count})
+                    </Option>
+                  ))}
+                </Select>
+              </Col>
+            </Row>
 
-              {showCategoryDropdown && (
-                <div className="absolute left-0 mt-2 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-10">
-                  {Object.entries(categories).map(
-                    ([mainCategory, subCategories]) => (
-                      <div key={mainCategory} className="relative group">
-                        <button
-                          className="w-full flex justify-between items-center text-left px-4 py-2 hover:bg-gray-200"
-                          onClick={() => setSelectedCategory(mainCategory)}
-                        >
-                          {mainCategory}
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M7.293 5.293a1 1 0 011.414 0L13 9.586l-4.293 4.293a1 1 0 11-1.414-1.414L10.586 10 7.293 6.707a1 1 0 010-1.414z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </button>
+            <Row gutter={[16, 16]}>
+              <Col xs={24} md={12}>
+                <Text strong>
+                  Price: ${priceRange[0]} - {priceRange[1] >= maxPrice ? "All" : `$${priceRange[1]}`}
+                </Text>
+                <Slider
+                  range
+                  min={0}
+                  max={maxPrice}
+                  step={10000}
+                  value={priceRange}
+                  onChange={(value) => {
+                    if (value[1] >= maxPrice) {
+                      setPriceRange([value[0], maxPrice]);
+                      updateFilters("price", `$${value[0]} - All`);
+                    } else {
+                      setPriceRange(value);
+                      updateFilters("price", `$${value[0]} - $${value[1]}`);
+                    }
+                  }}
+                />
+              </Col>
+              <Col xs={24} md={12}>
+                {renderCategoryDropdown()}
+              </Col>
+            </Row>
 
-                        <div className="absolute left-full top-0 mt-0 ml-0 w-96 bg-white border border-gray-300 rounded-lg shadow-lg hidden group-hover:block z-20 max-h-[500px] overflow-y-auto">
-                          {subCategories.map((subCategory) => (
-                            <button
-                              key={subCategory}
-                              className="w-full text-left px-8 py-4 hover:bg-gray-200 text-lg"
-                              onClick={() => {
-                                setSelectedCategory(subCategory);
-                                setShowCategoryDropdown(false);
-                                updateFilters("category", subCategory);
-                              }}
-                            >
-                              {subCategory}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )
-                  )}
-                </div>
-              )}
-            </div>
-
+            {/* Active Filters */}
             {activeFilters.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-4">
-                {activeFilters.map((filter, index) => (
-                  <span
-                    key={index}
-                    className="flex items-center px-3 py-1 bg-green-200 text-blue-800 rounded-full"
-                  >
-                    {filter.value}
-                    <button
-                      className="ml-2 text-red-600 hover:text-red-900"
-                      onClick={() => removeFilter(filter.type, filter.value)}
+              <div style={{ marginTop: 16 }}>
+                <Space wrap>
+                  {activeFilters.map((filter, index) => (
+                    <Tag
+                      key={index}
+                      color="blue"
+                      closable
+                      onClose={() => removeFilter(filter.type, filter.value)}
                     >
-                      ✕
-                    </button>
-                  </span>
-                ))}
+                      {filter.value}
+                    </Tag>
+                  ))}
+                  <Button 
+                    type="primary" 
+                    danger
+                    icon={<ReloadOutlined />} 
+                    onClick={handleClearFilters}
+                  >
+                    Reset All
+                  </Button>
+                </Space>
               </div>
             )}
 
-            <div className="flex items-center gap-4">
-              <p className="text-gray-800 text-sm italic">
-                The result has {filteredCourses.length} courses
-              </p>
-              <button
-                onClick={() => {
-                  setFilter("");
-                  setSortOption("default");
-                  setPriceRange([0, maxPrice]);
-                  setRatingFilter(0);
-                  setSelectedCategory("");
-                  setActiveFilters([]);
-                }}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
-              >
-                Reset
-              </button>
-            </div>
-          </div>
-        </div>
+            <Row justify="end">
+              <Col>
+                <Text type="secondary">
+                  Found {filteredCourses.length} courses
+                </Text>
+              </Col>
+            </Row>
+          </Space>
+        </Card>
 
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        {/* Course Listing */}
+        <div>
           {loading ? (
-            <p>Đang tải danh sách khóa học...</p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {filteredCourses.length > 0 ? (
-                filteredCourses.map((course) => (
-                  <div
-                    key={course._id}
-                    onClick={() => handleCourseClick(course._id)}
-                    className="bg-white shadow-md rounded-lg overflow-hidden"
-                  >
-                    <img
-                      src={course.image}
-                      alt={course.title}
-                      className="w-full h-48 object-cover"
-                    />
-                    <div className="p-4">
-                      <h4 className="text-lg font-semibold text-cyan-600">
-                        {course.title}
-                      </h4>
-                      <p className="text-sm text-gray-500 mt-1 italic">
-                        {course.category}
-                      </p>
-                      <p className="text-yellow-500 flex items-center">
-                        {renderStars(course.average_rating)} (
-                        {course.comments.length})
-                      </p>
-
-                      {course.tutor && (
-                        <div className="flex items-center gap-4 mt-4 p-3 bg-gray-100 rounded-lg shadow-sm">
-                          <img
-                            src={course.tutor?.avatar}
-                            alt={course.tutor.fullname}
-                            className="w-14 h-14 rounded-full border-2 border-gray-300 shadow-md object-cover"
-                          />
-                          <div className="flex flex-col">
-                            <p
-                              className="text-lg font-semibold text-gray-900 truncate max-w-[150px] cursor-pointer"
-                              title={course.tutor.fullname}
-                            >
-                              {course.tutor.fullname}
-                            </p>
-                            <p className="text-sm text-gray-600">
-                              🎓 {studentsCount[course._id] || 0} student
-                            </p>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="mt-4 flex items-center justify-between">
-                        <span className="text-cyan-700 font-bold">
-                          ${course.price}
-                        </span>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAddToCart(course._id);
-                          }}
-                          className="bg-cyan-500 text-white px-4 py-2 rounded hover:bg-cyan-600"
-                        >
-                          Add to cart
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p>There are no courses currently available.</p>
-              )}
-            </div>
-          )}
-        </div>
-        {showLoginPopup && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-            <div className="bg-white p-8 rounded-2xl shadow-xl w-[90%] max-w-md text-center">
-              <h2 className="text-2xl font-bold text-gray-800 mb-3">
-                Login Required
-              </h2>
-              <p className="text-gray-600 mb-6">
-                You need to log in to add products to your cart.
-              </p>
-              <div className="flex justify-center gap-4">
-                <button
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2 rounded-xl transition duration-200"
-                  onClick={() => {
-                    setShowLoginPopup(false);
-                    window.location.href = "/login"; // or use navigate("/login") if using react-router
-                  }}
-                >
-                  Login
-                </button>
-                <button
-                  className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium px-5 py-2 rounded-xl transition duration-200"
-                  onClick={() => setShowLoginPopup(false)}
-                >
-                  Cancel
-                </button>
+            <div style={{ textAlign: "center", padding: "40px 0" }}>
+              <Spin size="large" />
+              <div style={{ marginTop: 16 }}>
+                <Text>Loading courses...</Text>
               </div>
             </div>
-          </div>
-        )}
-      </main>
-    </div>
+          ) : (
+            <Row gutter={[24, 24]}>
+              {filteredCourses.length > 0 ? (
+                filteredCourses.map((course) => (
+                  <Col xs={24} sm={12} md={8} lg={6} key={course._id}>
+                    <Badge.Ribbon 
+                      text={`$${course.price}`} 
+                      color="cyan"
+                    >
+                      <Card
+                        hoverable
+                        onClick={() => handleCourseClick(course._id)}
+                        cover={
+                          <img
+                            alt={course.title}
+                            src={course.image}
+                            style={{ height: 180, objectFit: "cover" }}
+                          />
+                        }
+                        actions={[
+                          <Button
+                            type="primary"
+                            icon={<ShoppingCartOutlined />}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddToCart(course._id);
+                            }}
+                          >
+                            Add to Cart
+                          </Button>
+                        ]}
+                      >
+                        <Card.Meta
+                          title={<Text strong style={{ color: "#1890ff" }}>{course.title}</Text>}
+                          description={
+                            <>
+                              <Tag color="geekblue">{course.category}</Tag>
+                              <div style={{ marginTop: 8 }}>
+                                <Rate 
+                                  disabled 
+                                  allowHalf 
+                                  defaultValue={course.average_rating || 0} 
+                                />
+                                <Text type="secondary"> ({course.comments.length})</Text>
+                              </div>
+                              
+                              {course.tutor && (
+                                <div style={{ marginTop: 16, display: "flex", alignItems: "center" }}>
+                                  <Avatar 
+                                    src={course.tutor.avatar} 
+                                    size="large"
+                                    icon={!course.tutor.avatar && <UserOutlined />}
+                                  />
+                                  <div style={{ marginLeft: 12 }}>
+                                    <Text strong>{course.tutor.fullname}</Text>
+                                    <div>
+                                      <Text type="secondary">
+                                        {studentsCount[course._id] || 0} students
+                                      </Text>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </>
+                          }
+                        />
+                      </Card>
+                    </Badge.Ribbon>
+                  </Col>
+                ))
+              ) : (
+                <Col span={24}>
+                  <Empty
+                    description="No courses match your filters"
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  >
+                    <Button type="primary" onClick={handleClearFilters}>
+                      Clear Filters
+                    </Button>
+                  </Empty>
+                </Col>
+              )}
+            </Row>
+          )}
+        </div>
+      </Content>
+
+      {/* Login Required Modal */}
+      <Modal
+        title="Login Required"
+        open={showLoginPopup}
+        onCancel={() => setShowLoginPopup(false)}
+        footer={[
+          <Button key="cancel" onClick={() => setShowLoginPopup(false)}>
+            Cancel
+          </Button>,
+          <Button
+            key="login"
+            type="primary"
+            onClick={() => {
+              setShowLoginPopup(false);
+              navigate("/login");
+            }}
+          >
+            Login Now
+          </Button>,
+        ]}
+      >
+        <p>You need to log in to add courses to your cart.</p>
+      </Modal>
+    </Layout>
   );
 };
 

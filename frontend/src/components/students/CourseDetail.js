@@ -1,41 +1,103 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify";
+import { 
+  Layout, 
+  Typography, 
+  Button, 
+  Card, 
+  Divider, 
+  Spin, 
+  Tag, 
+  Avatar, 
+  Row, 
+  Col, 
+  Rate, 
+  Input, 
+  List, 
+  Modal, 
+  Space, 
+  message, 
+  Descriptions,
+  Alert,
+  Pagination
+} from "antd";
+import { 
+  ArrowLeftOutlined, 
+  ShoppingCartOutlined, 
+  UserOutlined, 
+  CalendarOutlined,
+  DollarOutlined,
+  TagOutlined
+} from "@ant-design/icons";
 
-import "rc-slider/assets/index.css";
-import "react-toastify/dist/ReactToastify.css";
+const { Title, Text, Paragraph } = Typography;
+const { TextArea } = Input;
+const { Content } = Layout;
 
 const DetailCourse = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [fullname, setFullname] = useState(""); // Thêm phần tên người dùng
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // Xác định người dùng đã đăng nhập hay chưa
+  const [fullname, setFullname] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [newRating, setNewRating] = useState(5);
   const [hasCommented, setHasCommented] = useState(false);
+  const [hasPurchased, setHasPurchased] = useState(false);
   const [showTutorPopup, setShowTutorPopup] = useState(false);
-
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
-  const toggleTutorPopup = () => {
-    setShowTutorPopup(!showTutorPopup);
-  };
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
 
-  // Kiểm tra đăng nhập và lấy thông tin fullname
+  // Check login and get fullname
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     if (token) {
       setIsAuthenticated(true);
       const savedFullname = localStorage.getItem("fullname");
-      setFullname(savedFullname || "Người dùng");
+      setFullname(savedFullname || "User");
+      
+      // Check if user has purchased this course
+      const checkPurchaseStatus = async () => {
+        try {
+          const response = await fetch(
+            `http://localhost:3000/api/orders/check-purchase/${id}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          const data = await response.json();
+          if (response.ok && data.purchased) {
+            setHasPurchased(true);
+            
+            // Check if user has already commented
+            if (course?.comments) {
+              const userCommented = course.comments.some(
+                comment => comment.userId === data.userId
+              );
+              setHasCommented(userCommented);
+            }
+          }
+        } catch (error) {
+          console.error("Error checking purchase status:", error);
+        }
+      };
+      
+      checkPurchaseStatus();
     } else {
       setIsAuthenticated(false);
     }
-  }, []);
+  }, [id, course?.comments]);
 
-  // Lấy thông tin chi tiết khóa học
+  // Fetch course details
   useEffect(() => {
     const fetchCourseDetail = async () => {
       const token = localStorage.getItem("authToken");
@@ -52,39 +114,39 @@ const DetailCourse = () => {
         );
         const data = await response.json();
         if (response.ok) {
-          console.log(data.courseDetail); // Debugging: Log the course details
+          console.log(data.courseDetail);
           setCourse(data.courseDetail);
         } else {
           console.error("Error fetching course detail:", data.message);
+          message.error("Failed to load course details");
         }
       } catch (error) {
         console.error("Error:", error);
+        message.error("An error occurred while loading the course");
       } finally {
         setLoading(false);
       }
     };
     fetchCourseDetail();
-  }, [id, fullname]);
+  }, [id]);
 
+  // Fetch tutor details
   useEffect(() => {
     const fetchTutorDetails = async () => {
       if (course?.tutor) {
-        // console.log("đấ", course.tutor)
         try {
           const response = await fetch(
             `http://localhost:3000/api/users/profile/${course.tutor}`
           );
-          console.log("Response Status:", response.status); // Kiểm tra trạng thái phản hồi
+          console.log("Response Status:", response.status);
           const data = await response.json();
-          console.log("Tutor Data:", data); // Kiểm tra dữ liệu trả về
+          console.log("Tutor Data:", data);
           if (response.ok) {
             setCourse((prevCourse) => ({
               ...prevCourse,
               tutorName: data.fullname,
               tutorAvatar: data.avatar,
             }));
-            console.log("Response Status:", response.status); // Phải là 200
-            console.log("Tutor Data:", data); // Phải chứa fullname và avatar/ Kiểm tra avatar giảng viên
           } else {
             console.error("Error fetching tutor details:", data.message);
           }
@@ -98,6 +160,11 @@ const DetailCourse = () => {
   }, [course]);
 
   const handleAddToCart = async (courseId) => {
+    if (!isAuthenticated) {
+      message.warning("Please log in to add this course to your cart");
+      return;
+    }
+
     const newCartCount = cartCount + 1;
     setCartCount(newCartCount);
     localStorage.setItem("cartCount", newCartCount);
@@ -116,33 +183,23 @@ const DetailCourse = () => {
 
       const data = await response.json();
       if (response.ok) {
-        toast.success("Add product to cart successfully!", {
-          position: "top-right",
-          autoClose: 3000, // Đóng sau 3 giây
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "colored",
-        });
+        message.success("Course added to cart successfully!");
       } else {
-        toast.error(`Lỗi: ${data.message}`, {
-          position: "top-right",
-          autoClose: 3000,
-        });
+        message.error(`Error: ${data.message}`);
       }
     } catch (error) {
-      toast.error("An error occurred. Please try again.!", {
-        position: "top-right",
-        autoClose: 3000,
-      });
+      message.error("An error occurred. Please try again.");
     }
   };
 
   const handleCommentSubmit = async () => {
     if (!newComment.trim()) {
-      toast.warn("Comments cannot be left blank!");
+      message.warning("Comments cannot be left blank!");
+      return;
+    }
+
+    if (hasCommented) {
+      message.warning("You have already reviewed this course");
       return;
     }
 
@@ -176,6 +233,7 @@ const DetailCourse = () => {
               rating: newRating,
               comment: newComment,
               date: new Date(),
+              userId: data.userId || "current-user", // Store userId for comment identification
             },
           ],
         }));
@@ -183,274 +241,325 @@ const DetailCourse = () => {
         setNewComment("");
         setNewRating(5);
         setHasCommented(true);
-        toast.success("Comment has been added!");
+        message.success("Your review has been added!");
       } else {
-        toast.error(`Lỗi: ${data.message}`);
+        message.error(`Error: ${data.message}`);
       }
     } catch (error) {
-      toast.error("An error occurred while submitting the comment.!");
+      message.error("An error occurred while submitting the review!");
     }
   };
 
+  const toggleTutorPopup = () => {
+    setShowTutorPopup(!showTutorPopup);
+  };
+
+  const renderComments = () => {
+    if (!course?.comments?.length) {
+      return <Empty description="No comments yet" />;
+    }
+
+    // Calculate paginated data
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedComments = course.comments.slice(startIndex, endIndex);
+    const total = course.comments.length;
+
+    return (
+      <>
+        <List
+          itemLayout="horizontal"
+          dataSource={paginatedComments}
+          renderItem={comment => (
+            <List.Item>
+              <List.Item.Meta
+                avatar={
+                  <Avatar style={{ backgroundColor: '#1890ff' }}>
+                    {comment.author?.charAt(0).toUpperCase() || 'U'}
+                  </Avatar>
+                }
+                title={
+                  <div>
+                    <Text strong>{comment.author || "Anonymous User"}</Text>
+                    <div style={{ marginTop: 4 }}>
+                      <Rate disabled value={comment.rating} />
+                    </div>
+                  </div>
+                }
+                description={
+                  <>
+                    <Paragraph>{comment.comment}</Paragraph>
+                    <Text type="secondary">
+                      {new Date(comment.date).toLocaleDateString()}
+                    </Text>
+                  </>
+                }
+              />
+            </List.Item>
+          )}
+        />
+        
+        <div style={{ textAlign: 'right', marginTop: 16 }}>
+          <Pagination
+            current={currentPage}
+            pageSize={pageSize}
+            total={total}
+            onChange={(page) => setCurrentPage(page)}
+            showSizeChanger
+            onShowSizeChange={(current, size) => {
+              setCurrentPage(1);
+              setPageSize(size);
+            }}
+            pageSizeOptions={['5', '10', '20']}
+            showTotal={(total) => `Total ${total} reviews`}
+          />
+        </div>
+      </>
+    );
+  };
+
+  const renderTutorModal = () => {
+    if (!course?.tutor) return null;
+
+    return (
+      <Modal
+        title={<Title level={3} style={{ textAlign: 'center' }}>Tutor Profile</Title>}
+        open={showTutorPopup}
+        onCancel={toggleTutorPopup}
+        footer={[
+          <Button key="close" type="primary" size="large" onClick={toggleTutorPopup}>
+            Close
+          </Button>
+        ]}
+        width={700}
+        bodyStyle={{ padding: '24px' }}
+      >
+        <div style={{ textAlign: 'center', marginBottom: 30 }}>
+          <Avatar 
+            src={course.tutor.avatar} 
+            size={100} 
+            icon={!course.tutor.avatar && <UserOutlined />}
+            style={{ marginBottom: 16 }}
+          />
+          <Title level={3} style={{ marginBottom: 4 }}>
+            {course.tutor.fullname}
+          </Title>
+          <Text type="secondary" style={{ fontSize: 16 }}>{course.tutor.email}</Text>
+        </div>
+        
+        <Divider style={{ marginBottom: 24 }} />
+        
+        <Card title={<Title level={4}>Tutor Information</Title>} bordered={false}>
+          <Row gutter={[0, 24]}>
+            <Col span={24}>
+              <Space direction="vertical" size="small" style={{ display: 'flex' }}>
+                <Text strong style={{ fontSize: 16 }}>Address</Text>
+                <Text style={{ fontSize: 16 }}>{course.tutor.address || "Not provided"}</Text>
+              </Space>
+            </Col>
+            
+            <Col span={24}>
+              <Space direction="vertical" size="small" style={{ display: 'flex' }}>
+                <Text strong style={{ fontSize: 16 }}>Phone</Text>
+                <Text style={{ fontSize: 16 }}>{course.tutor.phone || "Not provided"}</Text>
+              </Space>
+            </Col>
+            
+            <Col span={24}>
+              <Space direction="vertical" size="small" style={{ display: 'flex' }}>
+                <Text strong style={{ fontSize: 16 }}>Gender</Text>
+                <Text style={{ fontSize: 16 }}>{course.tutor.gender || "Not provided"}</Text>
+              </Space>
+            </Col>
+            
+            <Col span={24}>
+              <Space direction="vertical" size="small" style={{ display: 'flex' }}>
+                <Text strong style={{ fontSize: 16 }}>Birthday</Text>
+                <Text style={{ fontSize: 16 }}>
+                  {course.tutor.birthday
+                    ? new Date(course.tutor.birthday).toLocaleDateString("en-GB")
+                    : "Not provided"}
+                </Text>
+              </Space>
+            </Col>
+          </Row>
+        </Card>
+      </Modal>
+    );
+  };
+
+  const Empty = ({ description }) => (
+    <div style={{ textAlign: 'center', padding: '20px 0' }}>
+      <Text type="secondary">{description}</Text>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <ToastContainer />
-      <div className="container mx-auto px-6 py-10">
-        <button
+    <Layout style={{ minHeight: "100vh", background: "#f0f2f5" }}>
+      <Content style={{ padding: "24px", maxWidth: 1200, margin: "0 auto" }}>
+        <Button
+          type="link"
+          icon={<ArrowLeftOutlined />}
           onClick={() => navigate("/course-list")}
-          className="mb-6 flex items-center gap-2 text-teal-600 hover:text-teal-800 font-semibold transition duration-200"
+          style={{ marginBottom: 16, fontSize: 16 }}
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M12.707 15.707a1 1 0 01-1.414 0L6.586 11H17a1 1 0 110 2H6.586l4.707 4.707a1 1 0 01-1.414 1.414l-6.414-6.414a1 1 0 010-1.414l6.414-6.414a1 1 0 011.414 1.414L6.586 9H17a1 1 0 110 2H6.586l4.707 4.707a1 1 0 010 1.414z"
-              clipRule="evenodd"
-            />
-          </svg>
           Back to Courses
-        </button>
+        </Button>
 
         {loading ? (
-          <p className="text-center text-teal-600 text-xl font-semibold">
-            Loading data...
-          </p>
-        ) : course ? (
-          <div className="bg-white shadow-2xl rounded-xl overflow-hidden md:grid md:grid-cols-2 md:gap-8 p-8 transition-transform duration-300 hover:shadow-lg hover:scale-105">
-            <div className="relative group">
-              <img
-                src={course.image}
-                alt={course.title}
-                className="w-full h-80 object-cover rounded-xl shadow-md transition duration-500 group-hover:scale-105 group-hover:shadow-lg"
-              />
-            </div>
-
-            <div className="mt-6 md:mt-0 relative">
-              <h2 className="text-4xl font-extrabold text-teal-700">
-                {course.title}
-              </h2>
-              <p className="mt-4 text-gray-700 text-lg leading-relaxed">
-                {course.description}
-              </p>
-
-              {/* Category */}
-              <div className="mt-4 flex items-center space-x-2">
-                <span className="bg-gradient-to-r from-green-400 to-teal-500 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-md">
-                  {course.category}
-                </span>
-              </div>
-
-              <div className="mt-6 flex justify-between items-center">
-                <p className="text-3xl text-teal-800 font-semibold">
-                  {course.price} VNĐ
-                </p>
-                <p className="text-sm text-gray-500 italic">
-                  Created on: {new Date(course.createAt).toLocaleDateString()}
-                </p>
-              </div>
-
-              {/* Tutor Details */}
-              {course.tutor && (
-                <div className="flex items-center gap-4 mt-8">
-                  <img
-                    src={course.tutor.avatar || "default-avatar.png"}
-                    alt={course.tutor.fullname || "Unknown Tutor"}
-                    className="w-16 h-16 rounded-full object-cover shadow-md border-2 border-teal-500"
-                  />
-                  <div className="flex flex-col">
-                    <span className="text-base text-gray-500">Tutor</span>
-                    <span
-                      onClick={toggleTutorPopup}
-                      className="text-teal-700 font-bold text-xl cursor-pointer hover:underline"
-                    >
-                      {course.tutor.fullname}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Add to Cart Button */}
-              <div className="mt-6 flex justify-end">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleAddToCart(course._id);
-                  }}
-                  className="bg-gradient-to-r from-teal-500 to-teal-700 text-white py-3 px-8 rounded-lg text-lg font-semibold shadow-md hover:shadow-lg transition-transform transform hover:scale-105"
-                >
-                  Add to Cart
-                </button>
-              </div>
+          <div style={{ textAlign: "center", padding: "40px 0" }}>
+            <Spin size="large" />
+            <div style={{ marginTop: 16 }}>
+              <Text>Loading course details...</Text>
             </div>
           </div>
-        ) : (
-          <p className="text-center text-red-600 text-xl font-medium">
-            No course information found.
-          </p>
-        )}
-
-        <div className="mt-10 bg-white shadow-lg p-6 rounded-lg">
-          <h3 className="text-3xl font-bold text-teal-700">Comments</h3>
-
-          {isAuthenticated && !hasCommented && (
-            <div className="mt-6 p-5 bg-gray-100 rounded-lg shadow-lg transition-all hover:shadow-2xl">
-              <h4 className="text-lg font-semibold text-teal-700">
-                Write your comment
-              </h4>
-              <textarea
-                className="w-full mt-2 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-                rows="3"
-                placeholder="Nhập bình luận..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-              ></textarea>
-
-              <div className="mt-4 flex items-center space-x-2">
-                <span className="text-gray-700 font-medium">Evaluate:</span>
-                {[...Array(5)].map((_, i) => (
-                  <button key={i} onClick={() => setNewRating(i + 1)}>
-                    <span
-                      className={`text-2xl ${
-                        i < newRating ? "text-yellow-400" : "text-gray-300"
-                      }`}
+        ) : course ? (
+          <>
+            <Card bordered={false} style={{ marginBottom: 24 }}>
+              <Row gutter={24}>
+                <Col xs={24} md={12}>
+                  <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 8 }}>
+                    <img
+                      src={course.image}
+                      alt={course.title}
+                      style={{ 
+                        width: '100%', 
+                        height: 300, 
+                        objectFit: 'cover',
+                        transition: 'transform 0.5s ease',
+                        ':hover': { transform: 'scale(1.05)' }
+                      }}
+                    />
+                  </div>
+                </Col>
+                
+                <Col xs={24} md={12}>
+                  <Title level={2} style={{ color: '#096dd9' }}>
+                    {course.title}
+                  </Title>
+                  
+                  <Paragraph style={{ fontSize: 16 }}>
+                    {course.description}
+                  </Paragraph>
+                  
+                  <Space style={{ marginTop: 16 }}>
+                    <Tag color="blue" icon={<TagOutlined />}>
+                      {course.category}
+                    </Tag>
+                    <Tag icon={<CalendarOutlined />}>
+                      Created: {new Date(course.createAt).toLocaleDateString()}
+                    </Tag>
+                  </Space>
+                  
+                  <div style={{ marginTop: 24 }}>
+                    <Title level={3} style={{ color: '#1890ff' }} type="secondary" icon={<DollarOutlined />}>
+                      ${course.price}
+                    </Title>
+                  </div>
+                  
+                  {course.tutor && (
+                    <Card 
+                      style={{ marginTop: 24, borderRadius: 8 }} 
+                      size="small" 
+                      type="inner"
                     >
-                      ★
-                    </span>
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={handleCommentSubmit}
-                className="mt-4 bg-teal-600 text-white py-2 px-6 rounded-lg hover:bg-teal-700 transition duration-300"
-              >
-                Submit a comment
-              </button>
-            </div>
-          )}
-
-          {hasCommented && (
-            <p className="text-gray-600 mt-4 italic">
-              You have commented on this course.
-            </p>
-          )}
-
-          {course?.comments?.length > 0 ? (
-            <ul className="mt-6 space-y-6">
-              {course.comments.map((comment, index) => (
-                <li
-                  key={index}
-                  className="flex space-x-4 p-4 bg-gray-50 rounded-lg shadow-md hover:shadow-xl"
-                >
-                  <div className="w-12 h-12 bg-teal-500 text-white font-bold rounded-full flex items-center justify-center text-xl">
-                    {comment.author?.charAt(0).toUpperCase()}
+                      <Space align="center" size="middle">
+                        <Avatar 
+                          size={64} 
+                          src={course.tutor.avatar || undefined} 
+                          icon={!course.tutor.avatar && <UserOutlined />}
+                        />
+                        <div>
+                          <Text type="secondary">Tutor</Text>
+                          <div>
+                            <Button 
+                              type="link" 
+                              onClick={toggleTutorPopup} 
+                              style={{ padding: 0, fontSize: 18, fontWeight: 'bold' }}
+                            >
+                              {course.tutor.fullname}
+                            </Button>
+                          </div>
+                        </div>
+                      </Space>
+                    </Card>
+                  )}
+                  
+                  <div style={{ marginTop: 24, textAlign: 'right' }}>
+                    <Button
+                      type="primary"
+                      size="large"
+                      icon={<ShoppingCartOutlined />}
+                      onClick={() => handleAddToCart(course._id)}
+                    >
+                      Add to Cart
+                    </Button>
                   </div>
+                </Col>
+              </Row>
+            </Card>
 
-                  <div className="flex-1">
-                    <p className="font-semibold text-teal-700">
-                      {comment.author || "Người dùng ẩn danh"}
-                    </p>
-                    <div className="flex items-center mt-1">
-                      {[...Array(5)].map((_, i) => (
-                        <span
-                          key={i}
-                          className={`text-xl ${
-                            i < comment.rating
-                              ? "text-yellow-400"
-                              : "text-gray-300"
-                          }`}
-                        >
-                          ★
-                        </span>
-                      ))}
-                    </div>
-                    <p className="text-gray-700 mt-2">{comment.comment}</p>
-                    <p className="text-gray-500 text-sm mt-1">
-                      {new Date(comment.date).toLocaleDateString()}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-gray-500 mt-2">No comments yet.</p>
-          )}
-          {showTutorPopup && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-              <div className="bg-white p-6 rounded-lg shadow-lg w-[500px] relative">
-                <button
-                  onClick={toggleTutorPopup}
-                  className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-                >
-                  ✖
-                </button>
-
-                <h2 className="text-2xl font-bold text-center mb-4">
-                  Tutor Details
-                </h2>
-
-                <div className="flex flex-col items-center">
-                  <img
-                    src={course.tutor.avatar || "default-avatar.png"}
-                    alt={course.tutor.fullname || "Unknown Tutor"}
-                    className="w-24 h-24 rounded-full mb-2"
-                  />
-                  <h3 className="text-xl font-semibold">
-                    {course.tutor.fullname}
-                  </h3>
-                  <p className="text-gray-500">{course.tutor.email}</p>
+            <Card 
+              title={<Title level={4}>Comments and Reviews</Title>}
+              bordered={false}
+            >
+              {/* Only show comment form to users who purchased the course */}
+              {hasPurchased && isAuthenticated && !hasCommented && (
+                <div style={{ marginBottom: 24 }}>
+                  <Card type="inner" title="Write a Review">
+                    <TextArea
+                      rows={4}
+                      placeholder="Enter your comment..."
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      style={{ marginBottom: 16 }}
+                    />
+                    
+                    <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                      <div>
+                        <Text style={{ marginRight: 8 }}>Rating:</Text>
+                        <Rate value={newRating} onChange={setNewRating} />
+                      </div>
+                      
+                      <Button type="primary" onClick={handleCommentSubmit}>
+                        Submit Comment
+                      </Button>
+                    </Space>
+                  </Card>
                 </div>
-
-                <hr className="my-4" />
-
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">
-                    Tutor Information
-                  </h3>
-                  <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
-                    <div>
-                      <p className="font-semibold">Address</p>
-                      <p>{course.tutor.address || "N/A"}</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold">Phone</p>
-                      <p>{course.tutor.phone || "N/A"}</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold">Gender</p>
-                      <p>{course.tutor.gender || "N/A"}</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold">Birthday</p>
-                      <p>
-                        {course.tutor.birthday
-                          ? new Date(course.tutor.birthday).toLocaleDateString(
-                              "en-GB"
-                            )
-                          : "N/A"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex justify-end mt-6">
-                  <button
-                    onClick={toggleTutorPopup}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+              )}
+              
+              {/* Show message if user already commented */}
+              {hasPurchased && hasCommented && (
+                <Alert
+                  message="You have already reviewed this course"
+                  type="info"
+                  showIcon
+                  style={{ marginBottom: 16 }}
+                />
+              )}
+              
+              {/* Show message if user has not purchased but is logged in */}
+              {isAuthenticated && !hasPurchased && (
+                <Alert
+                  message="Purchase this course to add your review"
+                  type="info"
+                  showIcon
+                  style={{ marginBottom: 16 }}
+                />
+              )}
+              
+              {/* Always show comments for everyone */}
+              {renderComments()}
+            </Card>
+          </>
+        ) : (
+          <Empty description="No course information found" />
+        )}
+      </Content>
+      
+      {renderTutorModal()}
+    </Layout>
   );
 };
 

@@ -87,9 +87,16 @@ const [studentProgress, setStudentProgress] = useState([]);
 
 const openStudentDetailModal = (student) => {
   setSelectedStudent(student.student);
-  setStudentProgress(student.completedLessons || []);
+
+  // Flatten toàn bộ các bài học từ student.lessons
+  // const allLessons = student.lessons.flatMap((item) => item.lesson);
+  // console.log("All lessons:", allLessons); // 👉 Log ra đây
+
+  // setStudentProgress(allLessons); // Cập nhật state với danh sách bài học đầy đủ
+
   setIsStudentDetailModalOpen(true);
 };
+
 
 const closeStudentDetailModal = () => {
   setIsStudentDetailModalOpen(false);
@@ -1212,31 +1219,32 @@ const closeStudentDetailModal = () => {
         />
         <div className="ml-4">
           <Title level={4} className={isDarkMode ? "text-white" : ""}>
-            {selectedStudent.fullname}
+            {selectedStudent.fullname ?? "No name"}
             
           </Title>
-          <Text type="secondary">{selectedStudent.email}</Text>
+          <Text type="secondary">{selectedStudent.email ?? "No email"}</Text>
+         
         </div>
       </div>
       
       <Divider className={isDarkMode ? "bg-gray-600" : ""} />
       
-      <Descriptions 
-        title="Student Information" 
+      <Descriptions
+        title="Student Information"
         bordered 
         column={{ xxl: 2, xl: 2, lg: 2, md: 2, sm: 1, xs: 1 }}
       >
-        <Descriptions.Item label="Address">{selectedStudent.address}</Descriptions.Item>
-        <Descriptions.Item label="Phone">{selectedStudent.phone}</Descriptions.Item>
-        <Descriptions.Item label="Gender">{selectedStudent.gender}</Descriptions.Item>
+        <Descriptions.Item label="Address">{selectedStudent.address ?? "No address"}</Descriptions.Item>
+        <Descriptions.Item label="Phone Number">{selectedStudent.phone ?? "No phone number"}</Descriptions.Item>
+        <Descriptions.Item label="Gender">{selectedStudent.gender ?? "No gender"}</Descriptions.Item>
         <Descriptions.Item label="Birthday">
           {new Date(selectedStudent.birthday).toLocaleDateString()}
         </Descriptions.Item>
       </Descriptions>
       
-      {/* <Divider orientation="left">Course Progress</Divider> */}
+      {/* <Divider orientation="left">Course Progress</Divider>
       
-      {/* <List
+      <List
         header={<div>Completed Lessons</div>}
         bordered
         dataSource={studentProgress}

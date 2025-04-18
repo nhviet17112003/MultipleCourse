@@ -1,10 +1,46 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import {
+  Layout,
+  Typography,
+  Card,
+  Button,
+  Form,
+  Checkbox,
+  Radio,
+  Spin,
+  Badge,
+  Alert,
+  Modal,
+  Input,
+  Rate,
+  Progress,
+  Statistic,
+  Divider,
+  Result,
+  Space,
+  notification,
+  List,
+  Tag,
+  Row,
+  Col
+} from "antd";
+import {
+  ClockCircleOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  TrophyOutlined,
+  FileTextOutlined,
+  SendOutlined,
+  WarningOutlined,
+  LeftOutlined
+} from "@ant-design/icons";
 
-
-
+const { Title, Paragraph, Text } = Typography;
+const { TextArea } = Input;
+const { Content } = Layout;
+const { Countdown } = Statistic;
 
 const FinalExam = () => {
   const { courseId, exam_id } = useParams();
@@ -17,23 +53,50 @@ const FinalExam = () => {
   const [totalMark, setTotalMark] = useState(null);
   const [allCorrectResults, setAllCorrectResults] = useState({});
   const token = localStorage.getItem("authToken");
-  const [modal, setModal] = useState(false);
+  const [isResultModalVisible, setIsResultModalVisible] = useState(false);
   const [comment, setComment] = useState("");
   const [rating, setRating] = useState(0);
   const [certificate, setCertificate] = useState(null);
-const [certificateUrl, setCertificateUrl] = useState(null);
+  const [certificateUrl, setCertificateUrl] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [examSubmitted, setExamSubmitted] = useState(false);
+  const [countdownDeadline, setCountdownDeadline] = useState(null);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+
+  const [form] = Form.useForm();
+
+  // Handle back button click
+  const handleBack = () => {
+    if (!examSubmitted && Object.keys(answers).length > 0) {
+      // If exam is in progress and answers exist, show confirmation
+      setShowExitConfirm(true);
+    } else {
+      // Otherwise, just go back
+      navigate(-1);
+    }
+  };
 
   const handleCommentCourseSubmit = async () => {
     try {
+      setSubmitting(true);
       await axios.post(
         "http://localhost:3000/api/comments/create-course-comment",
         { courseId, rating, comment },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      alert("Comment submitted successfully!");
-      setModal(false);
+      notification.success({
+        message: "Success",
+        description: "Comment submitted successfully!",
+      });
+      setIsResultModalVisible(false);
+      setSubmitting(false);
     } catch (error) {
       console.error("Error submitting comment:", error);
+      notification.error({
+        message: "Error",
+        description: "Failed to submit comment. Please try again.",
+      });
+      setSubmitting(false);
     }
   };
 
@@ -47,36 +110,38 @@ const [certificateUrl, setCertificateUrl] = useState(null);
           }
         );
         setExam(response.data.exam);
-        setTimeLeft(response.data.exam.duration * 60);
+        const durationInMinutes = response.data.exam.duration;
+        const durationInMilliseconds = durationInMinutes * 60 * 1000;
+        
+        // Calculate deadline for countdown
+        const deadline = Date.now() + durationInMilliseconds;
+        setCountdownDeadline(deadline);
+        setTimeLeft(durationInMinutes * 60); // in seconds
         setLoading(false);
       } catch (error) {
         console.error("Error fetching exam:", error);
+        notification.error({
+          message: "Error",
+          description: "Failed to load exam. Please try again later.",
+        });
         setLoading(false);
       }
     };
     fetchExam();
-  }, [courseId]);
+  }, [courseId, token]);
 
-  useEffect(() => {
-    let timer;
-    if (timeLeft > 0) {
-      timer = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            handleSubmit(); 
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+  // Countdown finish handler
+  const onCountdownFinish = () => {
+    if (!examSubmitted) {
+      notification.warning({
+        message: "Time's Up!",
+        description: "The exam time has ended. Your answers are being submitted automatically.",
+      });
+      handleSubmit();
     }
-  
-    return () => clearInterval(timer);
-  }, [timeLeft]);
-  
+  };
 
-  // Xử lý chọn đáp án
+  // Handle answer change
   const handleAnswerChange = (question_id, answer, questionType, isChecked) => {
     setAnswers((prevAnswers) => {
       if (questionType === "Multiple Choice") {
@@ -90,10 +155,15 @@ const [certificateUrl, setCertificateUrl] = useState(null);
     });
   };
 
-  // Xử lý nộp bài
+  // Submit exam
   const handleSubmit = async () => {
-    clearInterval(); 
-    setTimeLeft(0); 
+    if (examSubmitted) return;
+    
+    setSubmitting(true);
+    setExamSubmitted(true);
+
+    // Stop the countdown by setting deadline to null
+    setCountdownDeadline(null);
   
     try {
       console.log("Answers State:", answers);
@@ -123,9 +193,7 @@ const [certificateUrl, setCertificateUrl] = useState(null);
             };
           }),
         };
-      });
-  
-      console.log("Formatted Answers:", formattedAnswers);
+      }).filter(Boolean);
   
       const response = await axios.post(
         `http://localhost:3000/api/exams/submit-exam/${exam.exam_id}`,
@@ -133,156 +201,376 @@ const [certificateUrl, setCertificateUrl] = useState(null);
         { headers: { Authorization: `Bearer ${token}` } }
       );
   
-      console.log("API Response:", response.data);
-  
       setScore(response.data.studentExamRS.score);
       setTotalMark(response.data.studentExamRS.totalMark);
-      setModal(true);
+      setIsResultModalVisible(true);
   
-      if (response.data.studentExamRS.score >= 0.8 * response.data.studentExamRS.totalMark) {
+      const passThreshold = 0.8 * response.data.studentExamRS.totalMark;
+      const isPassed = response.data.studentExamRS.score >= passThreshold;
+  
+      if (isPassed) {
         try {
           const certResponse = await axios.post(
             `http://localhost:3000/api/certificates/create-certificate/${courseId}`,
             {},
             { headers: { Authorization: `Bearer ${token}` } }
           );
-          console.log("Certificate API Response:", certResponse.data);
           setCertificate(certResponse.data.certificate);
           await fetchCertificate();
+          notification.success({
+            message: "Congratulations!",
+            description: "You've passed the exam and earned a certificate!",
+            icon: <TrophyOutlined style={{ color: "#FFD700" }} />
+          });
         } catch (certError) {
           console.error("Error generating certificate:", certError);
+          notification.error({
+            message: "Certificate Error",
+            description: "There was an error generating your certificate."
+          });
         }
       } else {
-        alert("You did not pass the exam. Try again next time!");
+        notification.info({
+          message: "Exam Result",
+          description: "You did not pass the exam. Try again next time!",
+          icon: <WarningOutlined style={{ color: "#faad14" }} />
+        });
       }
     } catch (error) {
       console.error("Error submitting exam:", error);
+      notification.error({
+        message: "Error",
+        description: "Failed to submit exam. Please try again."
+      });
+    } finally {
+      setSubmitting(false);
     }
   };
   
-  
   const fetchCertificate = async () => {
     try {
-      console.log("Fetching certificate...");
-      console.log("Course ID:", courseId);
-      
       const response = await axios.get(
-   
         `http://localhost:3000/api/certificates/get-certificate/${courseId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      console.log(response.data.certificate.certificate_url);
       if (response.data.certificate.certificate_url) {
         setCertificateUrl(response.data.certificate.certificate_url);
-        console.log("Certificate URL:", response.data.certificate.certificate_url);
       }
     } catch (error) {
       console.error("Error fetching certificate:", error);
     }
   };
-  
 
-  if (loading) return <p>Loading exam...</p>;
-  if (!exam) return <p>Exam not found</p>;
-
-  
+  if (loading) {
     return (
-     
-
-
-
-
-    <div className="max-w-3xl mx-auto p-8 bg-gradient-to-br from-white to-gray-100 shadow-2xl rounded-xl">
-      <h1 className="text-3xl font-extrabold text-gray-800 text-center mb-4">{exam.title}</h1>
-      <p className="text-gray-600 text-center">Duration: <span className="font-semibold">{exam.duration} minutes</span></p>
-      <p className="text-red-500 text-center font-semibold text-lg">Time Left: {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, "0")}</p>
-      
-      <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="mt-6">
-        {exam.questions.map((question, index) => (
-          <motion.div key={question.question_id} className="mb-6 p-5 bg-white shadow-md rounded-lg" whileHover={{ scale: 1.02 }}>
-            <span className="text-gray-700 font-semibold">Question {index + 1} (<span className="text-blue-500">{question.questionType}</span>)</span>
-            <h3 className="text-lg font-semibold mt-2">{question.question}</h3>
-            {question.answers.map((answer) => (
-              <div key={answer.answer} className="mt-2">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type={question.questionType === "Multiple Choice" ? "checkbox" : "radio"}
-                    name={question.question_id}
-                    value={answer.answer}
-                    checked={answers[question.question_id]?.includes(answer.answer) || false}
-                    onChange={(e) => handleAnswerChange(question.question_id, answer.answer, question.questionType, e.target.checked)}
-                    className="form-checkbox text-blue-500 w-5 h-5"
-                  />
-                  <span className="text-gray-800">{answer.answer}</span>
-                </label>
-              </div>
-            ))}
-
-            {allCorrectResults[question.question_id] !== undefined && (
-              <p className={`font-bold mt-3 ${allCorrectResults[question.question_id] ? "text-green-600" : "text-red-600"}`}>
-                {allCorrectResults[question.question_id] ? "Correct" : "Incorrect"}
-              </p>
-            )}
-          </motion.div>
-        ))}
-
-        <motion.button whileTap={{ scale: 0.95 }} type="submit" className="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-all shadow-md">
-          Submit Exam
-        </motion.button>
-      </form>
-
-      {modal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <motion.div className="bg-white p-8 rounded-xl w-96 text-center shadow-xl" initial={{ scale: 0.8 }} animate={{ scale: 1 }}>
-            <h2 className="text-xl font-bold text-gray-800">Exam Result</h2>
-            <p className="mt-3">Your Score: <span className="font-semibold">{score} / {totalMark} ({((score / totalMark) * 100).toFixed(2)}%)</span></p>
-            <div className="mt-4">
-              <label className="block text-gray-700 font-medium">Rating:</label>
-              <input type="number" value={rating} onChange={(e) => setRating(e.target.value)} min="1" max="5" className="border p-2 w-full rounded-md" />
-            </div>
-            <div className="mt-3">
-              <label className="block text-gray-700 font-medium">Comment:</label>
-              <textarea value={comment} onChange={(e) => setComment(e.target.value)} className="border p-2 w-full rounded-md"></textarea>
-            </div>
-            <button onClick={handleCommentCourseSubmit} className="mt-4 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition">
-              Submit Comment
-            </button>
-            <button onClick={() => setModal(false)} className="mt-2 bg-gray-400 text-white py-2 px-4 rounded-lg hover:bg-gray-500 transition">
-              Close
-            </button>
-          </motion.div>
-        </div>
-      )}
-
-
-      {score !== null && totalMark !== null && (
-        <div className="mt-6 p-5 bg-gray-100 rounded-lg text-center shadow-md">
-          <h2 className="text-xl font-bold text-gray-800">Exam Result</h2>
-          <p className="mt-2 text-lg font-semibold text-blue-600">Your Score: {score} / {totalMark} ({((score / totalMark) * 100).toFixed(2)}%)</p>
-        </div>
-      )}
-{certificateUrl && (
-  <a
-    href={certificateUrl}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="mt-4 block bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition-all shadow-md text-center"
-  >
-    {certificateUrl}
-  </a>
-)}
-
-{/* {certificate && (
-  <motion.button
-    whileTap={{ scale: 0.95 }}
-    onClick={() => navigate("/my-certificate")}
-    className="mt-4 bg-purple-500 text-white py-3 px-6 rounded-lg hover:bg-purple-600 transition-all shadow-md"
-  >
-    Certificate List
-  </motion.button>
-)} */}
-    </div>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Spin size="large" tip="Loading exam..." />
+      </div>
     );
+  }
+  
+  if (!exam) {
+    return (
+      <Result
+        status="404"
+        title="Exam Not Found"
+        subTitle="Sorry, the exam you are looking for does not exist."
+        extra={
+          <Button type="primary" onClick={() => navigate(-1)}>
+            Go Back
+          </Button>
+        }
+      />
+    );
+  }
+
+  // Calculate progress percent based on answered questions
+  const answeredQuestions = Object.keys(answers).length;
+  const totalQuestions = exam.questions.length;
+  const progressPercent = Math.round((answeredQuestions / totalQuestions) * 100);
+
+  // Calculate pass status
+  const passThreshold = totalMark ? (0.8 * totalMark) : null;
+  const passStatus = score !== null ? (score >= passThreshold ? "success" : "error") : null;
+
+  return (
+    <Layout style={{ background: "#f5f5f5", minHeight: "100vh" }}>
+      <Content style={{ padding: '24px', maxWidth: 800, margin: '0 auto' }}>
+        {/* Back button */}
+        <Button 
+          icon={<LeftOutlined />} 
+          onClick={handleBack}
+          style={{ marginBottom: 16 }}
+        >
+          Back
+        </Button>
+
+        <Card
+          title={
+            <div style={{ textAlign: 'center' }}>
+              <Title level={2} style={{ margin: 0 }}>{exam.title}</Title>
+              <Paragraph type="secondary">
+                Duration: <Text strong>{exam.duration} minutes</Text>
+              </Paragraph>
+            </div>
+          }
+          extra={
+            examSubmitted ? (
+              <Tag color="success" icon={<CheckCircleOutlined />}>
+                Exam Submitted
+              </Tag>
+            ) : (
+              countdownDeadline && (
+                <Countdown 
+                  title="Time Remaining" 
+                  value={countdownDeadline} 
+                  onFinish={onCountdownFinish}
+                  format="HH:mm:ss"
+                  valueStyle={{ fontSize: '1.2rem', color: '#ff4d4f' }}
+                />
+              )
+            )
+          }
+          style={{ marginBottom: 24 }}
+        >
+          <Space direction="vertical" style={{ width: '100%' }}>
+            <Alert
+              message="Exam Instructions"
+              description="Read each question carefully. For multiple choice questions, select all that apply. For single choice questions, select one answer only."
+              type="info"
+              showIcon
+              style={{ marginBottom: 16 }}
+            />
+            
+            <div style={{ marginBottom: 16 }}>
+              <Text>Progress:</Text>
+              <Progress 
+                percent={progressPercent} 
+                status={examSubmitted ? (passStatus || 'normal') : 'active'} 
+                strokeColor={examSubmitted && passStatus === 'success' ? '#52c41a' : undefined}
+              />
+            </div>
+          </Space>
+        </Card>
+
+        <Form form={form} onFinish={handleSubmit} layout="vertical">
+          <List
+            itemLayout="vertical"
+            dataSource={exam.questions}
+            renderItem={(question, index) => (
+              <Card 
+                key={question.question_id} 
+                style={{ marginBottom: 16 }}
+                title={
+                  <Space>
+                    <Badge count={index + 1} style={{ backgroundColor: '#1890ff' }} />
+                    <Text strong>{question.question}</Text>
+                    <Tag color={question.questionType === "Multiple Choice" ? "geekblue" : "purple"}>
+                      {question.questionType}
+                    </Tag>
+                  </Space>
+                }
+              >
+                <Form.Item name={["answers", question.question_id]}>
+                  {question.questionType === "Multiple Choice" ? (
+                    <Checkbox.Group style={{ width: '100%' }}>
+                      <Space direction="vertical" style={{ width: '100%' }}>
+                        {question.answers.map((answer) => (
+                          <Checkbox 
+                            key={answer.answer} 
+                            value={answer.answer}
+                            checked={answers[question.question_id]?.includes(answer.answer) || false}
+                            onChange={(e) => handleAnswerChange(
+                              question.question_id, 
+                              answer.answer, 
+                              question.questionType, 
+                              e.target.checked
+                            )}
+                            disabled={examSubmitted}
+                          >
+                            {answer.answer}
+                          </Checkbox>
+                        ))}
+                      </Space>
+                    </Checkbox.Group>
+                  ) : (
+                    <Radio.Group style={{ width: '100%' }}>
+                      <Space direction="vertical" style={{ width: '100%' }}>
+                        {question.answers.map((answer) => (
+                          <Radio 
+                            key={answer.answer} 
+                            value={answer.answer}
+                            checked={answers[question.question_id]?.includes(answer.answer) || false}
+                            onChange={(e) => handleAnswerChange(
+                              question.question_id, 
+                              answer.answer, 
+                              question.questionType, 
+                              e.target.checked
+                            )}
+                            disabled={examSubmitted}
+                          >
+                            {answer.answer}
+                          </Radio>
+                        ))}
+                      </Space>
+                    </Radio.Group>
+                  )}
+                </Form.Item>
+
+                {allCorrectResults[question.question_id] !== undefined && (
+                  <Alert
+                    type={allCorrectResults[question.question_id] ? "success" : "error"}
+                    message={allCorrectResults[question.question_id] ? "Correct!" : "Incorrect"}
+                    showIcon
+                  />
+                )}
+              </Card>
+            )}
+          />
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Button 
+                onClick={handleBack}
+                size="large"
+                block
+                style={{ marginBottom: 24 }}
+                icon={<LeftOutlined />}
+              >
+                Back to Course
+              </Button>
+            </Col>
+            <Col span={12}>
+              <Button 
+                type="primary" 
+                htmlType="submit" 
+                size="large"
+                block
+                loading={submitting}
+                disabled={examSubmitted}
+                style={{ marginBottom: 24 }}
+                icon={<SendOutlined />}
+              >
+                Submit Exam
+              </Button>
+            </Col>
+          </Row>
+        </Form>
+
+        {score !== null && totalMark !== null && !isResultModalVisible && (
+          <Card>
+            <Result
+              status={passStatus}
+              title="Exam Result"
+              subTitle={`You scored ${score} out of ${totalMark} (${((score / totalMark) * 100).toFixed(2)}%)`}
+              extra={[
+                certificateUrl && (
+                  <Button 
+                    type="primary" 
+                    icon={<FileTextOutlined />}
+                    href={certificateUrl}
+                    target="_blank"
+                    key="certificate"
+                  >
+                    View Certificate
+                  </Button>
+                ),
+                <Button 
+                  key="feedback"
+                  onClick={() => setIsResultModalVisible(true)}
+                >
+                  Leave Feedback
+                </Button>,
+                <Button 
+                  key="back"
+                  onClick={handleBack}
+                  icon={<LeftOutlined />}
+                >
+                  Back to Course
+                </Button>
+              ]}
+            />
+          </Card>
+        )}
+
+        {/* Exit confirmation modal */}
+        <Modal
+          title="Leave Exam?"
+          open={showExitConfirm}
+          onCancel={() => setShowExitConfirm(false)}
+          footer={[
+            <Button key="stay" onClick={() => setShowExitConfirm(false)}>
+              Stay on Exam
+            </Button>,
+            <Button 
+              key="leave" 
+              danger
+              onClick={() => navigate(-1)}
+            >
+              Leave Exam (Answers will be lost)
+            </Button>
+          ]}
+        >
+          <Alert
+            message="Warning"
+            description="You have unsaved answers. If you leave now, your progress will be lost. Are you sure you want to leave?"
+            type="warning"
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
+        </Modal>
+
+        {/* Result modal */}
+        <Modal
+          title="Exam Result"
+          open={isResultModalVisible}
+          onCancel={() => setIsResultModalVisible(false)}
+          footer={[
+            <Button key="close" onClick={() => setIsResultModalVisible(false)}>
+              Close
+            </Button>,
+            <Button 
+              key="submit" 
+              type="primary" 
+              loading={submitting}
+              onClick={handleCommentCourseSubmit}
+            >
+              Submit Feedback
+            </Button>
+          ]}
+        >
+          <div style={{ marginBottom: 16 }}>
+            <Statistic 
+              title="Your Score" 
+              value={score} 
+              suffix={`/ ${totalMark} (${score && totalMark ? ((score / totalMark) * 100).toFixed(2) : 0}%)`} 
+              valueStyle={{ color: passStatus === 'success' ? '#3f8600' : '#cf1322' }}
+            />
+            <Divider />
+          </div>
+
+          <Form layout="vertical">
+            <Form.Item label="How would you rate this course?">
+              <Rate 
+                allowHalf 
+                value={rating} 
+                onChange={setRating} 
+                style={{ fontSize: 36 }}
+              />
+            </Form.Item>
+            <Form.Item label="Share your feedback about the course:">
+              <TextArea 
+                rows={4} 
+                value={comment} 
+                onChange={(e) => setComment(e.target.value)} 
+                placeholder="What did you like? What could be improved?"
+              />
+            </Form.Item>
+          </Form>
+        </Modal>
+      </Content>
+    </Layout>
+  );
 };
 
 export default FinalExam;

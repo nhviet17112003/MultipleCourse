@@ -368,7 +368,7 @@ const WithdrawalHistory = () => {
       <Card className="rounded-lg shadow-lg">
         <div className="flex justify-between items-center mb-6">
           <Title level={3} className="flex items-center m-0">
-            <DollarOutlined className="mr-2 text-green-500" />
+            <DollarOutlined className="mr-2 text-blue-500" />
             Withdrawal History
           </Title>
           <Space>
@@ -376,7 +376,7 @@ const WithdrawalHistory = () => {
               type="primary"
               icon={<DownloadOutlined />}
               onClick={downloadCSV}
-              className="bg-green-500 hover:bg-green-600"
+              className="bg-blue-500 hover:bg-blue-600"
             >
               Export CSV
             </Button>
