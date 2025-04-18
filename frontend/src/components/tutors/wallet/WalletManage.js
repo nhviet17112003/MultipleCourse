@@ -403,25 +403,25 @@ const WalletManage = () => {
   };
 
   return (
-    <div className="min-h-screen flex justify-start items-start bg-gradient-to-b from-teal-500 to-indigo-200 pt-10 pb-10">
+    <div className="min-h-screen flex justify-start items-start pt-10 pb-10 bg-gray-100">
       <Card
         className="max-w-4xl w-full mx-auto rounded-xl shadow-xl"
         bodyStyle={{ padding: 24 }}
       >
         <div className="flex items-center justify-center mb-6">
-          <FaWallet className="text-teal-500 text-3xl mr-3" />
+          <FaWallet className="text-blue-500 text-3xl mr-3" />
           <h1 className="text-3xl font-bold text-gray-800">
             Wallet Management
           </h1>
         </div>
 
-        <Card className="mb-6 bg-gradient-to-r from-teal-50 to-blue-50">
+        <Card className="mb-6 bg-gradient-to-r from-blue-50 to-blue-100">
           <div className="flex flex-col sm:flex-row justify-between items-center">
             <div>
               <p className="text-base sm:text-lg font-semibold text-gray-600">
                 Current Balance
               </p>
-              <p className="text-2xl sm:text-3xl font-bold text-teal-600 transition-all">
+              <p className="text-2xl sm:text-3xl font-bold text-blue-600 transition-all">
                 {balance?.toLocaleString("vi-VN")} VND
               </p>
             </div>
@@ -433,7 +433,7 @@ const WalletManage = () => {
                 className={`${
                   hasPendingRequest
                     ? "bg-gray-400"
-                    : "bg-teal-500 hover:bg-teal-600"
+                    : "bg-blue-500 hover:bg-blue-600"
                 } text-white`}
                 onClick={() => setIsWithdrawFormVisible(!isWithdrawFormVisible)}
                 icon={<FaWallet className="mr-2" />}
@@ -515,7 +515,7 @@ const WalletManage = () => {
                   onClick={() => setIsConfirmVisible(true)}
                   className={
                     isWithdrawalButtonEnabled
-                      ? "bg-teal-500 hover:bg-teal-600"
+                      ? "bg-blue-500 hover:bg-blue-600"
                       : "bg-gray-300"
                   }
                 >
@@ -638,7 +638,7 @@ const WalletManage = () => {
                 ]}
               >
                 <div className="flex items-center mb-2">
-                  <BankOutlined className="text-teal-500 text-xl mr-2" />
+                  <BankOutlined className="text-blue-500 text-xl mr-2" />
                   <span className="text-lg font-medium text-gray-700">
                     {bank.bank_name}
                   </span>

@@ -1,9 +1,24 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { FaWallet, FaQuestionCircle } from "react-icons/fa";
+import { WalletOutlined, QuestionCircleOutlined, LoadingOutlined } from "@ant-design/icons";
+import { 
+  Card, 
+  Typography, 
+  Input, 
+  Button, 
+  Space, 
+  Tooltip, 
+  Row, 
+  Col, 
+  InputNumber, 
+  message, 
+  Spin 
+} from "antd";
+
+const { Title } = Typography;
 
 const WalletStudent = () => {
-  const [amount, setAmount] = useState(0);
+  const [amount, setAmount] = useState(null);
   const [responseMessage, setResponseMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -11,15 +26,15 @@ const WalletStudent = () => {
     setLoading(true);
     setResponseMessage("");
 
-    if (amount < 50000) {
-      setResponseMessage("The deposit amount must be greater than 50,000 VND.");
+    if (!amount || amount < 50000) {
+      message.error("The deposit amount must be greater than 50,000 VND.");
       setLoading(false);
       return;
     }
 
     const token = localStorage.getItem("authToken");
     if (!token) {
-      setResponseMessage("Please login before payment.");
+      message.error("Please login before payment.");
       setLoading(false);
       return;
     }
@@ -41,11 +56,12 @@ const WalletStudent = () => {
         response.data.startsWith("http")
       ) {
         window.open(response.data, "_blank");
-        setAmount(0);
+        setAmount(null);
+        message.success("Payment link opened in a new tab");
       }
     } catch (error) {
       console.error("Error sending payment request:", error);
-      setResponseMessage(
+      message.error(
         error.response?.data?.message || "An error occurred, please try again."
       );
     } finally {
@@ -53,86 +69,95 @@ const WalletStudent = () => {
     }
   };
 
+  const amountOptions = [
+    50000, 100000, 200000, 300000, 500000, 1000000, 2000000, 5000000, 10000000
+  ];
+
+  const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-r from-[#14b8a6] to-indigo-200">
-      <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-lg">
-        <h2 className="text-3xl font-bold mb-6 text-center text-[#14b8a6] flex items-center justify-center">
-          <FaWallet className="mr-2" /> Deposit Wallet
-        </h2>
-        <div className="flex flex-col items-center w-full">
-          <div className="relative w-full">
-            <input
-              type="number"
-              value={amount === 0 ? "" : amount}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (value === "") {
-                  setAmount("");
-                } else {
-                  setAmount(Number(value));
-                }
-              }}
-              className="w-full p-2 border border-gray-300 rounded-md mb-4 pr-10"
+    <div style={{ 
+      display: "flex", 
+      justifyContent: "center", 
+      alignItems: "center", 
+      minHeight: "100vh", 
+      padding: "24px",
+      background: "#f0f2f5"
+    }}>
+      <Card 
+        style={{ 
+          width: "100%", 
+          maxWidth: 500,
+          borderRadius: 8,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.08)"
+        }}
+      >
+        <Title 
+          level={2} 
+          style={{ 
+            textAlign: "center", 
+            // color: "#1890ff",
+            marginBottom: 24
+          }}
+        >
+          <WalletOutlined style={{ marginRight: 8,  color: "#1890ff" }} /> Deposit Wallet
+        </Title>
+
+        <Space direction="vertical" size="large" style={{ width: "100%" }}>
+          <div style={{ position: "relative" }}>
+            <InputNumber
+              style={{ width: "100%" }}
               placeholder="Enter amount..."
+              value={amount}
+              onChange={(value) => setAmount(value)}
+              formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+              parser={(value) => value.replace(/\$\s?|(,*)/g, '')}
+              min={50000}
+              size="large"
+              addonAfter={
+                <Tooltip title="Deposit amount must be greater than 50,000 VND">
+                  <QuestionCircleOutlined />
+                </Tooltip>
+              }
             />
-            <div className="absolute inset-y-0 right-2 flex items-center group">
-              <FaQuestionCircle className="text-gray-400 hover:text-gray-600 cursor-pointer text-2xl mb-4" />
-              <div className="absolute bottom-8 right-0 w-48 p-2 text-sm text-white bg-gray-700 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
-                Deposit amount must be greater than 50,000 VND
-              </div>
-            </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6 w-full">
-            {[
-              50000, 100000, 200000, 300000, 500000, 1000000, 2000000, 5000000,
-              10000000,
-            ].map((value) => (
-              <button
-                key={value}
-                onClick={() => setAmount(value)}
-                className="bg-gray-200 text-gray-700 text-sm md:text-base py-2 px-4 rounded-lg shadow-md hover:bg-blue-500 hover:text-white transition w-full"
-              >
-                {value.toLocaleString()}
-              </button>
+          <Row gutter={[8, 8]}>
+            {amountOptions.map((value) => (
+              <Col span={8} key={value}>
+                <Button
+                  onClick={() => setAmount(value)}
+                  style={{ width: "100%" }}
+                  type={amount === value ? "primary" : "default"}
+                >
+                  {value.toLocaleString()}
+                </Button>
+              </Col>
             ))}
-          </div>
+          </Row>
 
-          <button
+          <Button
+            type="primary"
+            size="large"
             onClick={handlePayment}
             disabled={loading}
-            className="w-full bg-[#14b8a6] text-white py-3 rounded-lg shadow-md hover:bg-blue-700 transition flex items-center justify-center"
+            block
+            style={{ 
+              height: 48,
+              fontSize: 16,
+              background: "#1890ff" 
+            }}
           >
-            {loading ? (
-              <div className="flex items-center justify-center">
-                <svg
-                  className="animate-spin h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  />
-                </svg>
-                <span className="ml-2">Loading...</span>
-              </div>
-            ) : (
-              "Deposit"
-            )}
-          </button>
+            {loading ? <Spin indicator={antIcon} /> : "Deposit"}
+          </Button>
 
           {responseMessage && (
-            <p className="mt-4 text-center text-sm text-gray-700">
+            <div style={{ textAlign: "center", color: "#ff4d4f" }}>
               {responseMessage}
-            </p>
+            </div>
           )}
-        </div>
-      </div>
+        </Space>
+      </Card>
     </div>
   );
 };
