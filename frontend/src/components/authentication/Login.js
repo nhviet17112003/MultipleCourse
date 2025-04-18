@@ -1,7 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { FaEye, FaEyeSlash, FaGoogle, FaRedo } from "react-icons/fa";
+import { Form, Input, Button, Card, Typography, Space, Row, Col } from "antd";
+import {
+  EyeInvisibleOutlined,
+  EyeTwoTone,
+  GoogleOutlined,
+  ReloadOutlined,
+} from "@ant-design/icons";
+import { toast } from "react-toastify";
+
+const { Title, Text } = Typography;
 const generateCaptcha = () => {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let captcha = "";
@@ -15,38 +24,34 @@ const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState(""); // Cho thông báo tài khoản/mật khẩucd
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [captcha, setCaptcha] = useState(generateCaptcha());
   const [userCaptcha, setUserCaptcha] = useState("");
   const [role, setRole] = useState(localStorage.getItem("role") || null);
-
-  const navigate = useNavigate();
-  const timeoutRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const canvasRef = useRef(null);
-  useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    const role = localStorage.getItem("role");
+  const navigate = useNavigate();
 
-    if (token && role) {
-      navigate(
-        role.toLowerCase() === "tutor" ? "/courses-list-tutor" : "/homescreen"
-      );
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const errorFromUrl = queryParams.get("error");
+    if (errorFromUrl) {
+      setError(errorFromUrl);
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
     }
-  }, []);
 
-  useEffect(() => {
-    if (isSubmitting) {
-      const token = localStorage.getItem("authToken");
-      const role = localStorage.getItem("role");
+    const token = localStorage.getItem("authToken");
+    const storedRole = localStorage.getItem("role");
 
-      if (token && role) {
-        navigate(
-          role.toLowerCase() === "tutor" ? "/courses-list-tutor" : "/homescreen"
-        );
-      }
+    if (token && storedRole) {
+      navigate(
+        storedRole.toLowerCase() === "tutor"
+          ? "/courses-list-tutor"
+          : "/homescreen"
+      );
     }
   }, [isSubmitting, navigate]);
 
@@ -63,9 +68,9 @@ const Login = () => {
     canvas.height = 50;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Nền có nhiễu
     ctx.fillStyle = "#f4f4f4";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
     for (let i = 0; i < 30; i++) {
       ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.3})`;
       ctx.fillRect(
@@ -86,7 +91,6 @@ const Login = () => {
       ctx.save();
       ctx.translate(x, y);
 
-      // Tạo hiệu ứng méo chữ
       const scaleX = 1 + Math.random() * 0.4 - 0.2;
       const scaleY = 1 + Math.random() * 0.3 - 0.15;
       ctx.transform(
@@ -106,7 +110,6 @@ const Login = () => {
       ctx.restore();
     }
 
-    // Thêm các đường gạch ngang gây nhiễu
     for (let i = 0; i < 5; i++) {
       ctx.strokeStyle = `rgba(0,0,0,${Math.random() * 0.3})`;
       ctx.beginPath();
@@ -116,31 +119,27 @@ const Login = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (isSubmitting) return; // Ngăn spam nút đăng nhập
+  const handleSubmit = async (values) => {
+    // Nhận values thay vì e
+    if (isSubmitting) return;
 
     if (!username || username.length < 4) {
       setError("Username must be at least 4 characters.");
       return;
     }
 
-    if (!password || password.length < 3) {
+    if (!password || password.length < 6) {
       setError("Password must be at least 6 characters.");
       return;
     }
+
     if (userCaptcha !== captcha) {
       setError("CAPTCHA error");
-      setCaptcha(generateCaptcha()); // Tạo CAPTCHA mới nếu sai
-      setUserCaptcha(""); // Xóa input CAPTCHA
+      setCaptcha(generateCaptcha());
+      setUserCaptcha("");
       return;
     }
 
-    setError(""); // Xóa lỗi nếu CAPTCHA đúng
-    console.log("Đăng nhập thành công!", { username, password });
-
-    setError(""); // Xóa lỗi nếu CAPTCHA đúng
     setError("");
     setIsLoading(true);
     setIsSubmitting(true);
@@ -148,29 +147,27 @@ const Login = () => {
     try {
       const response = await axios.post(
         "http://localhost:3000/api/users/login",
-        {
-          username,
-          password,
-        }
+        { username, password }
       );
 
       if (response.status === 200) {
         const { user_id, token, role, fullname, status, tutor_certificates } =
           response.data;
-        console.log("Role:", role);
+
         if (!status) {
           setError("Account has been BANNED");
           setIsSubmitting(false);
           setIsLoading(false);
           return;
         }
-        localStorage.setItem("role", role);
+
         localStorage.setItem("authToken", token);
-        localStorage.setItem("userId", user_id);
         localStorage.setItem("role", role);
-        setRole(role); // Cập nhật role ngay để sidebar re-render
+        localStorage.setItem("userId", user_id);
+        setRole(role);
 
         setSuccessMessage("Login successfully!");
+
         setTimeout(() => {
           if (
             role.toLowerCase() === "tutor" &&
@@ -204,27 +201,27 @@ const Login = () => {
   const handleGoogleLogin = () => {
     window.open("http://localhost:3000/api/users/google/login", "_self");
 
-    const checkToken = setInterval(() => {
-      const token = getCookie("token");
-      if (token) {
-        clearInterval(checkToken);
-        localStorage.setItem("authToken", token);
+    // const checkToken = setInterval(() => {
+    //   const token = getCookie("token");
+    //   if (token) {
+    //     clearInterval(checkToken);
+    //     localStorage.setItem("authToken", token);
 
-        // Thêm đoạn code lấy role từ API
-        fetch("http://localhost:3000/api/users/profile", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            localStorage.setItem("role", data.role);
-            // Tạo một event để thông báo role đã thay đổi
-            window.dispatchEvent(new Event("roleChanged"));
-            window.location.href = "/course-list";
-          });
-      }
-    }, 500);
+    //     // Thêm đoạn code lấy role từ API
+    //     fetch("http://localhost:3000/api/users/profile", {
+    //       headers: {
+    //         Authorization: `Bearer ${token}`,
+    //       },
+    //     })
+    //       .then((res) => res.json())
+    //       .then((data) => {
+    //         localStorage.setItem("profile-role", data.role);
+    //         // Tạo một event để thông báo role đã thay đổi
+    //         window.dispatchEvent(new Event("roleChanged"));
+    //         window.location.href = "/course-list";
+    //       });
+    //   }
+    // }, 500);
   };
 
   // Hàm để lấy cookie theo tên
@@ -235,153 +232,174 @@ const Login = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-2 bg-gray-100">
-  <main className="flex flex-col items-center justify-center w-full flex-1 px-20 text-center">
-    <div className="bg-white rounded-2xl shadow-2xl flex w-2/3 max-w-4xl">
-      <div className="w-3/5 p-5">
-        <div className="text-left font-bold">
-          <span className="text-cyan-500">Welcome to</span> MultiCourse
-        </div>
-        <div className="py-10">
-          <h2 className="text-3xl font-bold text-cyan-500 mb-2">LOGIN</h2>
-          <div className="border-2 w-10 border-cyan-500 inline-block mb-2"></div>
-          <div className="flex justify-center my-2">
-            <div className="flex justify-center mt-4 mb-4">
-              <button
-                className="flex items-center px-4 py-2 border rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
-                onClick={handleGoogleLogin}
-              >
-                <img
-                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQb3JJON85iCMGiuY2-fwef-kegI10la8ClXg&s"
-                  alt="Google Logo"
-                  className="w-5 h-5 mr-2"
-                />
-                Sign in with Google
-              </button>
-            </div>
+    <Row
+      justify="center"
+      align="middle"
+      style={{
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #e0f7fa, #f0f2f5)",
+      }}
+    >
+      <Col xs={22} sm={16} md={12} lg={8}>
+        <Card
+          bordered={false}
+          style={{
+            borderRadius: 20,
+            boxShadow: "0 8px 24px rgba(0, 0, 0, 0.1)",
+            padding: "32px 24px",
+            background: "#ffffff",
+          }}
+        >
+          <div style={{ textAlign: "center", marginBottom: 32 }}>
+            <Title
+              level={2}
+              style={{ color: "#1890ff", fontWeight: "bold", marginBottom: 8 }}
+            >
+              Login
+            </Title>
+            <Text type="secondary" style={{ fontSize: 16 }}>
+              Welcome to MultiCourse
+            </Text>
           </div>
-          <p className="text-gray-400 my-3">or use your UserName account</p>
-          <div className="flex flex-col items-center">
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label
-                  htmlFor="username"
-                  className="block text-sm font-medium text-gray-600"
-                ></label>
-                <input
-                  type="text"
-                  id="username"
-                  className="mt-2 p-3 pr-10 w-full border border-cyan-500 rounded-full focus:outline-none focus:ring-2 focus:ring-cyan-500 shadow-sm"
+
+          <Space direction="vertical" size="large" style={{ width: "100%" }}>
+            <Button
+              icon={<GoogleOutlined />}
+              type="primary"
+              ghost
+              block
+              onClick={handleGoogleLogin}
+              style={{
+                marginBottom: 16,
+                borderRadius: 12,
+                fontWeight: "bold",
+                fontSize: 16,
+                height: 48,
+                transition: "all 0.3s",
+              }}
+            >
+              Sign in with Google
+            </Button>
+
+            <Form layout="vertical" onFinish={handleSubmit}>
+              <Form.Item label="Username" required>
+                <Input
+                  placeholder="Enter your username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter your Username"
-                  required
+                  style={{
+                    borderRadius: 12,
+                    height: 48,
+                  }}
                 />
-              </div>
+              </Form.Item>
 
-              <div className="mb-2 relative">
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-gray-600"
-                ></label>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  id="password"
-                  className="mt-2 p-3 pr-10 w-full border border-cyan-500 rounded-full focus:outline-none focus:ring-2 focus:ring-cyan-500 shadow-sm"
+              <Form.Item label="Password" required>
+                <Input.Password
+                  placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your Password"
-                  required
+                  iconRender={(visible) =>
+                    visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
+                  }
+                  style={{
+                    borderRadius: 12,
+                    height: 48,
+                  }}
                 />
-                <span
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-[55%] transform -translate-y-1/2 text-gray-600 focus:outline-none"
-                >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
-                </span>
-              </div>
-              <div className="flex justify-between mb-6">
-                <button
-                  type="button"
-                  onClick={() => navigate("/forgetpassword")}
-                  className="text-cyan-500 hover:underline focus:outline-none"
-                >
-                  Forgot Password
-                </button>
-              </div>
-              <div className="flex justify-center items-center gap-2 mb-[5px]">
-                <canvas
-                  ref={canvasRef}
-                  className="w-[100px] h-[40px] border border-gray-300 rounded-md"
-                />
-              </div>
+              </Form.Item>
 
-              <div className="relative w-full">
-                <input
-                  type="text"
-                  placeholder="Nhập CAPTCHA"
+              <Form.Item label="Captcha" required>
+                <Row gutter={8} align="middle">
+                  <Col flex="none">
+                    <canvas
+                      ref={canvasRef}
+                      width={120}
+                      height={48}
+                      style={{
+                        border: "1px solid #d9d9d9",
+                        borderRadius: 10,
+                        backgroundColor: "#fff",
+                      }}
+                    />
+                  </Col>
+                  <Col>
+                    <Button
+                      type="default"
+                      icon={<ReloadOutlined />}
+                      onClick={() => setCaptcha(generateCaptcha())}
+                      style={{ borderRadius: 8 }}
+                    />
+                  </Col>
+                </Row>
+                <Input
+                  placeholder="Enter captcha"
                   value={userCaptcha}
                   onChange={(e) => setUserCaptcha(e.target.value)}
-                  required
-                  className={`w-full p-3 border rounded-full focus:outline-none focus:ring-2 shadow-sm transition ${
-                    error
-                      ? "border-red-500 focus:ring-red-500 animate-shake"
-                      : "border-cyan-500 focus:ring-cyan-500"
-                  }`}
+                  style={{
+                    marginTop: 12,
+                    borderRadius: 12,
+                    height: 48,
+                  }}
                 />
-                <span
-                  onClick={() => setCaptcha(generateCaptcha())}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-600 cursor-pointer hover:text-cyan-500 transition"
-                >
-                  <FaRedo />
-                </span>
-              </div>
+              </Form.Item>
 
               {error && (
-                <p className="text-red-500 text-sm mt-2">{error}</p>
+                <Text
+                  type="danger"
+                  style={{ display: "block", marginBottom: 12 }}
+                >
+                  {error}
+                </Text>
               )}
 
-              {successMessage && (
-                <p className="text-cyan-500 text-sm mt-2">
-                  {successMessage}
-                </p>
-              )}
+              <Form.Item>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  block
+                  loading={isLoading}
+                  style={{
+                    borderRadius: 12,
+                    height: 48,
+                    fontWeight: "bold",
+                    fontSize: 16,
+                  }}
+                >
+                  Login
+                </Button>
+              </Form.Item>
 
-              <button
-                type="submit"
-                className="border-2 border-cyan-500 text-cyan-500 rounded-full px-12 py-2 inline-block font-semibold hover:bg-cyan-500 hover:text-white mt-4"
-              >
-                {isLoading ? "Loading..." : "Login"}
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-      <div className="w-2/5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-tr-2xl rounded-br-2xl py-36 px-12">
-        <h2 className="text-3xl font-bold mb-2">HELLO</h2>
-        <div className="border-2 w-10 border-white inline-block mb-2"></div>
-        <p className="mb-10">
-          Fill up personal information and start journey with us.
-        </p>
-        <button
-          type="button"
-          onClick={handleSignUpForStudent}
-          className="border-2 border-white rounded-full px-12 py-2 inline-block font-semibold hover:bg-white hover:text-cyan-500 mb-4"
-        >
-          SIGN UP FOR STUDENT
-        </button>
-        <button
-          type="button"
-          onClick={handleSignUpForTutor}
-          className="border-2 border-white rounded-full px-12 py-2 inline-block font-semibold hover:bg-white hover:text-cyan-500"
-        >
-          SIGN UP FOR TUTOR
-        </button>
-      </div>
-    </div>
-  </main>
-</div>
-
+              <Form.Item style={{ marginBottom: 0 }}>
+                <Space
+                  style={{ width: "100%", justifyContent: "center" }}
+                  size="large"
+                >
+                  <Button
+                    type="link"
+                    style={{ fontWeight: 500 }}
+                    onClick={() =>
+                      navigate("/signup", { state: { role: "Student" } })
+                    }
+                  >
+                    Sign up as Student
+                  </Button>
+                  <Button
+                    type="link"
+                    style={{ fontWeight: 500 }}
+                    onClick={() =>
+                      navigate("/signup", { state: { role: "Tutor" } })
+                    }
+                  >
+                    Sign up as Tutor
+                  </Button>
+                </Space>
+              </Form.Item>
+            </Form>
+          </Space>
+        </Card>
+      </Col>
+    </Row>
   );
 };
 
