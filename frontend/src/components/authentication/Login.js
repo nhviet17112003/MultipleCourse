@@ -307,6 +307,13 @@ const Login = () => {
                     height: 48,
                   }}
                 />
+                <Button 
+                  type="link" 
+                  style={{ padding: 0, marginTop: 8 }}
+                  onClick={() => navigate("/forgetpassword")}
+                >
+                  Forgot Password?
+                </Button>
               </Form.Item>
 
               <Form.Item label="Captcha" required>
