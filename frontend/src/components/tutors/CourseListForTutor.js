@@ -358,10 +358,12 @@ useEffect(() => {
     });
     setSearchQuery("");
   };
-  const handleLoadingComplete = () => {
-    console.log('Loading complete!');
-    // You can perform additional actions here
-  };
+  // const handleLoadingComplete = () => {
+  //   console.log('Loading complete!');
+  //   // You can perform additional actions here
+  // };
+
+  //load
 
   const handleNavigateWithLoading = (path) => {
     setNavigating(true);

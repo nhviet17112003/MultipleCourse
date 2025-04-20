@@ -1,16 +1,38 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-
 import axios from "axios";
 import { useTheme } from "./context/ThemeContext";
-import { Space, Switch, Input, Button, Dropdown, Menu } from "antd";
+import { 
+  Layout, 
+  Menu, 
+  Button, 
+  Avatar, 
+  Dropdown, 
+  Space, 
+  Typography, 
+  Divider,
+  Badge,
+  Switch,
+  message
+} from "antd";
 import {
   UserOutlined,
   LogoutOutlined,
-  SearchOutlined,
-  CartOutlined,
+  HomeOutlined,
+  ShoppingCartOutlined,
+  BookOutlined,
+  DashboardOutlined,
+  ContactsOutlined,
+  InfoCircleOutlined,
+  WalletOutlined,
+  SettingOutlined,
+  BellOutlined,
+  DollarOutlined
 } from "@ant-design/icons";
 import Cookies from "js-cookie";
+
+const { Header } = Layout;
+const { Title, Text } = Typography;
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -19,7 +41,6 @@ const Navbar = () => {
   const [error, setError] = useState("");
   const [userData, setUserData] = useState(null);
   const { theme, toggleTheme } = useTheme();
-  const [showDropdown, setShowDropdown] = useState(false);
   const location = useLocation();
   const [balance, setBalance] = useState(0);
   const [role, setRole] = useState(localStorage.getItem("role") || null);
@@ -29,6 +50,22 @@ const Navbar = () => {
   const [loadingWallet, setLoadingWallet] = useState(true);
   const [errorWallet, setErrorWallet] = useState(null);
   const [walletData, setWalletData] = useState(null);
+
+  // Function to determine the active key based on current pathname
+  const getActiveKey = () => {
+    const path = location.pathname;
+    
+    if (path === '/') return 'home';
+    if (path === '/contact') return 'contact';
+    if (path === '/about') return 'about';
+    
+    // Course List paths based on role
+    if (role === 'Admin' && path.includes('/statistic-for-admin')) return 'courses';
+    if (role === 'Tutor' && path.includes('/courses-list-tutor')) return 'courses';
+    if (path.includes('/course-list')) return 'courses';
+    
+    return '';
+  };
 
   useEffect(() => {
     const fetchWalletData = async () => {
@@ -44,7 +81,7 @@ const Navbar = () => {
         );
         setWalletData(response.data);
       } catch (err) {
-        setErrorWallet("Có lỗi xảy ra khi tải thông tin ví");
+        setErrorWallet("Error loading wallet information");
       } finally {
         setLoadingWallet(false);
       }
@@ -52,21 +89,14 @@ const Navbar = () => {
 
     fetchWalletData();
   }, []);
-  // const [reloadNavbar, setReloadNavbar] = useState(true);
 
-  // const reload = () => {
-  //   setReloadNavbar(false);
-  //   setTimeout(() => {
-  //     setReloadNavbar(true);
-  //   }, 2000);
-  // };
-  // Hàm debounce để trì hoãn việc gọi hàm navigate để tránh người dùng nhấn quá nhanh và liên tục
+  // Debounce function to delay navigation
   const debounce = (func, delay) => {
     let debounceTimer;
     return function (...args) {
-      const context = this; // Lưu lại this và các tham số truyền vào
-      clearTimeout(debounceTimer); // Xóa timer cũ
-      debounceTimer = setTimeout(() => func.apply(context, args), delay); // Tạo timer mới
+      const context = this;
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => func.apply(context, args), delay);
     };
   };
   
@@ -95,18 +125,15 @@ const Navbar = () => {
 
       setUserData(response.data);
       localStorage.setItem("role", response.data.role);
-      setRole(response.data.role); // Cập nhật state role ngay lập tức
+      setRole(response.data.role);
 
-      // Xử lý URL avatar từ Google
+      // Handle avatar URL from Google
       if (response.data.avatar) {
-        const googleAvatarUrl = `${
-          response.data.avatar
-        }?${new Date().getTime()}`;
+        const googleAvatarUrl = `${response.data.avatar}?${new Date().getTime()}`;
         setAvatarUrl(googleAvatarUrl);
         localStorage.setItem("avatarUrl", googleAvatarUrl);
       } else {
-        const defaultAvatar =
-          "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
+        const defaultAvatar = "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
         setAvatarUrl(defaultAvatar);
         localStorage.setItem("avatarUrl", defaultAvatar);
       }
@@ -120,18 +147,13 @@ const Navbar = () => {
     }
   };
 
-  // Thêm useEffect để theo dõi sự thay đổi của role
-  // useEffect(() => {
-  //   if (role) {
-  //     setReloadNavbar(true); // Cập nhật lại navbar khi role thay đổi
-  //   }
-  // }, [role]);
   useEffect(() => {
     const savedAvatar = localStorage.getItem("avatarUrl");
     if (savedAvatar) {
       setAvatarUrl(savedAvatar);
     }
   }, []);
+  
   const fetchBalance = async () => {
     try {
       const token = localStorage.getItem("authToken");
@@ -150,10 +172,9 @@ const Navbar = () => {
           },
         }
       );
-      // console.log("Phản hồi từ API:", response.data);
       setBalance(response.data.current_balance);
     } catch (error) {
-      console.error("Lỗi khi lấy balance:", error);
+      console.error("Error getting balance:", error);
     }
   };
 
@@ -200,204 +221,298 @@ const Navbar = () => {
         );
       }
 
-      // Xóa token và thông tin trong localStorage
+      // Clear token and info from localStorage
       localStorage.removeItem("authToken");
       localStorage.removeItem("fullname");
       localStorage.removeItem("role");
       localStorage.removeItem("avatar");
       localStorage.removeItem("userId");
 
-      // Xóa cookie Token
+      // Delete Token cookie
       deleteCookie("Token");
 
-      // **Kích hoạt sự kiện storage để Sidebar cập nhật ngay lập tức**
+      // Trigger storage event to update Sidebar immediately
       window.dispatchEvent(new Event("storage"));
 
-      // Cập nhật state để re-render component
+      // Update state to re-render component
       setIsLoggedIn(false);
       setUserData(null);
       setFullname("User");
       setAvatarUrl("");
-      setRole("Student"); // Nếu bạn có state role, cập nhật lại
+      setRole("Student");
 
-      // Chuyển về trang login
+      // Navigate to login page
       debouncedNavigate("/login");
+      message.success("Logged out successfully");
     } catch (error) {
-      console.error("Đăng xuất thất bại:", error);
-      alert("Có lỗi xảy ra khi đăng xuất. Vui lòng thử lại!");
+      console.error("Logout failed:", error);
+      message.error("Error during logout. Please try again!");
     }
   };
 
-  // Danh sách các trang không muốn hiển thị Navbar
+  // Routes where navbar should be hidden
   const hideNavbarRoutes = ["/login", "/signup", "/uploadtutorcertificate"];
 
-  // Kiểm tra nếu đường dẫn bắt đầu bằng một trong các route trong danh sách
+  // Check if current path starts with any route in the list
   if (hideNavbarRoutes.some((route) => location.pathname.startsWith(route))) {
-    return null; // Không render Navbar
+    return null; // Don't render Navbar
   }
 
-  return (
-    <nav
-      className={`top-0 left-0 w-full z-50 transition-all duration-300 shadow-lg ${
-        isHome
-          ? "fixed bg-transparent text-white"
-          : "bg-white dark:bg-gray-900 shadow-md"
-      }`}
-    >
-      <div className="container mx-auto md:px-8 px-6 py-4 flex justify-between items-center">
-        {/* Logo */}
-        <h1
-          className="text-2xl font-bold cursor-pointer hover:text-teal-500 transition-all duration-300"
-          onClick={() => debouncedNavigate("/")}
-        >
-          MultiCourse
-        </h1>
+  // Menu items for navigation
+  const navMenuItems = [
+    {
+      key: 'home',
+      icon: <HomeOutlined />,
+      label: 'Home Page',
+      onClick: () => debouncedNavigate('/'),
+    },
+    {
+      key: 'courses',
+      icon: <BookOutlined />,
+      label: 'Course List',
+      onClick: () => {
+        if (role === 'Admin') {
+          debouncedNavigate('/statistic-for-admin');
+        } else if (role === 'Tutor') {
+          debouncedNavigate('/courses-list-tutor');
+        } else {
+          debouncedNavigate('/course-list');
+        }
+      },
+    },
+    {
+      key: 'contact',
+      icon: <ContactsOutlined />,
+      label: 'Contact',
+      onClick: () => debouncedNavigate('/contact'),
+    },
+    {
+      key: 'about',
+      icon: <InfoCircleOutlined />,
+      label: 'About',
+      onClick: () => debouncedNavigate('/about'),
+    },
+  ];
 
-        {/* Navigation Links */}
-        {isHome && (
-          <div className="flex space-x-6">
-            <button
-              className="hover:text-teal-500 transition-all duration-300"
-              onClick={() => debouncedNavigate("/")}
-            >
-              Home Page
-            </button>
-            {role === "Admin" ? (
-              <button
-                className="hover:text-teal-500 transition-all duration-300"
-                onClick={() => debouncedNavigate("/statistic-for-admin")}
+  // Dropdown menu for user
+  const userMenuItems = [
+    {
+      key: 'profile',
+      icon: <UserOutlined />,
+      label: 'Profile',
+      onClick: () => debouncedNavigate('/userprofile'),
+    },
+    ...(role === 'Student' ? [{
+      key: 'cart',
+      icon: <ShoppingCartOutlined />,
+      label: 'Cart',
+      onClick: () => debouncedNavigate('/cart'),
+    }] : []),
+    {
+      key: 'theme',
+      icon: <SettingOutlined />,
+      label: (
+        <div className="flex items-center justify-between">
+          <span>Dark Mode</span>
+          <Switch
+            checked={theme === 'dark'}
+            onChange={toggleTheme}
+            size="small"
+          />
+        </div>
+      ),
+    },
+    {
+      type: 'divider',
+    },
+    {
+      key: 'logout',
+      icon: <LogoutOutlined />,
+      label: 'Logout',
+      danger: true,
+      onClick: logout,
+    },
+  ];
+
+  // Get current active key for menu
+  const activeKey = getActiveKey();
+
+  return (
+    <Header
+      style={{ 
+        background: isHome 
+          ? 'transparent' 
+          : theme === 'dark' 
+            ? '#001529' 
+            : '#fff',
+        position: isHome ? 'fixed' : 'sticky',
+        top: 0,
+        zIndex: 100,
+        width: '100%',
+        padding: '0 24px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        boxShadow: isHome ? 'none' : '0 2px 8px rgba(0, 0, 0, 0.15)',
+        transition: 'all 0.3s',
+      }}
+    >
+      {/* Logo */}
+      <div className="logo" onClick={() => debouncedNavigate("/")} style={{ cursor: 'pointer' }}>
+        <Title level={3} style={{ 
+          margin: 0, 
+          color: isHome ? '#fff' : theme === 'dark' ? '#fff' : '#001529',
+          transition: 'color 0.3s'
+        }}>
+          MultiCourse
+        </Title>
+      </div>
+
+      {/* Navigation Menu - Always visible with active underline */}
+      <Menu
+        mode="horizontal"
+        selectedKeys={[activeKey]}
+        style={{ 
+          background: 'transparent', 
+          border: 'none',
+          color: isHome ? '#fff' : theme === 'dark' ? '#fff' : '#001529',
+          flex: '1 1 500px',
+          display: 'flex',
+          justifyContent: 'center'
+        }}
+        theme={isHome || theme === 'dark' ? "dark" : "light"}
+      >
+        <Menu.Item 
+          key="home" 
+          icon={<HomeOutlined />}
+          onClick={() => debouncedNavigate('/')}
+          style={{
+            borderBottom: activeKey === 'home' ? '#1890ff' : 'none'
+          }}
+        >
+          Home Page
+        </Menu.Item>
+        <Menu.Item 
+          key="courses" 
+          icon={<BookOutlined />}
+          onClick={() => {
+            if (role === 'Admin') {
+              debouncedNavigate('/statistic-for-admin');
+            } else if (role === 'Tutor') {
+              debouncedNavigate('/courses-list-tutor');
+            } else {
+              debouncedNavigate('/course-list');
+            }
+          }}
+          style={{
+            borderBottom: activeKey === 'courses' ? '#1890ff' : 'none'
+          }}
+        >
+          Course List
+        </Menu.Item>
+        <Menu.Item 
+          key="contact" 
+          icon={<ContactsOutlined />}
+          onClick={() => debouncedNavigate('/contact')}
+          style={{
+            borderBottom: activeKey === 'contact' ? '#1890ff' : 'none'
+          }}
+        >
+          Contact
+        </Menu.Item>
+        <Menu.Item 
+          key="about" 
+          icon={<InfoCircleOutlined />}
+          onClick={() => debouncedNavigate('/about')}
+          style={{
+            borderBottom: activeKey === 'about' ? '#1890ff' : 'none'
+          }}
+        >
+          About
+        </Menu.Item>
+      </Menu>
+
+      {/* User Profile + Balance */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        {/* Balance Display */}
+        {(role === "Tutor" || role === "Student" || role === "Admin") && (
+          <div style={{ 
+            padding: '4px 12px',
+            background: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.03)',
+            borderRadius: '4px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <WalletOutlined />
+            <Text strong style={{ color: isHome || theme === 'dark' ? '#fff' : 'inherit' }}>
+              {role === "Admin" 
+                ? walletData?.current_balance 
+                : balance} VND
+            </Text>
+            
+            {role === "Student" && (
+              <Button
+                type="primary"
+                icon={<DollarOutlined />}
+                size="small"
+                onClick={() => debouncedNavigate("/deposit")}
+                style={{ marginLeft: '8px' }}
               >
-                Dashboard
-              </button>
-            ) : role === "Tutor" ? (
-              <button
-                className="hover:text-teal-500 transition-all duration-300"
-                onClick={() => debouncedNavigate("/courses-list-tutor")}
-              >
-                Course List
-              </button>
-            ) : (
-              <button
-                className="hover:text-teal-500 transition-all duration-300"
-                onClick={() => debouncedNavigate("/course-list")}
-              >
-                Course List
-              </button>
+                Deposit
+              </Button>
             )}
-            <button
-              className="hover:text-teal-500 transition-all duration-300"
-              onClick={() => debouncedNavigate("/contact")}
-            >
-              Contact
-            </button>
-            <button
-              className="hover:text-teal-500 transition-all duration-300"
-              onClick={() => debouncedNavigate("/about")}
-            >
-              About
-            </button>
           </div>
         )}
 
-        {/* User Profile + Balance */}
-        <div className="flex items-center space-x-6">
-          <div className="flex items-center space-x-6 font-bold">
-            {fullname}
-          </div>
-          {role === "Tutor" || role === "Student" ? (
-            <div className="flex items-center text-gray-700 dark:text-white px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm">
-              <span className="mr-2">Balance:</span>
-              <span className="font-semibold">{balance ?? "0"} VND</span>
-              {role === "Student" && (
-                <Button
-                  type="primary"
-                  className="ml-3 bg-blue-500 hover:bg-blue-600 text-white"
-                  onClick={() => debouncedNavigate("/deposit")}
-                >
-                  Deposit
-                </Button>
-              )}
-            </div>
-          ) : role === "Admin" ? (
-            <div className="flex items-center text-gray-700 dark:text-white px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm">
-              <span className="mr-2">Balance:</span>
-              <span className="font-semibold text-green-600 dark:text-green-400">
-                {walletData?.current_balance ?? "0"} VND
-              </span>
-            </div>
-          ) : null}
-
-          {/* Avatar + Dropdown */}
-          {isLoggedIn ? (
-            <div className="relative dropdown-container">
-              <img
-                src={avatarUrl}
-                alt="Avatar"
-                className="w-10 h-10 rounded-full border-2 border-white shadow-md cursor-pointer"
-                onClick={() => setShowDropdown((prev) => !prev)}
+        {/* User profile dropdown */}
+        {isLoggedIn ? (
+          <Dropdown
+            menu={{ items: userMenuItems }}
+            placement="bottomRight"
+            arrow
+            trigger={['click']}
+          >
+            <Space style={{ cursor: 'pointer' }}>
+              <Avatar 
+                src={avatarUrl} 
+                icon={<UserOutlined />} 
+                size="large"
+                style={{ 
+                  border: `2px solid ${theme === 'dark' ? '#1890ff' : '#f0f0f0'}`,
+                  cursor: 'pointer'
+                }}
                 onError={(e) => {
                   console.log("Image failed to load, trying alternative URL");
                   e.target.onerror = null;
-                  // Thử URL thay thế nếu URL gốc không hoạt động
                   const alternativeUrl = avatarUrl.replace("=s96-c", "");
                   e.target.src = alternativeUrl;
-                  // Nếu vẫn không hoạt động, sử dụng avatar mặc định
                   e.target.onerror = () => {
-                    e.target.src =
-                      "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
+                    e.target.src = "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
                   };
                 }}
-                referrerPolicy="no-referrer" // Thêm thuộc tính này để tránh vấn đề CORS
+                referrerPolicy="no-referrer"
               />
-
-              {showDropdown && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 text-teal-900 dark:text-white rounded-lg shadow-lg z-50 transition-opacity duration-200">
-                  <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700 text-center">
-                    <span className="font-semibold">User Menu</span>
-                  </div>
-                  <button
-                    className="block w-full px-4 py-2 text-left hover:bg-teal-100 dark:hover:bg-gray-700"
-                    onClick={() => debouncedNavigate("/userprofile")}
-                  >
-                    Profile
-                  </button>
-                  {role === "Student" && (
-                    <button
-                      className="block w-full px-4 py-2 text-left hover:bg-teal-100 dark:hover:bg-gray-700"
-                      onClick={() => debouncedNavigate("/cart")}
-                    >
-                      Cart
-                    </button>
-                  )}
-                  <button
-                    className="block w-full px-4 py-2 text-left text-red-600 hover:bg-red-100 dark:hover:bg-red-800"
-                    onClick={logout}
-                  >
-                    Logout
-                  </button>
-                  <div className="w-full flex justify-center py-3">
-                    {/* <Switch
-                      onClick={toggleTheme}
-                      checkedChildren="Dark"
-                      unCheckedChildren="Light"
-                      defaultChecked={theme === "dark"}
-                    /> */}
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <Button
-              type="primary"
-              className="bg-blue-500 hover:bg-blue-600 text-white"
-              onClick={() => debouncedNavigate("/login")}
-            >
-              Login
-            </Button>
-          )}
-        </div>
+              <Text strong style={{ 
+                color: isHome || theme === 'dark' ? '#fff' : 'inherit',
+                '@media (max-width: 768px)': {
+                  display: 'none'
+                }
+              }}>
+                {fullname}
+              </Text>
+            </Space>
+          </Dropdown>
+        ) : (
+          <Button
+            type="primary"
+            onClick={() => debouncedNavigate("/login")}
+          >
+            Login
+          </Button>
+        )}
       </div>
-    </nav>
+    </Header>
   );
 };
 

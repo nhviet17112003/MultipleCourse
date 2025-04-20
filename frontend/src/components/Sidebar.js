@@ -4,12 +4,25 @@ import {
   AppstoreOutlined,
   MailOutlined,
   SettingOutlined,
-  LeftOutlined,
-  RightOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  UserOutlined,
+  BookOutlined,
+  WalletOutlined,
+  HistoryOutlined,
+  DollarOutlined,
+  FileTextOutlined,
+  LineChartOutlined,
+  ShoppingOutlined,
+  TeamOutlined,
 } from "@ant-design/icons";
-import { Menu } from "antd";
+import { Menu, Button, Layout, Typography } from "antd";
 import { Link } from "react-router-dom";
 import { useTheme } from "./context/ThemeContext";
+
+const { Sider } = Layout;
+const { Title } = Typography;
+
 function Sidebar() {
   const { theme } = useTheme();
   const [current, setCurrent] = useState("1");
@@ -24,13 +37,13 @@ function Sidebar() {
       console.log("Updated Role:", currentRole);
     };
 
-    // Lắng nghe sự kiện roleChanged
+    // Listen for roleChanged event
     window.addEventListener("roleChanged", updateRole);
 
-    // Lắng nghe sự kiện storage
+    // Listen for storage event
     window.addEventListener("storage", updateRole);
 
-    // Kiểm tra token và role khi component mount
+    // Check token and role when component mounts
     const token = localStorage.getItem("authToken");
     if (token) {
       fetch("http://localhost:3000/api/users/profile", {
@@ -53,36 +66,36 @@ function Sidebar() {
   }, []);
 
   const onClick = (e) => {
-    // console.log("click ", e);
     setCurrent(e.key);
   };
 
-  // Hiển thị các mục menu dựa trên role
-
+  // Define menu items based on role
   let items = [];
   if (role === "Student") {
     items = [
       {
         key: "sub1",
         label: "Student Navigation",
-        icon: <MailOutlined />,
+        icon: <BookOutlined />,
         children: [
-          { key: "1", label: <Link to="/course-list">Courses List</Link> },
-          { key: "24", label: <Link to="/my-courses">My Courses</Link> },
+          { key: "1", label: <Link to="/course-list">Courses List</Link>, icon: <AppstoreOutlined /> },
+          { key: "24", label: <Link to="/my-courses">My Courses</Link>, icon: <BookOutlined /> },
           {
             key: "2",
             label: <Link to="/my-certificate">My Certificates</Link>,
+            icon: <FileTextOutlined />
           },
-          { key: "3", label: <Link to="/deposit">Deposit</Link> },
+          { key: "3", label: <Link to="/deposit">Deposit</Link>, icon: <DollarOutlined /> },
           {
             key: "4",
             label: <Link to="/deposit-history">Deposit History</Link>,
+            icon: <HistoryOutlined />
           },
-
-          { key: "22", label: <Link to="/wallet">My Wallet</Link> },
+          { key: "22", label: <Link to="/wallet">My Wallet</Link>, icon: <WalletOutlined /> },
           {
             key: "23",
             label: <Link to="/withdrawal-history">Withdrawal History</Link>,
+            icon: <HistoryOutlined />
           },
         ],
       },
@@ -92,53 +105,44 @@ function Sidebar() {
       {
         key: "sub2",
         label: "Manage Courses",
-        icon: <AppstoreOutlined />,
+        icon: <BookOutlined />,
         children: [
-          { key: "5", label: <Link to="courses-list-tutor">Course List</Link> },
-          { key: "6", label: <Link to="/createcourse">Create Course</Link> },
+          { key: "5", label: <Link to="courses-list-tutor">Course List</Link>, icon: <AppstoreOutlined /> },
+          { key: "6", label: <Link to="/createcourse">Create Course</Link>, icon: <FileTextOutlined /> },
         ],
       },
       {
         key: "sub3",
-       
-        icon: <AppstoreOutlined />,
-       
-      
-            label: <Link to="/request-list">Request List</Link>,
-      
+        icon: <MailOutlined />,
+        label: <Link to="/request-list">Request List</Link>,
       },
-
       {
         key: "sub4",
-        label: " Manage Wallet",
-        icon: <AppstoreOutlined />,
+        label: "Manage Wallet",
+        icon: <WalletOutlined />,
         children: [
-          // {
-          //   key: "9",
-          //   label: <Link to="tutor/courses-list">Buyer History</Link>,
-          // },
           {
             key: "10",
             label: <Link to="/withdrawal-history">Withdrawal History</Link>,
+            icon: <HistoryOutlined />
           },
-          { key: "11", label: <Link to="/wallet">My Wallet</Link> },
+          { key: "11", label: <Link to="/wallet">My Wallet</Link>, icon: <DollarOutlined /> },
         ],
       },
       {
         key: "sub7",
-        icon: <AppstoreOutlined />,
+        icon: <HistoryOutlined />,
         label: <Link to="/activity-history-tutor">Activity History</Link>,
       },
       {
         key: "sub8",
-        icon: <AppstoreOutlined />,
+        icon: <ShoppingOutlined />,
         label: <Link to="/buyer-history-tutor">Buyer History</Link>,
       },
-
       {
         key: "sub5",
         label: <Link to="/statistic-tutor">Statistics</Link>,
-        icon: <AppstoreOutlined />,
+        icon: <LineChartOutlined />,
       },
     ];
   } else if (role === "Admin") {
@@ -151,59 +155,64 @@ function Sidebar() {
           {
             key: "12",
             label: <Link to="/statistic-for-admin">Statistics</Link>,
+            icon: <LineChartOutlined />
           },
           {
             key: "13",
             label: <Link to="/course-list-for-admin">Manage Courses</Link>,
+            icon: <BookOutlined />
           },
-          // { key: "14", label: "Reports" },
-          // { key: "15", label: "System Settings" },
           {
             key: "16",
             label: <Link to="/wallet-manage-for-admin">Manage Wallet</Link>,
+            icon: <WalletOutlined />
           },
           {
             key: "17",
-            label: (
-              <Link to="/purchase-history-for-admin">Purchase History</Link>
-            ),
+            label: <Link to="/purchase-history-for-admin">Purchase History</Link>,
+            icon: <ShoppingOutlined />
           },
           {
             key: "18",
             label: <Link to="/manage-review-for-admin">Manage Reviews</Link>,
+            icon: <FileTextOutlined />
           },
           {
             key: "19",
             label: <Link to="/manage-request-list">Manage Requests</Link>,
+            icon: <MailOutlined />
           },
           {
             key: "20",
-            label: (
-              <Link to="/activities-history-list">Activities History</Link>
-            ),
+            label: <Link to="/activities-history-list">Activities History</Link>,
+            icon: <HistoryOutlined />
           },
           {
             key: "21",
             label: <Link to="/buyer-history-list">Buyer History</Link>,
+            icon: <ShoppingOutlined />
           },
           {
             key: "22",
             label: <Link to="/manage-users">Manage Users</Link>,
+            icon: <TeamOutlined />
           },
           {
             key: "23",
             label: <Link to="/deposit-history-for-admin">Wallet History</Link>,
+            icon: <HistoryOutlined />
           },
         ],
       },
     ];
   }
-  // Danh sách các trang không muốn hiển thị Navbar
+
+  // Routes where navbar should be hidden
   const hideNavbarRoutes = ["/login", "/signup", "/uploadtutorcertificate"];
 
-  // Kiểm tra nếu đường dẫn bắt đầu bằng một trong các route trong danh sách
+  // Check if current path starts with any route in the list
   if (hideNavbarRoutes.some((route) => location.pathname.startsWith(route))) {
-    return null; // Không render Navbar
+    return null; // Don't render Navbar
   }
 
   const toggleCollapsed = () => {
@@ -211,37 +220,56 @@ function Sidebar() {
   };
 
   return (
-    <div className="flex">
-      <div
-        className={`relative transition-all duration-300 ease-in-out ${
-          theme === "dark"
-            ? "bg-gray-800 text-white"
-            : "bg-gray-200 text-black max-h-screen"
-        } ${collapsed ? "w-12" : "w-64"}`}
-      >
-        <button
-          onClick={toggleCollapsed}
-          className={`absolute top-1/2 -right-1 z-50 p-1 rounded-full transform -translate-y-1/2 ${
-            theme === "dark" ? "bg-gray-700" : "bg-gray-300"
-          } hover:opacity-80 transition-all duration-300`}
-        >
-          {collapsed ? <RightOutlined /> : <LeftOutlined />}
-        </button>
-        <Menu
-          theme={theme}
-          onClick={onClick}
-          style={{
-            height: "100vh",
-            width: collapsed ? 48 : 256,
-          }}
-          defaultOpenKeys={["sub1"]}
-          selectedKeys={[current]}
-          mode="inline"
-          items={items}
-          inlineCollapsed={collapsed}
-        />
+    <Sider
+      width={256}
+      collapsible
+      collapsed={collapsed}
+      onCollapse={setCollapsed}
+      trigger={null}
+      theme={theme === "dark" ? "dark" : "light"}
+      className="min-h-screen"
+      style={{ 
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+        zIndex: 10
+      }}
+    >
+      <div className="logo p-2 text-center">
+        {/* {!collapsed && (
+          <Title level={4} style={{ margin: 0, color: theme === "dark" ? "#fff" : "#001529" }}>
+            MultiCourse
+          </Title>
+        )} */}
       </div>
-    </div>
+      
+      <Menu
+        theme={theme === "dark" ? "dark" : "light"}
+        onClick={onClick}
+        defaultOpenKeys={["sub1"]}
+        selectedKeys={[current]}
+        mode="inline"
+        items={items}
+        style={{ 
+          borderRight: 0,
+          height: "calc(100vh - 64px)",
+          overflow: "auto"
+        }}
+      />
+      
+      <Button
+        type="text"
+        icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+        onClick={toggleCollapsed}
+        style={{
+          position: "absolute",
+          bottom: "20px",
+          left: collapsed ? "16px" : "110px",
+          color: theme === "dark" ? "#fff" : "#001529",
+          border: "none",
+          background: "transparent",
+          transition: "all 0.3s"
+        }}
+      />
+    </Sider>
   );
 }
 
