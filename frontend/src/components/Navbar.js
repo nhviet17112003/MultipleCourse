@@ -69,7 +69,7 @@ const Navbar = () => {
       debounceTimer = setTimeout(() => func.apply(context, args), delay); // Tạo timer mới
     };
   };
-
+  
   const debouncedNavigate = useCallback(
     debounce((path) => navigate(path), 300),
     [navigate]
