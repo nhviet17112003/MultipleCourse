@@ -370,7 +370,7 @@ const CourseListForTutor = () => {
           </Button>
           <Button 
             type="primary" 
-            className="bg-teal-500 hover:bg-teal-600 border-none"
+            className="bg-blue-500 hover:bg-blue-600 border-none"
             onClick={() => navigate('/createcourse')}
           >
             Create New Course
@@ -563,7 +563,7 @@ const CourseListForTutor = () => {
             >
               <div className="px-2">
                 <div className="flex justify-between items-start mb-2">
-                  <Title level={4} className="!mb-0 text-teal-600 truncate" style={{ maxWidth: '70%' }}>
+                  <Title level={4} className="!mb-0 text-blue-600 truncate" style={{ maxWidth: '70%' }}>
                     {course.title}
                   </Title>
                   <Tag color={course.status ? "success" : "error"}>
@@ -580,7 +580,7 @@ const CourseListForTutor = () => {
                 </Paragraph>
                 
                 <div className="flex justify-between items-center">
-                  <Text strong className="text-lg text-teal-700">
+                  <Text strong className="text-lg text-blue-700">
                     {new Intl.NumberFormat('vi-VN').format(course.price)} VND
                   </Text>
                   <Dropdown
@@ -612,7 +612,7 @@ const CourseListForTutor = () => {
           ) : (
             <Button 
               type="primary" 
-              className="bg-teal-500 hover:bg-teal-600 border-none"
+              className="bg-blue-500 hover:bg-blue-600 border-none"
               onClick={() => navigate('/create-course')}
             >
               Create Your First Course
