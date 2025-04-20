@@ -50,7 +50,9 @@ const Navbar = () => {
       }
     };
 
-    fetchWalletData();
+    if (role === "Admin") {
+      fetchWalletData();
+    }
   }, []);
   // const [reloadNavbar, setReloadNavbar] = useState(true);
 
