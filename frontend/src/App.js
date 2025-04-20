@@ -62,6 +62,8 @@ import DepositHistoryForAdmin from "./components/admins/DepositHistoryForAdmin";
 import { ActivityIcon } from "lucide-react";
 import ActivityHistoryTutor from "./components/tutors/ActivityHistoryTutor";
 import BuyerHistoryTuor from "./components/tutors/BuyerHistoryTutor";
+import ContactPage from "./components/ContactPage";
+import AboutPage from "./components/AboutPage";
 // import RequestDetail from "./components/tutors/RequestDetail";
 
 function Layout() {
@@ -229,6 +231,9 @@ function Layout() {
             <Route path="/request-list" element={<TutorRequests />} />
             <Route path="/activity-history-tutor" element={<ActivityHistoryTutor />} />
             <Route path="/buyer-history-tutor" element={<BuyerHistoryTuor />} />
+
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/about" element={<AboutPage />} />
             {/* <Route
               path="/request-list/:requestId"
               element={<RequestDetail />}
