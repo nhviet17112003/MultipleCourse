@@ -87,7 +87,9 @@ const Navbar = () => {
       }
     };
 
-    fetchWalletData();
+    if (role === "Admin") {
+      fetchWalletData();
+    }
   }, []);
 
   // Debounce function to delay navigation
