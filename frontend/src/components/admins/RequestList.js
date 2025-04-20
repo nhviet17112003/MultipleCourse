@@ -12,6 +12,7 @@ import {
   Typography, 
   Select,
   Card,
+  message as antMessage,
   Row,
   Col
 } from "antd";
@@ -160,7 +161,7 @@ export default function RequestList() {
         method = "DELETE";
         break;
       default:
-        toast.error("Invalid request type");
+        antMessage.error("Invalid request type");
         return;
     }
 
@@ -191,13 +192,13 @@ export default function RequestList() {
 
       if (!response.ok) throw new Error(`Error: ${response.status}`);
 
-      toast.success("Successfully processed request.");
+      antMessage.success("Successfully processed request.");
       setIsModalOpen(false);
       setRejectReason("");
       await fetchRequests();
     } catch (err) {
       console.error("Error processing request:", err);
-      toast.error("Failed to process request");
+      antMessage.error("Failed to process request");
     } finally {
       setSpinning(false);
       setPercent(100);

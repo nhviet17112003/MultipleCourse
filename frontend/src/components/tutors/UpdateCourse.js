@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { message } from "antd";
 
 const UpdateCourse = () => {
   const navigate = useNavigate();
@@ -80,13 +81,13 @@ const UpdateCourse = () => {
         }
       );
 
-      toast.success("Course updated successfully!");
+      message.success("Course updated successfully!");
       navigate("/courses"); // Quay về trang danh sách khóa học sau khi cập nhật
     } catch (error) {
       setErrorMessage(
         error.response?.data?.message || "An error occurred while updating."
       );
-      toast.error(errorMessage || "An error occurred.");
+      message.error(errorMessage || "An error occurred.");
     } finally {
       setIsSubmitting(false);
     }

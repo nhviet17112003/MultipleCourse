@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Button, Dropdown, Table, Tag, Modal, Input, Space, Select, Card, Typography, Row, Col, Progress } from "antd";
+import { Button, Dropdown, Table, Tag, Modal, Input, Space, Select, Card, Typography, Row, Col, Progress, message as antMessage } from "antd";
 import { 
   EllipsisOutlined, 
   SearchOutlined, 
@@ -52,9 +52,12 @@ const CourseListForAdmin = () => {
       // Extract unique tutors for filter dropdown
       const uniqueTutors = [...new Set(response.data.map(course => course.tutor.fullname))];
       setTutors(uniqueTutors);
+      //  antMessage.success("Courses loaded successfully");
+       
+     
     } catch (err) {
       setError("Error loading course list.");
-      toast.error("Failed to load courses");
+      // antMessage.error("Failed to load courses");
     } finally {
       setLoading(false);
     }
@@ -62,6 +65,7 @@ const CourseListForAdmin = () => {
 
   useEffect(() => {
     fetchCourses();
+   
   }, []);
 
   // Advanced course statistics
@@ -508,29 +512,35 @@ const DropDownMenu = ({record, setCourses, courses, fetchCourses}) => {
   const [rejectReason, setRejectReason] = useState("");
   const navigate = useNavigate();
 
-  const toggleCourseStatus = async (courseId, status, message = "") => {
+  // Fixed version: renamed the parameter to avoid conflict with antMessage
+  const toggleCourseStatus = async (courseId, status = "", reasonMsg = "") => {
     const token = localStorage.getItem("authToken");
     try {
       const response = await axios.put(
         `http://localhost:3000/api/courses/change-course-status/${courseId}`,
-        { status, message },
+        { status, message: reasonMsg },
         { headers: { Authorization: `Bearer ${token}` } }
       );
      
-      // Cập nhật trạng thái ngay tại đây
+      // Update the local state
       setCourses(prevCourses => 
         prevCourses.map((course) =>
           course._id === courseId ? { ...course, status: !course.status } : course
         )
       );
+      
       fetchCourses();
   
-      toast.success("Course status changed successfully.");
       setIsModalOpen(false);
       setRejectReason("");
+      antMessage.success(
+        status === "Rejected" 
+          ? "Course rejected successfully." 
+          : "Course status updated successfully."
+      );
     } catch (err) {
       console.log(err);
-      toast.error("Error changing course status.");
+      antMessage.error("Error changing course status.");
     }
   };
 

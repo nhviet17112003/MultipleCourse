@@ -1,6 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Badge, Dropdown, Table, Tag, Card, Space, Typography, Button, Input, Select, Row, Col, Statistic } from 'antd';
+import { 
+  Dropdown, 
+  Table, 
+  Tag, 
+  Card, 
+  Space, 
+  Typography, 
+  Button, 
+  Input, 
+  Select, 
+  Row, 
+  Col, 
+  message,
+  Collapse
+} from 'antd';
 import { toast, ToastContainer } from "react-toastify";
 import { useTheme } from "../context/ThemeContext";
 import { 
@@ -16,16 +30,20 @@ import {
   BookOutlined,
   ReadOutlined,
   LikeOutlined,
-  DislikeOutlined
+  DislikeOutlined,
+  DownOutlined,
+  UpOutlined
 } from "@ant-design/icons";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
+const { Panel } = Collapse;
 
 export default function ManageReview() {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState('');
+  const [expandedRowKeys, setExpandedRowKeys] = useState([]);
   const [filters, setFilters] = useState({
     type: 'all',
     status: 'all',
@@ -45,14 +63,17 @@ export default function ManageReview() {
   const fetchComments = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:3000/api/comments/show-all-comments', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        'http://localhost:3000/api/comments/show-all-comments', 
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setComments(response.data.comments);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching comments:', error);
-      toast.error('Failed to load comments');
+      message.error('Failed to load comments');
       setLoading(false);
     }
   };
@@ -151,6 +172,15 @@ export default function ManageReview() {
   const totalRatingSum = comments.reduce((sum, comment) => sum + comment.rating, 0);
   const averageRating = totalReviews > 0 ? (totalRatingSum / totalReviews).toFixed(1) : 0;
 
+  const toggleExpandRow = (record) => {
+    const key = record.commentId;
+    if (expandedRowKeys.includes(key)) {
+      setExpandedRowKeys(expandedRowKeys.filter(k => k !== key));
+    } else {
+      setExpandedRowKeys([...expandedRowKeys, key]);
+    }
+  };
+
   const columns = [
     {
       title: (
@@ -191,40 +221,36 @@ export default function ManageReview() {
       key: 'courseTitle',
       sorter: true,
       render: (title) => (
-        <Text ellipsis={{ tooltip: title }} className="max-w-xs">
+        <Text className="max-w-xs line-clamp-1">
           {title}
         </Text>
       ),
     },
     {
-      title: 'Content',
-      dataIndex: 'comment',
-      key: 'comment',
-      render: (comment) => (
-        <Text ellipsis={{ tooltip: comment }} className="max-w-xs">
-          {comment}
-        </Text>
-      ),
-    },
-    {
-      title: (
-        <div className="flex items-center cursor-pointer" onClick={() => handleSort('rating')}>
-          Rating 
-          {/* {getSortIcon('rating')} */}
+      title: 'Feedback',
+      key: 'feedback',
+      render: (_, record) => (
+        <div className="flex items-center justify-between w-full cursor-pointer" onClick={() => toggleExpandRow(record)}>
+          <div className="flex items-center">
+            {/* <div className="flex mr-3">
+              {[...Array(5)].map((_, i) => (
+                <StarFilled 
+                  key={i} 
+                  className={`text-lg ${i < record.rating ? 'text-yellow-400' : 'text-gray-300'}`}
+                />
+              ))}
+            </div> */}
+            {/* <Text className="line-clamp-1 max-w-[150px]">
+              {record.comment}
+            </Text> */}
+              <Button 
+            type="text" 
+            icon={expandedRowKeys.includes(record.commentId) ? <UpOutlined /> : <DownOutlined />}
+            className="ml-2" 
+          />
+          </div>
+        
         </div>
-      ),
-      dataIndex: 'rating',
-      key: 'rating',
-      sorter: true,
-      render: (rating) => (
-        <Space>
-          {[...Array(5)].map((_, i) => (
-            <StarFilled 
-              key={i} 
-              className={`text-lg ${i < rating ? 'text-yellow-400' : 'text-gray-300'}`}
-            />
-          ))}
-        </Space>
       ),
     },
     {
@@ -238,14 +264,9 @@ export default function ManageReview() {
       key: 'status',
       sorter: true,
       render: (status) => (
-        <Badge 
-          status={status ? 'success' : 'error'} 
-          text={
-            <span className={`font-medium ${status ? 'text-green-600' : 'text-red-600'}`}>
-              {status ? 'Active' : 'Inactive'}
-            </span>
-          }
-        />
+        status 
+          ? <Tag color="success" icon={<CheckOutlined />} className="px-3 py-1">Active</Tag>
+          : <Tag color="error" icon={<StopOutlined />} className="px-3 py-1">Inactive</Tag>
       ),
     },
     {
@@ -267,6 +288,29 @@ export default function ManageReview() {
     type: comment.type,
     commentId: comment.commentId,
   }));
+
+  const expandedRowRender = (record) => {
+    return (
+      <div className={`p-4 rounded-md ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'}`}>
+        <div className="flex mb-2">
+          <div className="flex mr-3">
+            {[...Array(5)].map((_, i) => (
+              <StarFilled 
+                key={i} 
+                className={`text-lg ${i < record.rating ? 'text-yellow-400' : 'text-gray-300'}`}
+              />
+            ))}
+          </div>
+          <Text strong className={theme === 'dark' ? 'text-white' : ''}>
+            {record.rating}/5
+          </Text>
+        </div>
+        <div className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+          {record.comment}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 to-indigo-100'} p-6`}>
@@ -302,43 +346,67 @@ export default function ManageReview() {
             <Col xs={24} sm={6} md={4}>
               <Card className={`text-center p-3 ${theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-blue-50 border border-blue-100'}`}>
                 <CommentOutlined className={`text-2xl mb-1 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'}`} />
-                <div className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-blue-700'}`}>{totalReviews}</div>
-                <div className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-blue-700'}`}>Total</div>
+                <div className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-blue-700'}`}>
+                  {totalReviews}
+                </div>
+                <div className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-blue-700'}`}>
+                  Total
+                </div>
               </Card>
             </Col>
             <Col xs={12} sm={6} md={4}>
               <Card className={`text-center p-3 ${theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-green-50 border border-green-100'}`}>
                 <LikeOutlined className={`text-2xl mb-1 ${theme === 'dark' ? 'text-green-400' : 'text-green-500'}`} />
-                <div className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-green-700'}`}>{activeReviews}</div>
-                <div className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-green-700'}`}>Active</div>
+                <div className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-green-700'}`}>
+                  {activeReviews}
+                </div>
+                <div className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-green-700'}`}>
+                  Active
+                </div>
               </Card>
             </Col>
             <Col xs={12} sm={6} md={4}>
               <Card className={`text-center p-3 ${theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-red-50 border border-red-100'}`}>
                 <DislikeOutlined className={`text-2xl mb-1 ${theme === 'dark' ? 'text-red-400' : 'text-red-500'}`} />
-                <div className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-red-700'}`}>{inactiveReviews}</div>
-                <div className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-red-700'}`}>Inactive</div>
+                <div className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-red-700'}`}>
+                  {inactiveReviews}
+                </div>
+                <div className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-red-700'}`}>
+                  Inactive
+                </div>
               </Card>
             </Col>
             <Col xs={12} sm={6} md={4}>
               <Card className={`text-center p-3 ${theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-indigo-50 border border-indigo-100'}`}>
                 <BookOutlined className={`text-2xl mb-1 ${theme === 'dark' ? 'text-indigo-400' : 'text-indigo-500'}`} />
-                <div className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-indigo-700'}`}>{courseReviews}</div>
-                <div className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-indigo-700'}`}>Course</div>
+                <div className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-indigo-700'}`}>
+                  {courseReviews}
+                </div>
+                <div className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-indigo-700'}`}>
+                  Course
+                </div>
               </Card>
             </Col>
             <Col xs={12} sm={6} md={4}>
               <Card className={`text-center p-3 ${theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-purple-50 border border-purple-100'}`}>
                 <ReadOutlined className={`text-2xl mb-1 ${theme === 'dark' ? 'text-purple-400' : 'text-purple-500'}`} />
-                <div className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-purple-700'}`}>{lessonReviews}</div>
-                <div className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-purple-700'}`}>Lesson</div>
+                <div className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-purple-700'}`}>
+                  {lessonReviews}
+                </div>
+                <div className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-purple-700'}`}>
+                  Lesson
+                </div>
               </Card>
             </Col>
             <Col xs={12} sm={6} md={4}>
               <Card className={`text-center p-3 ${theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-yellow-50 border border-yellow-100'}`}>
                 <StarFilled className={`text-2xl mb-1 ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-500'}`} />
-                <div className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-yellow-700'}`}>{averageRating}/5</div>
-                <div className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-yellow-700'}`}>Avg Rating</div>
+                <div className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-yellow-700'}`}>
+                  {averageRating}/5
+                </div>
+                <div className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-yellow-700'}`}>
+                  Avg Rating
+                </div>
               </Card>
             </Col>
           </Row>
@@ -356,7 +424,9 @@ export default function ManageReview() {
                   <StarFilled className="text-yellow-400" />
                   <StarFilled className="text-yellow-400" />
                 </div>
-                <div className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-amber-700'}`}>{fiveStarReviews}</div>
+                <div className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-amber-700'}`}>
+                  {fiveStarReviews}
+                </div>
                 <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-amber-600'}`}>
                   {totalReviews > 0 ? ((fiveStarReviews/totalReviews)*100).toFixed(1) : 0}%
                 </div>
@@ -370,7 +440,9 @@ export default function ManageReview() {
                   <StarFilled className="text-yellow-400" />
                   <StarFilled className="text-gray-300" />
                 </div>
-                <div className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-amber-700'}`}>{fourStarReviews}</div>
+                <div className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-amber-700'}`}>
+                  {fourStarReviews}
+                </div>
                 <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-amber-600'}`}>
                   {totalReviews > 0 ? ((fourStarReviews/totalReviews)*100).toFixed(1) : 0}%
                 </div>
@@ -384,7 +456,9 @@ export default function ManageReview() {
                   <StarFilled className="text-gray-300" />
                   <StarFilled className="text-gray-300" />
                 </div>
-                <div className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-amber-700'}`}>{threeStarReviews}</div>
+                <div className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-amber-700'}`}>
+                  {threeStarReviews}
+                </div>
                 <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-amber-600'}`}>
                   {totalReviews > 0 ? ((threeStarReviews/totalReviews)*100).toFixed(1) : 0}%
                 </div>
@@ -398,7 +472,9 @@ export default function ManageReview() {
                   <StarFilled className="text-gray-300" />
                   <StarFilled className="text-gray-300" />
                 </div>
-                <div className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-amber-700'}`}>{twoStarReviews}</div>
+                <div className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-amber-700'}`}>
+                  {twoStarReviews}
+                </div>
                 <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-amber-600'}`}>
                   {totalReviews > 0 ? ((twoStarReviews/totalReviews)*100).toFixed(1) : 0}%
                 </div>
@@ -412,7 +488,9 @@ export default function ManageReview() {
                   <StarFilled className="text-gray-300" />
                   <StarFilled className="text-gray-300" />
                 </div>
-                <div className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-amber-700'}`}>{oneStarReviews}</div>
+                <div className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-amber-700'}`}>
+                  {oneStarReviews}
+                </div>
                 <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-amber-600'}`}>
                   {totalReviews > 0 ? ((oneStarReviews/totalReviews)*100).toFixed(1) : 0}%
                 </div>
@@ -422,8 +500,12 @@ export default function ManageReview() {
             <div className={`flex items-center px-4 py-2 rounded-full ${theme === 'dark' ? 'bg-gray-800 border-gray-600' : 'bg-white border border-amber-200'}`}>
               <StarFilled className="text-yellow-400 text-xl mr-2" />
               <div>
-                <div className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-amber-700'}`}>{averageRating}</div>
-                <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-amber-700'}`}>out of 5</div>
+                <div className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-amber-700'}`}>
+                  {averageRating}
+                </div>
+                <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-amber-700'}`}>
+                  out of 5
+                </div>
               </div>
             </div>
           </div>
@@ -433,7 +515,9 @@ export default function ManageReview() {
         <div className={`mb-6 p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
           <div className="flex items-center mb-2">
             <FilterOutlined className="mr-2" />
-            <Text strong className={theme === 'dark' ? 'text-white' : ''}>Filters</Text>
+            <Text strong className={theme === 'dark' ? 'text-white' : ''}>
+              Filters
+            </Text>
           </div>
           <Row gutter={[16, 16]}>
             <Col xs={24} sm={8} md={6}>
@@ -506,6 +590,12 @@ export default function ManageReview() {
           columns={columns} 
           dataSource={data} 
           loading={loading}
+          expandable={{
+            expandedRowKeys: expandedRowKeys,
+            expandedRowRender: expandedRowRender,
+            onExpand: (expanded, record) => toggleExpandRow(record),
+            expandRowByClick: false
+          }}
           pagination={{ 
             pageSize: 10,
             showSizeChanger: true,
@@ -543,10 +633,10 @@ const DropDownMenu = ({ record, fetchComments }) => {
       });
       
       fetchComments();
-      toast.success('Comment status updated successfully');
+      message.success('Comment status updated successfully');
     } catch (error) {
       console.error('Error updating comment status:', error);
-      toast.error('Error updating comment status');
+      message.error('Error updating comment status');
     }
   };
 

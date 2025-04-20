@@ -24,6 +24,7 @@ import {
   Result,
   Empty,
   Descriptions,
+  message,
 } from "antd";
 import { Comment } from "@ant-design/compatible";
 import {
@@ -160,13 +161,14 @@ const closeStudentDetailModal = () => {
       setLessons((prevLessons) =>
         prevLessons.filter((lesson) => lesson._id !== selectedLesson._id)
       );
-      toast.success("Lesson deleted successfully!");
+      message.success("Lesson deleted successfully!");
       setIsDeleteLessonOpen(false);
     } catch (err) {
-      toast.error("Failed to delete lesson");
-      console.error("Failed to delete lesson", err);
+      message.error("Failed to delete lesson");
+      // console.error("Failed to delete lesson", err);
     } finally {
       setIsDeleting(false);
+      setIsDeleteLessonOpen(false);
     }
   };
 
@@ -182,11 +184,11 @@ const closeStudentDetailModal = () => {
           },
         }
       );
-      toast.success("Exam deleted successfully!");
+      message.success("Exam deleted successfully!");
       setIsDeleteModalOpen(false);
       setExams(null);
     } catch (err) {
-      toast.error("Failed to delete exam");
+      message.error("Failed to delete exam");
       console.error("Failed to delete exam", err);
     }
   };
@@ -230,11 +232,11 @@ const closeStudentDetailModal = () => {
             lesson._id === selectedLesson._id ? response.data.lesson : lesson
           )
         );
-        toast.success("Lesson updated successfully!");
+        message.success("Lesson updated successfully!");
         closeModal();
       }
     } catch (error) {
-      toast.error("Failed to update lesson");
+      message.error("Failed to update lesson");
       console.error("Failed to update lesson", error);
     }
   };
@@ -388,6 +390,9 @@ const closeStudentDetailModal = () => {
     const sum = comments.reduce((acc, comment) => acc + comment.rating, 0);
     return (sum / comments.length).toFixed(1);
   };
+
+  // Check if the course is active
+  const isCourseActive = course && course.status === true;
 
   return (
     <Layout className={isDarkMode ? "bg-gray-900 text-white" : "bg-white"}>
@@ -722,7 +727,7 @@ const closeStudentDetailModal = () => {
               }`}
               bordered={false}
               extra={
-                role !== "Admin" &&
+                role !== "Admin" && !isCourseActive &&
                 !exams && (
                   <Button
                     type="primary"
@@ -835,7 +840,7 @@ const closeStudentDetailModal = () => {
                     </div>
                   </Card>
 
-                  {role !== "Admin" && (
+                  {role !== "Admin" && !isCourseActive && (
                     <Space>
                       <Button
                         type="primary"
@@ -881,7 +886,7 @@ const closeStudentDetailModal = () => {
               }`}
               bordered={false}
               extra={
-                role !== "Admin" && (
+                role !== "Admin" && !isCourseActive && (
                   <Button
                     type="primary"
                     icon={<PlusOutlined />}
@@ -911,7 +916,7 @@ const closeStudentDetailModal = () => {
                         >
                           View
                         </Button>,
-                        role !== "Admin" && (
+                        role !== "Admin" && !isCourseActive && (
                           <Button
                             key="edit"
                             icon={<EditOutlined />}
@@ -920,7 +925,7 @@ const closeStudentDetailModal = () => {
                             Update
                           </Button>
                         ),
-                        role !== "Admin" && (
+                        role !== "Admin" && !isCourseActive && (
                           <Button
                             key="delete"
                             danger

@@ -130,13 +130,13 @@ const CreateExam = () => {
           },
         }
       );
-      toast.success("Exam created successfully!");
+      message.success("Exam created successfully!");
       setIsCreated(true);
       // navigate(`/courses-list-tutor/${courseId}`);
     } catch (error) {
       const errorMsg = error.response?.data?.message || "Unknown error";
       setErrorMessage(errorMsg);
-      toast.error("Exam creation failed!");
+      message.error("Exam creation failed!");
     } finally {
       setIsSubmitting(false);
     }

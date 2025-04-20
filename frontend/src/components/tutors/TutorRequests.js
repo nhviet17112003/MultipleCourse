@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Badge, Button, Modal, Typography, Tag, Tooltip, Dropdown, Space, Input, Select, DatePicker, Row, Col, Card, List } from 'antd';
+import { Table, Badge, Button, Modal, Typography, Tag, Tooltip, Dropdown, Space, Input, Select, DatePicker, Row, Col, Card, List, message } from 'antd';
 import { 
   ExclamationCircleOutlined, 
   ReloadOutlined, 
@@ -117,7 +117,7 @@ const TutorRequests = () => {
       setRequests(response.data);
       setFilteredRequests(response.data);
     } catch (error) {
-      toast.error('Failed to fetch requests: ' + (error.response?.data?.message || error.message));
+      message.error('Failed to fetch requests: ' + (error.response?.data?.message || error.message));
     } finally {
       setLoading(false);
     }
@@ -184,10 +184,10 @@ const TutorRequests = () => {
               }
             }
           );
-          toast.success('Request cancelled successfully');
+          message.success('Request cancelled successfully');
           fetchRequests();
         } catch (error) {
-          toast.error('Failed to cancel request: ' + (error.response?.data?.message || error.message));
+          message.error('Failed to cancel request: ' + (error.response?.data?.message || error.message));
         }
       }
     });

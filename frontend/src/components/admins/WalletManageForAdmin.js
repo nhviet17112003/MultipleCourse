@@ -62,7 +62,8 @@ const WalletManageForAdmin = () => {
         );
         setWalletData(response.data);
       } catch (err) {
-        setErrorWallet("Có lỗi xảy ra khi tải thông tin ví");
+        setErrorWallet("Error fetching wallet data");
+        message.error("Error fetching wallet data");
       } finally {
         setLoadingWallet(false);
       }
@@ -88,7 +89,8 @@ const WalletManageForAdmin = () => {
       setRequests(response.data.pendingRequests);
       setFilteredRequests(response.data.pendingRequests);
     } catch (err) {
-      setError("Có lỗi xảy ra khi tải dữ liệu");
+      setError("Error fetching withdrawal requests");
+      message.error("Error fetching withdrawal requests");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -235,12 +237,12 @@ const WalletManageForAdmin = () => {
   };
 
   const columns = [
-    {
-      title: "Withdrawal ID",
-      dataIndex: "withdrawal_id",
-      key: "withdrawal_id",
-      render: (id) => <span className="font-mono text-xs">{id}</span>,
-    },
+    // {
+    //   title: "Withdrawal ID",
+    //   dataIndex: "withdrawal_id",
+    //   key: "withdrawal_id",
+    //   render: (id) => <span className="font-mono text-xs">{id}</span>,
+    // },
     {
       title: "User Name",
       dataIndex: "user",
@@ -261,14 +263,14 @@ const WalletManageForAdmin = () => {
         <span className="text-gray-600">{text ? text.email : ""}</span>
       ),
     },
-    {
-      title: "User Phone",
-      dataIndex: "user",
-      key: "phone",
-      render: (text) => (
-        <span className="text-gray-600">{text ? text.phone : ""}</span>
-      ),
-    },
+    // {
+    //   title: "User Phone",
+    //   dataIndex: "user",
+    //   key: "phone",
+    //   render: (text) => (
+    //     <span className="text-gray-600">{text ? text.phone : ""}</span>
+    //   ),
+    // },
     {
       title: "Amount",
       dataIndex: "amount",
@@ -565,14 +567,14 @@ const WalletManageForAdmin = () => {
         {modalData ? (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-gray-50 p-4 rounded-lg">
+              {/* <div className="bg-gray-50 p-4 rounded-lg">
                 <h3 className="text-sm font-medium text-gray-500 mb-1">
                   Withdrawal ID
                 </h3>
                 <p className="font-mono text-gray-800">
                   {modalData.withdrawal_id}
                 </p>
-              </div>
+              </div> */}
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h3 className="text-sm font-medium text-gray-500 mb-1">
                   Status

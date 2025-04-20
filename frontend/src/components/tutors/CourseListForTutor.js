@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import UpdateCourseModal from "./UpdateCourseModal";
 import { useTheme } from "../context/ThemeContext";
+import FullScreenLoader from "../../FullScreenLoader";
 import { 
   Button, 
   Spin, 
@@ -48,6 +49,10 @@ const CourseListForTutor = () => {
   const { theme } = useTheme();
   const navigate = useNavigate();
   const [loadingImage, setLoadingImage] = useState({});
+
+  // Loading spinner
+  const [navigating, setNavigating] = useState(false); // Kiểm soát hiển thị loading khi chuyển trang
+const [navigationTarget, setNavigationTarget] = useState(null); // Lưu địa chỉ trang đích
   
   // Filter states
   const [filterVisible, setFilterVisible] = useState(false);
@@ -60,21 +65,29 @@ const CourseListForTutor = () => {
     sortBy: "newest"
   });
 
-  useEffect(() => {
-    setSpinning(true);
-    let ptg = -10;
-    const interval = setInterval(() => {
-      ptg += 5;
-      setPercent(ptg);
-      if (ptg > 20) {
-        clearInterval(interval);
-        setSpinning(false);
-        setPercent(0);
-      }
-    }, 100);
+  // useEffect(() => {
+  //   setSpinning(true);
+  //   let ptg = -10;
+  //   const interval = setInterval(() => {
+  //     ptg += 5;
+  //     setPercent(ptg);
+  //     if (ptg > 20) {
+  //       clearInterval(interval);
+  //       setSpinning(false);
+  //       setPercent(0);
+  //     }
+  //   }, 100);
 
-    return () => clearInterval(interval);
-  }, []);
+  //   return () => clearInterval(interval);
+  // }, []);
+
+  const [initialLoading, setInitialLoading] = useState(true);
+
+useEffect(() => {
+  setTimeout(() => {
+    setInitialLoading(false);
+  }, 2000);
+}, []);
 
   useEffect(() => {
     const fetchTutorCourses = async () => {
@@ -99,6 +112,7 @@ const CourseListForTutor = () => {
 
         if (response.status === 200) {
           setCourses(response.data);
+          console.log("Courses:", response.data);
           setDisplayedCourses(response.data);
           
           // Extract unique categories
@@ -199,14 +213,14 @@ const CourseListForTutor = () => {
           );
 
           if (response.status === 201) {
-            toast.success("Request delete course successfully.");
+            message.success("Request delete course successfully.");
             setCourses((prevCourses) =>
               prevCourses.filter((course) => course._id !== courseId)
             );
           }
         } catch (error) {
           console.error("Error deleting course:", error);
-          toast.error(
+          message.error(
             error.response?.data?.message || "Failed to request delete course."
           );
         }
@@ -247,10 +261,10 @@ const CourseListForTutor = () => {
         );
 
         handleCloseModal();
-        toast.success("Send request to admin successfully!");
+        message.success("Send request to admin successfully!");
       }
     } catch (error) {
-      toast.error(
+      message.error(
         error.response?.data?.message || "Send request to admin fail."
       );
     }
@@ -283,11 +297,11 @@ const CourseListForTutor = () => {
           )
         );
         setLoadingImage((prev) => ({ ...prev, [courseId]: false }));
-        toast.success("Update image successfully!");
+        message.success("Update image successfully!");
       }
     } catch (error) {
       setLoadingImage((prev) => ({ ...prev, [courseId]: false }));
-      toast.error("Update image fail.");
+      message.error("Update image fail.");
     }
   };
 
@@ -318,7 +332,8 @@ const CourseListForTutor = () => {
             <Eye size={16} /> <span>View Details</span>
           </div>
         ),
-        onClick: () => navigate(`/courses-list-tutor/${course._id}`),
+        onClick: () => handleNavigateWithLoading(`/courses-list-tutor/${course._id}`),
+        
       },
     ];
   };
@@ -343,11 +358,47 @@ const CourseListForTutor = () => {
     });
     setSearchQuery("");
   };
+  const handleLoadingComplete = () => {
+    console.log('Loading complete!');
+    // You can perform additional actions here
+  };
+
+  const handleNavigateWithLoading = (path) => {
+    setNavigating(true);
+    setNavigationTarget(path);
+  };
+
+  const performNavigation = () => {
+    if (navigationTarget) {
+      navigate(navigationTarget);
+    }
+    setNavigating(false);
+    setNavigationTarget(null);
+  };
+  
+  if (initialLoading) {
+    return (
+      <FullScreenLoader 
+        message="Preparing Your Courses" 
+        description="Loading your educational content"
+        duration={2000}
+        onNavigate={() => {performNavigation()}}
+      />
+    );
+  }
 
   return (
     <div className={`p-6 min-h-screen ${theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"}`}>
-      <Spin spinning={spinning} fullscreen />
-      
+      {/* <Spin spinning={spinning} fullscreen /> */}
+      {/* {loading && (
+        <FullScreenLoader 
+          message="Loading Your Courses" 
+          description="Please wait while we fetch your course data"
+          showProgress={true}
+          minDuration={2000}
+          onComplete={handleLoadingComplete}
+        />
+      )} */}
       <div className="mb-6">
         <Breadcrumb items={[
           { title: <HomeOutlined />, href: "/" },

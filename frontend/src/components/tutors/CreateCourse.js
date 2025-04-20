@@ -197,14 +197,14 @@ const CreateCourse = () => {
         }
       );
   
-      toast.success("Course created successfully!");
+      message.success("Course created successfully!");
       form.resetFields();
       setFileList([]);
       setImagePreview(null);
     } catch (error) {
       const errorMsg = error.response?.data?.message || "An error occurred";
       setErrorMessage(errorMsg);
-      toast.error(errorMsg);
+      message.error(errorMsg);
     } finally {
       setIsSubmitting(false);
       setSpinning(false);
