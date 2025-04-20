@@ -4,7 +4,7 @@ const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const Users = require("../Models/Users");
 const Wallet = require("../Models/Wallet");
-const AdminActivityHistory = require("../Models/ActivityHistory");
+const ActivityHistory = require("../Models/ActivityHistory");
 const config = require("../Configurations/Config");
 const multer = require("multer");
 const admin = require("firebase-admin");
@@ -420,17 +420,18 @@ exports.banAndUnbanUser = async (req, res) => {
     if (user.role === "Admin") {
       return res.status(400).json({ message: "Cannot ban or unban admin" });
     }
-    const newAdminActivity = new AdminActivityHistory({
-      admin: req.user._id,
+    const newActivity = new ActivityHistory({
+      user: req.user._id,
+      role: "Admin",
     });
 
     user.status = !user.status;
-    newAdminActivity.description = user.status
+    newActivity.description = user.status
       ? `Unbanned user ${user.fullname}`
       : `Banned user ${user.fullname}`;
 
     await user.save();
-    await newAdminActivity.save();
+    await newActivity.save();
     if (user.status) {
       // Gửi email thông báo
       let mailOptions;
@@ -622,8 +623,9 @@ exports.getTutorActivities = async (req, res) => {
     if (user.role !== "Tutor") {
       return res.status(400).json({ message: "You are not a tutor" });
     }
-    const activities = await AdminActivityHistory.find({
-      admin: user._id,
+    const activities = await ActivityHistory.find({
+      user: user._id,
+      role: "Admin",
     }).populate("admin", "fullname email");
     res.status(200).json(activities);
   } catch (err) {
