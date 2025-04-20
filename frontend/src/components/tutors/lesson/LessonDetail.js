@@ -14,7 +14,8 @@ import {
   Tag, 
   Empty,
   PageHeader,
-  Breadcrumb
+  Breadcrumb,
+  message
 } from "antd";
 import { 
   ArrowLeftOutlined, 
@@ -48,8 +49,10 @@ const LessonDetail = () => {
           }
         );
         setLesson(response.data);
+        // message.success("Lesson loaded successfully!");
       } catch (err) {
         setError("Failed to load lesson. Please try again later.");
+        message.error("Failed to load lesson. Please try again later.");
         console.error(err);
       } finally {
         setLoading(false);

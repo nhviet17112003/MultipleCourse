@@ -9,7 +9,7 @@ import {
   Select, 
   Card, 
   Checkbox, 
-  Modal, 
+  message, 
   Typography, 
   Divider, 
   Space, 
@@ -198,7 +198,7 @@ const UpdateExam = () => {
       //   placement: 'topRight',
       //   duration: 3,
       // });
-      toast.success("Exam updated successfully!");
+      message.success("Exam updated successfully!");
       
       // Redirect after short delay
       setTimeout(() => {
@@ -211,7 +211,7 @@ const UpdateExam = () => {
       //   icon: <CloseCircleOutlined style={{ color: '#ff4d4f' }} />,
       //   placement: 'topRight',
       // });
-      toast.error("Failed to update exam. Please check your input and try again.");
+      message.error("Failed to update exam. Please check your input and try again.");
       console.error("Failed to update exam", err);
     }
   };

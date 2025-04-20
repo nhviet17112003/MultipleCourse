@@ -17,7 +17,8 @@ import {
   Modal,
   Tooltip,
   Divider,
-  PageHeader
+  PageHeader,
+  message
 } from "antd";
 import {
   FileAddOutlined,
@@ -83,7 +84,7 @@ const ViewCertificate = () => {
       );
       setCertificates(response.data.certificates);
     } catch (err) {
-      toast.error("Error fetching certificates");
+      message.error("Error fetching certificates");
       setError("Could not fetch certificates. Please try again!");
       console.error(err);
     } finally {
@@ -102,7 +103,7 @@ const ViewCertificate = () => {
       onOk: async () => {
         const token = localStorage.getItem("authToken");
         if (!token) {
-          toast.error("Token not found! Please log in again.");
+          message.error("Token not found! Please log in again.");
           return;
         }
       
@@ -114,9 +115,9 @@ const ViewCertificate = () => {
             }
           );
           setCertificates(certificates.filter((cert) => cert._id !== id));
-          toast.success("Certificate deleted successfully!");
+          message.success("Certificate deleted successfully!");
         } catch (error) {
-          toast.error("Failed to delete certificate. Please try again!");
+          message.error("Failed to delete certificate. Please try again!");
         }
       },
     });
@@ -192,7 +193,7 @@ const ViewCertificate = () => {
             onClick={() => {
               if (!userId) {
                 console.error("❌ User ID is NULL or UNDEFINED!");
-                toast.error("User ID not found! Please log in again.");
+                message.error("User ID not found! Please log in again.");
                 return;
               }
               navigate(`/uploadtutorcertificate/${userId}`);

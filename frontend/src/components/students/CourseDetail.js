@@ -396,7 +396,7 @@ const DetailCourse = () => {
 
   return (
     <Layout style={{ minHeight: "100vh", background: "#f0f2f5" }}>
-      <Content style={{ padding: "24px", maxWidth: 1200, margin: "0 auto" }}>
+      <Content style={{ padding: "24px", width: 1200, margin: "0 auto" }}>
         <Button
           type="link"
           icon={<ArrowLeftOutlined />}

@@ -10,6 +10,7 @@ import {
   Divider,
   Avatar,
   Button,
+  message as antdMessage,
   Statistic,
   Row,
   Col,
@@ -75,6 +76,7 @@ const ManageUser = () => {
         console.log(data);
         setUsers(data);
       } catch (err) {
+        antdMessage.error("Error fetching users");
         setError(err.message);
       } finally {
         setLoading(false);
@@ -595,9 +597,9 @@ const DropDownMenu = ({ record, setUsers, users, showCertificates }) => {
       setUsers(updatedUsers);
       setIsModalOpen(false);
       setRejectReason("");
-      toast.success("User status updated successfully");
+      antdMessage.success("User status updated successfully");
     } catch (err) {
-      toast.error("Error changing user status.");
+      antdMessage.error("Error changing user status.");
     }
   };
 

@@ -17,7 +17,8 @@ import {
   Radio,
   Row,
   Col,
-  Empty
+  Empty,
+  message
 } from "antd";
 import {
   BarChart,
@@ -87,6 +88,7 @@ const WithdrawalHistory = () => {
         setTotalWithdrawals(data.withdrawals.length);
         setLoading(false);
       } catch (err) {
+        message.error("Error fetching withdrawal history");
         setError(err.message);
         setLoading(false);
       }

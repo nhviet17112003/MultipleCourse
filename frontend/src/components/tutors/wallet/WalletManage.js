@@ -120,7 +120,7 @@ const WalletManage = () => {
   const handleAccountHolderChange = (e) => {
     const value = e.target.value;
     if (/\d/.test(value)) {
-      toast.error("Invalid account name.");
+      message.error("Invalid account name.");
       return;
     }
     setNewAccountHolder(value);
@@ -149,11 +149,11 @@ const WalletManage = () => {
         setHasPendingRequest(pendingRequest);
         setWithdrawalHistory(data.withdrawals);
       } else {
-        toast.error(data.message || "Error fetching withdrawal history.");
+        message.error(data.message || "Error fetching withdrawal history.");
       }
     } catch (error) {
       console.error("Error fetching withdrawal history:", error);
-      toast.error("An error occurred while fetching withdrawal history.");
+      message.error("An error occurred while fetching withdrawal history.");
     } finally {
       setLoading(false);
     }
@@ -238,7 +238,7 @@ const WalletManage = () => {
         if (response.ok && data.current_balance !== undefined) {
           setBalance(data.current_balance);
         } else {
-          toast.error(data.message || "No balance found");
+          message.error(data.message || "No balance found");
           setBalance(0);
         }
       } catch (error) {
@@ -271,11 +271,11 @@ const WalletManage = () => {
         if (response.ok && data.bankAccount) {
           setBankData(data.bankAccount);
         } else {
-          toast.error("No bank account found in profile data.");
+          message.error("No bank account found in profile data.");
         }
       } catch (error) {
         console.error("Error fetching user profile:", error);
-        toast.error("Error fetching user profile");
+        message.error("Error fetching user profile");
       }
     };
 
@@ -284,7 +284,7 @@ const WalletManage = () => {
 
   const handleWithdraw = async () => {
     if (withdrawAmount <= 0) {
-      toast.error("Invalid withdrawal amount.");
+      message.error("Invalid withdrawal amount.");
       return;
     }
 
@@ -306,7 +306,7 @@ const WalletManage = () => {
       const data = await response.json();
 
       if (response.ok) {
-        toast.success("Withdrawal request has been submitted successfully.");
+        message.success("Withdrawal request has been submitted successfully.");
         setHasPendingRequest(true);
         setWithdrawAmount(0);
         setIsWithdrawFormVisible(false);
@@ -314,25 +314,25 @@ const WalletManage = () => {
         fetchWithdrawHistory();
       } else {
         if (data.message === "You already have a pending withdrawal request.") {
-          toast.error(
+          message.error(
             "You have a pending withdrawal request. Please wait and try again later!"
           );
           setHasPendingRequest(true);
         } else {
-          toast.error(
+          message.error(
             data.message || "Please fill in your bank information completely."
           );
         }
       }
     } catch (error) {
       console.error("Error submitting withdrawal request:", error);
-      toast.error("An error occurred while sending the request.");
+      message.error("An error occurred while sending the request.");
     }
   };
 
   const handleUpdateBank = async () => {
     if (!newBankName || !newAccountNumber || !newAccountHolder) {
-      toast.error("Please fill in your bank information completely.");
+      message.error("Please fill in your bank information completely.");
       return;
     }
 
@@ -356,7 +356,7 @@ const WalletManage = () => {
       const data = await response.json();
 
       if (response.ok) {
-        toast.success("Bank information updated successfully.");
+        message.success("Bank information updated successfully.");
         setBankData([
           {
             bank_name: newBankName,
@@ -366,11 +366,11 @@ const WalletManage = () => {
         ]);
         setIsUpdateFormVisible(false);
       } else {
-        toast.error(data.message || "An error occurred while updating.");
+        message.error(data.message || "An error occurred while updating.");
       }
     } catch (error) {
       console.error("Error updating bank account:", error);
-      toast.error("An error occurred while updating bank information.");
+      message.error("An error occurred while updating bank information.");
     }
   };
 

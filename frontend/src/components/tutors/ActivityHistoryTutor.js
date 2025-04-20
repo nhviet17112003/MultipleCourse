@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { format } from 'date-fns';
-import { Table, Spin, Alert, Card, Typography, Tag, Badge, Empty } from 'antd';
+import { Table, Spin, Alert, Card, Typography, Tag, Badge, Empty, message } from 'antd';
 
 const { Title } = Typography;
 
@@ -25,7 +25,8 @@ function ActivityHistoryTutor() {
         setActivities(response.data);
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching activity history:', error);
+        // console.error('Error fetching activity history:', error);
+        message.error('Unable to load activity history data. Please try again later.');
         setError('Unable to load activity history data. Please try again later.');
         setLoading(false);
       }

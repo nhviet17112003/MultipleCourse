@@ -14,7 +14,8 @@ import {
   Space,
   Row,
   Col,
-  Badge
+  Badge,
+  message
 } from "antd";
 import { 
   DollarOutlined, 
@@ -64,6 +65,7 @@ const StatisticForAdmin = () => {
       const data = await response.json();
       setState(data);
     } catch (error) {
+      message.error("Error fetching data");
       console.error("Error fetching data:", error);
     }
   };
