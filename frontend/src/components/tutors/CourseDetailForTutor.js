@@ -24,6 +24,7 @@ import {
   Result,
   Empty,
   Descriptions,
+  message,
 } from "antd";
 import { Comment } from "@ant-design/compatible";
 import {
@@ -87,9 +88,16 @@ const [studentProgress, setStudentProgress] = useState([]);
 
 const openStudentDetailModal = (student) => {
   setSelectedStudent(student.student);
-  setStudentProgress(student.completedLessons || []);
+
+  // Flatten toàn bộ các bài học từ student.lessons
+  // const allLessons = student.lessons.flatMap((item) => item.lesson);
+  // console.log("All lessons:", allLessons); // 👉 Log ra đây
+
+  // setStudentProgress(allLessons); // Cập nhật state với danh sách bài học đầy đủ
+
   setIsStudentDetailModalOpen(true);
 };
+
 
 const closeStudentDetailModal = () => {
   setIsStudentDetailModalOpen(false);
@@ -153,13 +161,14 @@ const closeStudentDetailModal = () => {
       setLessons((prevLessons) =>
         prevLessons.filter((lesson) => lesson._id !== selectedLesson._id)
       );
-      toast.success("Lesson deleted successfully!");
+      message.success("Lesson deleted successfully!");
       setIsDeleteLessonOpen(false);
     } catch (err) {
-      toast.error("Failed to delete lesson");
-      console.error("Failed to delete lesson", err);
+      message.error("Failed to delete lesson");
+      // console.error("Failed to delete lesson", err);
     } finally {
       setIsDeleting(false);
+      setIsDeleteLessonOpen(false);
     }
   };
 
@@ -175,11 +184,11 @@ const closeStudentDetailModal = () => {
           },
         }
       );
-      toast.success("Exam deleted successfully!");
+      message.success("Exam deleted successfully!");
       setIsDeleteModalOpen(false);
       setExams(null);
     } catch (err) {
-      toast.error("Failed to delete exam");
+      message.error("Failed to delete exam");
       console.error("Failed to delete exam", err);
     }
   };
@@ -223,11 +232,11 @@ const closeStudentDetailModal = () => {
             lesson._id === selectedLesson._id ? response.data.lesson : lesson
           )
         );
-        toast.success("Lesson updated successfully!");
+        message.success("Lesson updated successfully!");
         closeModal();
       }
     } catch (error) {
-      toast.error("Failed to update lesson");
+      message.error("Failed to update lesson");
       console.error("Failed to update lesson", error);
     }
   };
@@ -381,6 +390,9 @@ const closeStudentDetailModal = () => {
     const sum = comments.reduce((acc, comment) => acc + comment.rating, 0);
     return (sum / comments.length).toFixed(1);
   };
+
+  // Check if the course is active
+  const isCourseActive = course && course.status === true;
 
   return (
     <Layout className={isDarkMode ? "bg-gray-900 text-white" : "bg-white"}>
@@ -715,7 +727,7 @@ const closeStudentDetailModal = () => {
               }`}
               bordered={false}
               extra={
-                role !== "Admin" &&
+                role !== "Admin" && !isCourseActive &&
                 !exams && (
                   <Button
                     type="primary"
@@ -828,7 +840,7 @@ const closeStudentDetailModal = () => {
                     </div>
                   </Card>
 
-                  {role !== "Admin" && (
+                  {role !== "Admin" && !isCourseActive && (
                     <Space>
                       <Button
                         type="primary"
@@ -874,7 +886,7 @@ const closeStudentDetailModal = () => {
               }`}
               bordered={false}
               extra={
-                role !== "Admin" && (
+                role !== "Admin" && !isCourseActive && (
                   <Button
                     type="primary"
                     icon={<PlusOutlined />}
@@ -904,7 +916,7 @@ const closeStudentDetailModal = () => {
                         >
                           View
                         </Button>,
-                        role !== "Admin" && (
+                        role !== "Admin" && !isCourseActive && (
                           <Button
                             key="edit"
                             icon={<EditOutlined />}
@@ -913,7 +925,7 @@ const closeStudentDetailModal = () => {
                             Update
                           </Button>
                         ),
-                        role !== "Admin" && (
+                        role !== "Admin" && !isCourseActive && (
                           <Button
                             key="delete"
                             danger
@@ -1212,31 +1224,32 @@ const closeStudentDetailModal = () => {
         />
         <div className="ml-4">
           <Title level={4} className={isDarkMode ? "text-white" : ""}>
-            {selectedStudent.fullname}
+            {selectedStudent.fullname ?? "No name"}
             
           </Title>
-          <Text type="secondary">{selectedStudent.email}</Text>
+          <Text type="secondary">{selectedStudent.email ?? "No email"}</Text>
+         
         </div>
       </div>
       
       <Divider className={isDarkMode ? "bg-gray-600" : ""} />
       
-      <Descriptions 
-        title="Student Information" 
+      <Descriptions
+        title="Student Information"
         bordered 
         column={{ xxl: 2, xl: 2, lg: 2, md: 2, sm: 1, xs: 1 }}
       >
-        <Descriptions.Item label="Address">{selectedStudent.address}</Descriptions.Item>
-        <Descriptions.Item label="Phone">{selectedStudent.phone}</Descriptions.Item>
-        <Descriptions.Item label="Gender">{selectedStudent.gender}</Descriptions.Item>
+        <Descriptions.Item label="Address">{selectedStudent.address ?? "No address"}</Descriptions.Item>
+        <Descriptions.Item label="Phone Number">{selectedStudent.phone ?? "No phone number"}</Descriptions.Item>
+        <Descriptions.Item label="Gender">{selectedStudent.gender ?? "No gender"}</Descriptions.Item>
         <Descriptions.Item label="Birthday">
           {new Date(selectedStudent.birthday).toLocaleDateString()}
         </Descriptions.Item>
       </Descriptions>
       
-      {/* <Divider orientation="left">Course Progress</Divider> */}
+      {/* <Divider orientation="left">Course Progress</Divider>
       
-      {/* <List
+      <List
         header={<div>Completed Lessons</div>}
         bordered
         dataSource={studentProgress}

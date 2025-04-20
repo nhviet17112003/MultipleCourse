@@ -9,6 +9,7 @@ import {
   FaSort,
   FaWallet,
 } from "react-icons/fa";
+import { message } from "antd";
 
 const DepositHistoryForAdmin = () => {
   const [deposits, setDeposits] = useState([]);
@@ -45,7 +46,7 @@ const DepositHistoryForAdmin = () => {
         setDeposits(data.deposits);
       } catch (error) {
         console.error("Error fetching deposit history:", error);
-        toast.error("Failed to load deposit history");
+        message.error("Failed to load deposit history");
       } finally {
         setLoading(false);
       }

@@ -12,6 +12,7 @@ import {
   Skeleton,
   Alert,
   DatePicker,
+  message,
   Badge,
   Statistic,
   Row,
@@ -63,10 +64,12 @@ export default function ActivitiesHistory() {
       .then((res) => {
         setActivities(res.data);
         countActivityTypes(res.data);
+        // message.success("Activities fetched successfully");
         setLoading(false);
       })
       .catch((err) => {
         setError(err.message);
+        message.error("Failed to fetch activities");
         setLoading(false);
       });
   };

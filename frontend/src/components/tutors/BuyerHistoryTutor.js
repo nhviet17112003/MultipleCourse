@@ -1,4 +1,4 @@
-import { Space, Table, Tag, Spin, Alert, Card, Typography } from 'antd';
+import { Space, Table, Tag, Spin, Alert, Card, Typography, message } from 'antd';
 import React from 'react';
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
@@ -30,7 +30,8 @@ export default function BuyerHistoryTutor() {
       setLoading(false);
     }
     catch (error) {
-      console.error('Error fetching history:', error);
+      // console.error('Error fetching history:', error);
+      message.error('Unable to load buyer history data. Please try again later.');
       setError(error.message || 'An error occurred');
       setLoading(false);
     }

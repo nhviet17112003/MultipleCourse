@@ -21,7 +21,8 @@ import {
   Alert,
   List,
   Rate,
-  Result
+  Result,
+  message
 } from "antd";
 import { Comment } from '@ant-design/compatible';
 import { 
@@ -108,9 +109,11 @@ const CourseDetailForAdmin = () => {
         }
 
         const data = await response.json();
+        // message.success("Students fetched successfully!");
         setStudents(data);
       } catch (error) {
         setError(error.message);
+        message.error("Failed to fetch students");
       } finally {
         setLoading(false);
       }
@@ -232,6 +235,7 @@ const CourseDetailForAdmin = () => {
         if (courseResponse.status === 200) {
           setCourse(courseResponse.data.courseDetail);
           setLessons(courseResponse.data.lessons);
+          // message.success("Course details fetched successfully!");
         }
 
         const examResponse = await fetch(
@@ -248,8 +252,10 @@ const CourseDetailForAdmin = () => {
         if (examResponse.ok) {
           const examData = await examResponse.json();
           setExams(examData);
+          // message.success("Exams fetched successfully!");
         } else if (examResponse.status === 404) {
           setExams(null);
+          message.info("No exams found for this course.");
         }
 
         // const incomeResponse = await axios.get(
@@ -281,14 +287,17 @@ const CourseDetailForAdmin = () => {
         
         if (userResponse.status === 200) {
           setRole(userResponse.data.role);
+          // message.success("User role fetched successfully!");
         }
         
       } catch (error) {
         if (axios.isAxiosError(error) && error.response?.status === 404) {
-          console.log("Course not found, showing alternative UI.");
+          // console.log("Course not found, showing alternative UI.");
+          message.error("Course not found.");
           setCourse(null);
         } else {
-          console.error("Error fetching data:", error);
+          // console.error("Error fetching data:", error);
+          message.error("An error occurred while fetching course details.");
           setErrorMessage("An error occurred while fetching course details.");
         }
       } finally {

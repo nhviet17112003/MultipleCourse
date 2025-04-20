@@ -18,7 +18,7 @@ import {
   LineChartOutlined, 
   PieChartOutlined 
 } from "@ant-design/icons";
-import { Spin, Card, Statistic, Typography } from "antd";
+import { Spin, Card, Statistic, Typography, message } from "antd";
 
 const { Title } = Typography;
 
@@ -60,6 +60,7 @@ export default function TutorStatistics() {
 
         setLoading(false);
       } catch (error) {
+        message.error("Failed to fetch statistics");
         setError(error);
         setLoading(false);
       }

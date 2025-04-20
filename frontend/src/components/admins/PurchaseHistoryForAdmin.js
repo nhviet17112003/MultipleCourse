@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Table, Spin, Alert, Button, Input, Tag, Tooltip, Statistic, Card, DatePicker } from "antd";
+import { Table, Spin, Alert, Button, Input, Tag, Tooltip, Statistic, Card, DatePicker, message } from "antd";
 import { DownloadOutlined, ReloadOutlined, SearchOutlined, CalendarOutlined, DollarOutlined, ShoppingOutlined, UserOutlined } from "@ant-design/icons";
 import * as XLSX from "xlsx";
 
@@ -36,6 +36,7 @@ const PurchaseHistoryForAdmin = () => {
       setOrders(response.data);
       setFilteredOrders(response.data);
     } catch (err) {
+      message.error("Error loading order list.");
       setError("Error loading order list.");
     } finally {
       setLoading(false);

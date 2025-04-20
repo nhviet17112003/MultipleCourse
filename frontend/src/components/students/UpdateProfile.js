@@ -88,19 +88,93 @@ const UpdateProfile = () => {
     fetchUserData();
   }, [token, form]);
 
-  // Validate phone number
+  // Improved validation rules
+  const validateFullName = (_, value) => {
+    if (!value || value.trim() === '') {
+      return Promise.reject("Please enter your full name");
+    }
+    if (value.trim().length < 2) {
+      return Promise.reject("Full name must be at least 2 characters");
+    }
+    if (value.trim().length > 100) {
+      return Promise.reject("Full name cannot exceed 100 characters");
+    }
+    if (!/^[a-zA-Z\s\u00C0-\u024F\u1E00-\u1EFF\u0370-\u03FF\u0400-\u04FF]+$/.test(value)) {
+      return Promise.reject("Full name should only contain letters and spaces");
+    }
+    return Promise.resolve();
+  };
+
+  // Improved phone validation for Vietnamese phone numbers
   const validatePhone = (_, value) => {
-    const phoneRegex = /^[0-9]{9,11}$/;
     if (!value) {
       return Promise.reject("Please enter your phone number");
     }
-    if (!phoneRegex.test(value)) {
-      return Promise.reject("Phone number must be 9-11 digits");
+    
+    // Remove any spaces, dashes, parentheses for validation
+    const cleanedValue = value.replace(/[\s\-()]/g, '');
+    
+    // Check if starts with 0
+    if (!cleanedValue.startsWith('0')) {
+      return Promise.reject("Phone number must start with 0");
+    }
+    
+    // Check for valid length (10 digits for Vietnamese mobile numbers)
+    if (cleanedValue.length !== 10) {
+      return Promise.reject("Phone number must be exactly 10 digits");
+    }
+    
+    // Check if it's all digits
+    if (!/^\d+$/.test(cleanedValue)) {
+      return Promise.reject("Phone number must contain only digits");
+    }
+    
+    // Check for valid Vietnamese mobile prefixes
+    const validPrefixes = ['03', '05', '07', '08', '09'];
+    const prefix = cleanedValue.substring(0, 2);
+    if (!validPrefixes.includes(prefix)) {
+      return Promise.reject("Invalid phone number prefix");
+    }
+    
+    return Promise.resolve();
+  };
+
+  // Improved address validation
+  const validateAddress = (_, value) => {
+    if (!value || value.trim() === '') {
+      return Promise.reject("Please enter your address");
+    }
+    if (value.trim().length < 5) {
+      return Promise.reject("Address must be at least 5 characters");
+    }
+    if (value.trim().length > 200) {
+      return Promise.reject("Address cannot exceed 200 characters");
     }
     return Promise.resolve();
   };
 
   // Validate birthday
+  const validateBirthday = (_, value) => {
+    if (!value) {
+      return Promise.reject("Please select your birthday");
+    }
+    
+    // Check if user is at least 13 years old
+    const thirteenYearsAgo = moment().subtract(13, 'years');
+    if (value.isAfter(thirteenYearsAgo)) {
+      return Promise.reject("You must be at least 13 years old");
+    }
+    
+    // Check if birthdate is not too far in the past (e.g., 120 years)
+    const tooOld = moment().subtract(120, 'years');
+    if (value.isBefore(tooOld)) {
+      return Promise.reject("Please enter a valid birth date");
+    }
+    
+    return Promise.resolve();
+  };
+
+  // Birthday picker settings
   const disabledDate = (current) => {
     // Can't select days in the future
     return current && current > moment().endOf('day');
@@ -218,16 +292,19 @@ const UpdateProfile = () => {
           layout="vertical"
           onFinish={handleSubmit}
           initialValues={formData}
+          validateTrigger={["onChange", "onBlur"]}
         >
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
             <Form.Item
               name="fullname"
               label="Full Name"
-              rules={[{ required: true, message: 'Please enter your full name' }]}
+              rules={[{ validator: validateFullName }]}
+              hasFeedback
             >
               <Input 
                 prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} 
                 placeholder="Enter your full name" 
+                maxLength={100}
               />
             </Form.Item>
 
@@ -235,10 +312,12 @@ const UpdateProfile = () => {
               name="phone"
               label="Phone Number"
               rules={[{ validator: validatePhone }]}
+              hasFeedback
             >
               <Input 
                 prefix={<PhoneOutlined style={{ color: '#bfbfbf' }} />}
                 placeholder="Enter your phone number" 
+                maxLength={15}
               />
             </Form.Item>
           </div>
@@ -248,6 +327,7 @@ const UpdateProfile = () => {
               name="gender"
               label="Gender"
               rules={[{ required: true, message: 'Please select your gender' }]}
+              hasFeedback
             >
               <Select placeholder="Select your gender">
                 <Option value="Male">Male</Option>
@@ -259,7 +339,8 @@ const UpdateProfile = () => {
             <Form.Item
               name="birthday"
               label="Birthday"
-              rules={[{ required: true, message: 'Please select your birthday' }]}
+              rules={[{ validator: validateBirthday }]}
+              hasFeedback
             >
               <DatePicker 
                 style={{ width: '100%' }} 
@@ -274,11 +355,13 @@ const UpdateProfile = () => {
           <Form.Item
             name="address"
             label="Address"
-            rules={[{ required: true, message: 'Please enter your address' }]}
+            rules={[{ validator: validateAddress }]}
+            hasFeedback
           >
             <Input 
               prefix={<HomeOutlined style={{ color: '#bfbfbf' }} />}
               placeholder="Enter your address" 
+              maxLength={200}
             />
           </Form.Item>
 

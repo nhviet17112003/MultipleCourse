@@ -23,7 +23,7 @@ import {
   Divider,
   Alert,
   Progress,
-  notification,
+  message,
   Space,
   Layout,
   Breadcrumb,
@@ -122,7 +122,7 @@ const CreateLesson = () => {
       clearInterval(progressInterval);
       setUploadProgress(100);
       
-      toast.success("Lesson created successfully!");
+      message.success("Lesson created successfully!");
       
       // Show additional confirmation notification
       // notification.success({
@@ -139,7 +139,7 @@ const CreateLesson = () => {
     } catch (err) {
       setUploadProgress(0);
       const errorMessage = err.response?.data?.message || err.message;
-      toast.error("Failed to create lesson. Please try again later.");
+      message.error("Failed to create lesson. Please try again later.");
       
       // Show error notification
       // notification.error({

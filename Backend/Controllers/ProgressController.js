@@ -114,7 +114,6 @@ exports.updateProgress = async (req, res) => {
   }
 };
 
-//Show students progresses of course
 exports.getProgressByCourse = async (req, res) => {
   try {
     const course_id = req.params.course_id;

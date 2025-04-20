@@ -115,7 +115,7 @@ const UploadTutorCertificate = () => {
       );
 
       setLoading(false);
-      showMessage("success", response.data.message || "Certificate uploaded successfully!");
+      // showMessage("success", response.data.message || "Certificate uploaded successfully!");
 
       // Update the certificates list and reset form
       setCertificates(response.data.certificates || [...certificates, newCertificate]);
@@ -125,7 +125,7 @@ const UploadTutorCertificate = () => {
       antMessage.success("Certificate added successfully!");
     } catch (error) {
       setLoading(false);
-      showMessage("error", "Failed to upload certificates. Please try again.");
+      // showMessage("error", "Failed to upload certificates. Please try again.");
       antMessage.error("Upload failed. Please try again.");
     }
   };

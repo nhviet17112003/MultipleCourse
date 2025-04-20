@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Table, Card, Spin, Alert, Typography, Tag, Space, Divider, Input, Select, DatePicker, Button, Row, Col, Statistic } from "antd";
+import { Table, Card, Spin, Alert, Typography, Tag, Space, Divider, Input, Select, DatePicker, Button, Row, Col, Statistic, message } from "antd";
 import { ShoppingCartOutlined, HistoryOutlined, FilterOutlined, SearchOutlined, ReloadOutlined, UserOutlined, DollarOutlined, BookOutlined, CalendarOutlined } from "@ant-design/icons";
 
 const { Title, Text } = Typography;
@@ -42,11 +42,13 @@ export default function BuyerHistory() {
         setBuyerHistory(res.data);
         setFilteredData(res.data);
         calculateStatistics(res.data);
+        // message.success("Fetched buyer history successfully");
         console.log("Buyer:", res.data);
 
         setLoading(false);
       } catch (error) {
         setError(error);
+        message.error("Failed to fetch buyer history");
         setLoading(false);
       }
     };
@@ -159,7 +161,7 @@ export default function BuyerHistory() {
     return (
       <div className="p-4">
         <Alert
-          message="Lỗi"
+          message="Error"
           description={error.message}
           type="error"
           showIcon
