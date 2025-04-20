@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import axios from "axios";
 import { useTheme } from "./context/ThemeContext";
+import LogoMultiCourse from "../assets/LogoMultiCourse.png";  
 import { 
   Layout, 
   Menu, 
@@ -310,20 +311,20 @@ const Navbar = () => {
       label: 'Cart',
       onClick: () => debouncedNavigate('/cart'),
     }] : []),
-    {
-      key: 'theme',
-      icon: <SettingOutlined />,
-      label: (
-        <div className="flex items-center justify-between">
-          <span>Dark Mode</span>
-          <Switch
-            checked={theme === 'dark'}
-            onChange={toggleTheme}
-            size="small"
-          />
-        </div>
-      ),
-    },
+    // {
+    //   key: 'theme',
+    //   icon: <SettingOutlined />,
+    //   label: (
+    //     <div className="flex items-center justify-between">
+    //       <span>Dark Mode</span>
+    //       <Switch
+    //         checked={theme === 'dark'}
+    //         onChange={toggleTheme}
+    //         size="small"
+    //       />
+    //     </div>
+    //   ),
+    // },
     {
       type: 'divider',
     },
@@ -361,14 +362,19 @@ const Navbar = () => {
     >
       {/* Logo */}
       <div className="logo" onClick={() => debouncedNavigate("/")} style={{ cursor: 'pointer' }}>
-        <Title level={3} style={{ 
+        {/* <Title level={3} style={{ 
           margin: 0, 
           color: isHome ? '#fff' : theme === 'dark' ? '#fff' : '#001529',
           transition: 'color 0.3s'
         }}>
           MultiCourse
-        </Title>
-      </div>
+        </Title> */}
+      <img 
+          src={LogoMultiCourse}
+          alt="MultiCourse Logo" 
+          style={{ width: '100px', height: '100px', marginRight: '10px', marginTop: '10px', marginLeft: '30px' }} 
+        />
+        </div>
 
       {/* Navigation Menu - Always visible with active underline */}
       <Menu

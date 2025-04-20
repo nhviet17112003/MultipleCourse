@@ -233,12 +233,12 @@ function Sidebar() {
         zIndex: 10
       }}
     >
-      <div className="logo p-2 text-center">
-        {/* {!collapsed && (
+      <div className="logo p-4 text-center">
+        {!collapsed && (
           <Title level={4} style={{ margin: 0, color: theme === "dark" ? "#fff" : "#001529" }}>
             MultiCourse
           </Title>
-        )} */}
+        )}
       </div>
       
       <Menu

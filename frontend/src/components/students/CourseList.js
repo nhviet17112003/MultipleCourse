@@ -29,6 +29,7 @@ import {
   FilterOutlined,
   ReloadOutlined
 } from "@ant-design/icons";
+import FullScreenLoader from "../../FullScreenLoader";
 
 const { Title, Text, Paragraph } = Typography;
 const { Header, Content } = Layout;
@@ -88,6 +89,17 @@ const CourseList = () => {
     "Real Estate",
     "Telecommunications"
   ];
+
+    // Loading spinner
+    const [navigating, setNavigating] = useState(false); // Kiểm soát hiển thị loading khi chuyển trang
+  const [navigationTarget, setNavigationTarget] = useState(null); // Lưu địa chỉ trang đích
+  const [initialLoading, setInitialLoading] = useState(true);
+  
+  useEffect(() => {
+    setTimeout(() => {
+      setInitialLoading(false);
+    }, 2000);
+  }, []);
 
   const updateFilters = (type, value) => {
     setActiveFilters((prevFilters) => {
@@ -352,6 +364,31 @@ const CourseList = () => {
     setSelectedCategory("");
     setActiveFilters([]);
   };
+
+
+  const handleNavigateWithLoading = (path) => {
+    setNavigating(true);
+    setNavigationTarget(path);
+  };
+
+  const performNavigation = () => {
+    if (navigationTarget) {
+      navigate(navigationTarget);
+    }
+    setNavigating(false);
+    setNavigationTarget(null);
+  };
+  
+  if (initialLoading) {
+    return (
+      <FullScreenLoader 
+        message="Preparing Your Courses" 
+        description="Loading your educational content"
+        duration={2000}
+        onNavigate={() => {performNavigation()}}
+      />
+    );
+  }
 
   return (
     <Layout style={{ minHeight: "100vh", background: "#f0f2f5" }}>
