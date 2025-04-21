@@ -233,7 +233,7 @@ const Navbar = () => {
       localStorage.removeItem("authToken");
       localStorage.removeItem("fullname");
       localStorage.removeItem("role");
-      localStorage.removeItem("avatar");
+      localStorage.removeItem("avatarUrl");
       localStorage.removeItem("userId");
 
       // Delete Token cookie
@@ -435,7 +435,7 @@ const Navbar = () => {
             borderBottom: activeKey === "courses" ? "#1890ff" : "none",
           }}
         >
-          Course List
+          {role === "Admin" ? "Dashboard" : "Course List"}
         </Menu.Item>
         <Menu.Item
           key="contact"
@@ -481,7 +481,7 @@ const Navbar = () => {
               strong
               style={{ color: isHome || theme === "dark" ? "#fff" : "inherit" }}
             >
-              {role === "Admin" ? walletData?.current_balance : balance} VND
+              {role === "Admin" ? walletData?.total_earning : balance} VND
             </Text>
 
             {role === "Student" && (
