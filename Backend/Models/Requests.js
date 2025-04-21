@@ -1,4 +1,3 @@
-const e = require("express");
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
@@ -8,7 +7,7 @@ const RequestSchema = new Schema({
     ref: "Users",
   },
   course: {
-    type: Schema.Types.ObjectId,
+    type: String,
     ref: "Courses",
   },
   request_type: {
