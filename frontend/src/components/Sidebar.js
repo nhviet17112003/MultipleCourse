@@ -199,7 +199,7 @@ function Sidebar() {
           },
           {
             key: "23",
-            label: <Link to="/deposit-history-for-admin">Wallet History</Link>,
+            label: <Link to="/deposit-history-for-admin">Deposit History</Link>,
             icon: <HistoryOutlined />
           },
         ],

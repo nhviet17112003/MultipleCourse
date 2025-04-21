@@ -1,27 +1,43 @@
 import React, { useEffect, useState } from "react";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import {
-  FaSearch,
-  FaFilter,
-  FaSortAmountDown,
-  FaSortAmountUp,
-  FaSort,
-  FaWallet,
-} from "react-icons/fa";
-import { message } from "antd";
+  Table,
+  Input,
+  DatePicker,
+  Card,
+  Typography,
+  message,
+  Spin,
+  Space,
+  Statistic,
+  Button,
+  Tag,
+  Tooltip
+} from "antd";
+import {
+  SearchOutlined,
+  UpOutlined,
+  DownOutlined,
+  FilterOutlined,
+  WalletOutlined
+} from "@ant-design/icons";
+import dayjs from "dayjs";
+
+const { Title, Text } = Typography;
+const { Search } = Input;
 
 const DepositHistoryForAdmin = () => {
   const [deposits, setDeposits] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5);
   const [searchTerm, setSearchTerm] = useState("");
   const [userSearchTerm, setUserSearchTerm] = useState("");
-  const [dateFilter, setDateFilter] = useState("");
+  const [dateFilter, setDateFilter] = useState(null);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 5
+  });
   const [sortConfig, setSortConfig] = useState({
-    key: "payment_date",
-    direction: "desc",
+    columnKey: "payment_date",
+    order: "descend"
   });
 
   useEffect(() => {
@@ -55,18 +71,6 @@ const DepositHistoryForAdmin = () => {
     fetchDeposits();
   }, []);
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleString("vi-VN", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
-  };
-
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
@@ -74,282 +78,185 @@ const DepositHistoryForAdmin = () => {
     }).format(amount);
   };
 
-  const handleSort = (key) => {
-    let direction = "asc";
-    if (sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
-    }
-    setSortConfig({ key, direction });
-  };
-
-  const getSortIcon = (key) => {
-    if (sortConfig.key !== key) {
-      return <FaSort className="ml-1 text-gray-400" />;
-    }
-    return sortConfig.direction === "asc" ? (
-      <FaSortAmountUp className="ml-1 text-indigo-500" />
-    ) : (
-      <FaSortAmountDown className="ml-1 text-indigo-500" />
-    );
-  };
-
-  const filteredDeposits = deposits
-    .filter((deposit) => {
-      const matchesOrderCode = deposit.order_code
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-      const matchesUser = deposit.user
-        .toLowerCase()
-        .includes(userSearchTerm.toLowerCase());
-      const matchesDate = dateFilter
-        ? new Date(deposit.payment_date).toISOString().split("T")[0] ===
-          dateFilter
-        : true;
-      return matchesOrderCode && matchesUser && matchesDate;
-    })
-    .sort((a, b) => {
-      if (sortConfig.key === "payment_amount") {
-        return sortConfig.direction === "asc"
-          ? a.payment_amount - b.payment_amount
-          : b.payment_amount - a.payment_amount;
-      } else if (sortConfig.key === "payment_date") {
-        return sortConfig.direction === "asc"
-          ? new Date(a.payment_date) - new Date(b.payment_date)
-          : new Date(b.payment_date) - new Date(a.payment_date);
-      } else {
-        return sortConfig.direction === "asc"
-          ? a[sortConfig.key].localeCompare(b[sortConfig.key])
-          : b[sortConfig.key].localeCompare(a[sortConfig.key]);
-      }
-    });
+  const filteredDeposits = deposits.filter((deposit) => {
+    const matchesOrderCode = deposit.order_code
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesUser = deposit.user
+      .toLowerCase()
+      .includes(userSearchTerm.toLowerCase());
+    const matchesDate = dateFilter
+      ? dayjs(deposit.payment_date).format('YYYY-MM-DD') === dateFilter.format('YYYY-MM-DD')
+      : true;
+    return matchesOrderCode && matchesUser && matchesDate;
+  });
 
   const totalAmount = filteredDeposits.reduce(
     (sum, deposit) => sum + deposit.payment_amount,
     0
   );
 
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredDeposits.slice(
-    indexOfFirstItem,
-    indexOfLastItem
-  );
-  const totalPages = Math.ceil(filteredDeposits.length / itemsPerPage);
+  const handleTableChange = (pagination, filters, sorter) => {
+    setPagination(pagination);
+    if (sorter && sorter.columnKey) {
+      setSortConfig({
+        columnKey: sorter.columnKey,
+        order: sorter.order
+      });
+    }
+  };
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const columns = [
+    {
+      title: "Order Code",
+      dataIndex: "order_code",
+      key: "order_code",
+      sorter: (a, b) => a.order_code.localeCompare(b.order_code),
+      sortOrder: sortConfig.columnKey === "order_code" ? sortConfig.order : null,
+    },
+    {
+      title: "User",
+      dataIndex: "user",
+      key: "user",
+      sorter: (a, b) => a.user.localeCompare(b.user),
+      sortOrder: sortConfig.columnKey === "user" ? sortConfig.order : null,
+      render: (text) => <span>{text}</span>,
+    },
+    {
+      title: "Amount",
+      dataIndex: "payment_amount",
+      key: "payment_amount",
+      sorter: (a, b) => a.payment_amount - b.payment_amount,
+      sortOrder: sortConfig.columnKey === "payment_amount" ? sortConfig.order : null,
+      render: (amount) => (
+        <Text strong style={{ color: "#1890ff" }}>
+          {formatCurrency(amount)}
+        </Text>
+      ),
+    },
+    {
+      title: "Date",
+      dataIndex: "payment_date",
+      key: "payment_date",
+      sorter: (a, b) => new Date(a.payment_date) - new Date(b.payment_date),
+      sortOrder: sortConfig.columnKey === "payment_date" ? sortConfig.order : null,
+      render: (date) => (
+        <span>
+          {dayjs(date).format("DD/MM/YYYY HH:mm:ss")}
+        </span>
+      ),
+    },
+    {
+      title: "Description",
+      dataIndex: "description",
+      key: "description",
+      sorter: (a, b) => a.description.localeCompare(b.description),
+      sortOrder: sortConfig.columnKey === "description" ? sortConfig.order : null,
+    },
+  ];
+
+  const resetFilters = () => {
+    setSearchTerm("");
+    setUserSearchTerm("");
+    setDateFilter(null);
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-500"></div>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Spin size="large" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white/80 backdrop-blur-lg shadow-2xl rounded-2xl overflow-hidden border border-gray-100">
-          <div className="px-8 py-10 border-b border-gray-100">
-            <h2 className="text-3xl font-bold text-black flex items-center gap-2">
-              <FaWallet className="text-black" />
-              Wallet History
-            </h2>
-
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
-              <div className="space-y-2">
-                <div className="flex flex-wrap gap-4 text-sm">
-                  <div className="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-full">
-                    <span className="font-semibold">
-                      {filteredDeposits.length}
-                    </span>{" "}
-                    Total Deposits
-                  </div>
-                  <div className="bg-purple-50 text-purple-700 px-4 py-2 rounded-full">
-                    <span className="font-semibold">
-                      {formatCurrency(totalAmount)}
-                    </span>{" "}
-                    Total Amount
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-4">
-                <div className="relative group">
-                  <input
-                    type="text"
-                    placeholder="Search by order code..."
-                    className="pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 w-full md:w-64"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                  <FaSearch className="absolute left-3 top-3.5 text-gray-400 group-hover:text-indigo-500 transition-colors" />
-                </div>
-                <div className="relative group">
-                  <input
-                    type="text"
-                    placeholder="Search by user..."
-                    className="pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 w-full md:w-64"
-                    value={userSearchTerm}
-                    onChange={(e) => setUserSearchTerm(e.target.value)}
-                  />
-                  <FaSearch className="absolute left-3 top-3.5 text-gray-400 group-hover:text-indigo-500 transition-colors" />
-                </div>
-                <div className="relative group">
-                  <input
-                    type="date"
-                    className="pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 w-full md:w-48"
-                    value={dateFilter}
-                    onChange={(e) => setDateFilter(e.target.value)}
-                  />
-                  <FaFilter className="absolute left-3 top-3.5 text-gray-400 group-hover:text-indigo-500 transition-colors" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-100">
-              <thead className="bg-gray-50/50">
-                <tr>
-                  <th
-                    className="px-8 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100/50 transition-colors duration-200"
-                    onClick={() => handleSort("order_code")}
-                  >
-                    <div className="flex items-center">
-                      Order Code
-                      {getSortIcon("order_code")}
-                    </div>
-                  </th>
-                  <th
-                    className="px-8 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100/50 transition-colors duration-200"
-                    onClick={() => handleSort("user")}
-                  >
-                    <div className="flex items-center">
-                      User
-                      {getSortIcon("user")}
-                    </div>
-                  </th>
-                  <th
-                    className="px-8 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100/50 transition-colors duration-200"
-                    onClick={() => handleSort("payment_amount")}
-                  >
-                    <div className="flex items-center">
-                      Amount
-                      {getSortIcon("payment_amount")}
-                    </div>
-                  </th>
-                  <th
-                    className="px-8 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100/50 transition-colors duration-200"
-                    onClick={() => handleSort("payment_date")}
-                  >
-                    <div className="flex items-center">
-                      Date
-                      {getSortIcon("payment_date")}
-                    </div>
-                  </th>
-                  <th
-                    className="px-8 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100/50 transition-colors duration-200"
-                    onClick={() => handleSort("description")}
-                  >
-                    <div className="flex items-center">
-                      Description
-                      {getSortIcon("description")}
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-100">
-                {currentItems.map((deposit) => (
-                  <tr
-                    key={deposit.order_code}
-                    className="hover:bg-indigo-50/50 transition-colors duration-200"
-                  >
-                    <td className="px-8 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {deposit.order_code}
-                    </td>
-                    <td className="px-8 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {deposit.user}
-                    </td>
-                    <td className="px-8 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <span className="font-semibold text-indigo-600">
-                        {formatCurrency(deposit.payment_amount)}
-                      </span>
-                    </td>
-                    <td className="px-8 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(deposit.payment_date)}
-                    </td>
-                    <td className="px-8 py-4 text-sm text-gray-500">
-                      {deposit.description}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="px-8 py-6 border-t border-gray-100">
-            <div className="flex items-center justify-between">
-              <div className="flex-1 flex justify-between sm:hidden">
-                <button
-                  onClick={() => paginate(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => paginate(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
-              </div>
-              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm text-gray-700">
-                    Showing{" "}
-                    <span className="font-medium text-indigo-600">
-                      {indexOfFirstItem + 1}
-                    </span>{" "}
-                    to{" "}
-                    <span className="font-medium text-indigo-600">
-                      {Math.min(indexOfLastItem, filteredDeposits.length)}
-                    </span>{" "}
-                    of{" "}
-                    <span className="font-medium text-indigo-600">
-                      {filteredDeposits.length}
-                    </span>{" "}
-                    results
-                  </p>
-                </div>
-                <div>
-                  <nav
-                    className="relative z-0 inline-flex rounded-xl shadow-sm -space-x-px"
-                    aria-label="Pagination"
-                  >
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                      (number) => (
-                        <button
-                          key={number}
-                          onClick={() => paginate(number)}
-                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-colors duration-200 ${
-                            currentPage === number
-                              ? "z-10 bg-indigo-50 border-indigo-500 text-indigo-600"
-                              : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-                          }`}
-                        >
-                          {number}
-                        </button>
-                      )
-                    )}
-                  </nav>
-                </div>
-              </div>
-            </div>
-          </div>
+    <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
+      <Card bordered={false} style={{ borderRadius: '8px' }}>
+        <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
+          <Title level={2} style={{ margin: 0 }}>
+            <WalletOutlined style={{ marginRight: '12px' }} />
+            Deposit History
+          </Title>
         </div>
-      </div>
+
+        <Space style={{ marginBottom: '24px' }} wrap>
+          <Card style={{ background: '#e6f7ff', borderColor: '#91d5ff' }}>
+            <Statistic
+              title="Total Deposits"
+              value={filteredDeposits.length}
+              suffix="records"
+            />
+          </Card>
+          <Card style={{ background: '#f6ffed', borderColor: '#b7eb8f' }}>
+            <Statistic
+              title="Total Amount"
+              value={formatCurrency(totalAmount)}
+              valueStyle={{ color: '#52c41a' }}
+            />
+          </Card>
+        </Space>
+
+        <Space style={{ marginBottom: '24px' }} wrap>
+          <Search
+            placeholder="Search by order code"
+            allowClear
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{ width: 250 }}
+            prefix={<SearchOutlined />}
+          />
+          <Search
+            placeholder="Search by user"
+            allowClear
+            value={userSearchTerm}
+            onChange={(e) => setUserSearchTerm(e.target.value)}
+            style={{ width: 250 }}
+            prefix={<SearchOutlined />}
+          />
+          <DatePicker
+            placeholder="Filter by date"
+            value={dateFilter}
+            onChange={(date) => setDateFilter(date)}
+            style={{ width: 200 }}
+          />
+          <Button type="default" onClick={resetFilters}>
+            Reset Filters
+          </Button>
+        </Space>
+
+        <Table
+          columns={columns}
+          dataSource={filteredDeposits.map(deposit => ({ ...deposit, key: deposit.order_code }))}
+          pagination={pagination}
+          onChange={handleTableChange}
+          loading={loading}
+          bordered
+          size="middle"
+          style={{ marginTop: '16px' }}
+          scroll={{ x: 'max-content' }}
+          summary={(pageData) => {
+            if (pageData.length === 0) return null;
+            
+            return (
+              <Table.Summary fixed>
+                <Table.Summary.Row>
+                  <Table.Summary.Cell index={0} colSpan={2}>
+                    <Text strong>Total</Text>
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell index={2}>
+                    <Text strong style={{ color: "#1890ff" }}>
+                      {formatCurrency(
+                        pageData.reduce((sum, row) => sum + row.payment_amount, 0)
+                      )}
+                    </Text>
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell index={3} colSpan={2}></Table.Summary.Cell>
+                </Table.Summary.Row>
+              </Table.Summary>
+            );
+          }}
+        />
+      </Card>
     </div>
   );
 };
