@@ -63,3 +63,17 @@
 .ant-table-dark .ant-table-column-sorter-inner {
   color: #9ca3af;
 }
+.menu-item {
+  background: transparent !important;
+  transition: border-bottom 0.3s;
+}
+
+.menu-item:hover {
+  border-bottom: 2px solid #1890ff;
+  background: transparent !important;
+}
+
+.menu-item-active {
+  border-bottom: 2px solid #1890ff;
+  background: transparent !important;
+}
