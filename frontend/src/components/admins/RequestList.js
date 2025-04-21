@@ -415,7 +415,7 @@ export default function RequestList() {
       </div>
 
       <Modal
-        title="Provide Rejection Reason"
+        title="Request Rejection"
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}
         footer={[
@@ -434,17 +434,24 @@ export default function RequestList() {
                 rejectReason
               );
             }}
+            disabled={!rejectReason.trim()}
           >
             Reject Request
           </Button>
         ]}
       >
+          <div className="mb-4">
+          <p className="mb-2 text-gray-600">
+            Please provide a reason for banning this course:
+          </p>
         <Input.TextArea
           rows={4}
           placeholder="Please provide a detailed reason for rejection..."
           value={rejectReason}
           onChange={(e) => setRejectReason(e.target.value)}
+          
         />
+         </div>
       </Modal>
 
       <ToastContainer theme={theme === "dark" ? "dark" : "light"} />

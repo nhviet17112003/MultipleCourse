@@ -6,7 +6,6 @@ import {
   Input, 
   Button, 
   InputNumber, 
-  Select, 
   Card, 
   Checkbox, 
   message, 
@@ -22,15 +21,12 @@ import {
   DeleteOutlined, 
   PlusOutlined, 
   SaveOutlined, 
-  QuestionCircleOutlined,
-  CheckCircleOutlined,
   WarningOutlined,
   CloseCircleOutlined
 } from "@ant-design/icons";
-import { toast, ToastContainer } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 
 const { Title, Text } = Typography;
-const { Option } = Select;
 
 const UpdateExam = () => {
   const { examId, courseId } = useParams();
@@ -44,25 +40,6 @@ const UpdateExam = () => {
 
   const token = localStorage.getItem("authToken");
 
-  const handleQuestionTypeChange = (value, qIndex) => {
-    setExam((prevExam) => {
-      const updatedQuestions = [...prevExam.questions];
-      updatedQuestions[qIndex].questionType = value;
-      
-      // Reset all correct answers when changing to "One Choice"
-      if (value === "One Choice") {
-        updatedQuestions[qIndex].answers = updatedQuestions[qIndex].answers.map(
-          (answer) => ({
-            ...answer,
-            isCorrect: false,
-          })
-        );
-      }
-      
-      return { ...prevExam, questions: updatedQuestions };
-    });
-  };
-
   // Calculate total marks whenever questions change
   useEffect(() => {
     if (exam) {
@@ -70,10 +47,24 @@ const UpdateExam = () => {
         (acc, question) => acc + Number(question.marks || 0),
         0
       );
-      setTotalMark(calculatedTotalMark);
-      setExam((prevExam) => ({ ...prevExam, totalMark: calculatedTotalMark }));
+      
+      // Chỉ cập nhật khi totalMark thực sự thay đổi để tránh vòng lặp vô hạn
+      if (calculatedTotalMark !== totalMark) {
+        setTotalMark(calculatedTotalMark);
+        
+        // Cập nhật form field
+        form.setFieldValue('totalMark', calculatedTotalMark);
+        
+        // Cập nhật exam object
+        setExam((prevExam) => {
+          if (prevExam.totalMark === calculatedTotalMark) {
+            return prevExam;
+          }
+          return { ...prevExam, totalMark: calculatedTotalMark };
+        });
+      }
     }
-  }, [exam?.questions]);
+  }, [exam?.questions, totalMark, form]);
 
   // Fetch exam data
   useEffect(() => {
@@ -88,14 +79,29 @@ const UpdateExam = () => {
           }
         );
         setExam(response.data);
+        
+        // Set initial total mark based on fetched data
+        const initialTotalMark = response.data.questions.reduce(
+          (acc, question) => acc + Number(question.marks || 0),
+          0
+        );
+        setTotalMark(initialTotalMark);
+        
+        // Initialize form values
+        form.setFieldsValue({
+          title: response.data.title,
+          duration: response.data.duration,
+          totalMark: initialTotalMark
+        });
       } catch (err) {
         setError("Failed to fetch exam details");
+        console.error("Fetch error:", err);
       } finally {
         setLoading(false);
       }
     };
     fetchExam();
-  }, [examId, courseId, token]);
+  }, [examId, courseId, token, form]);
 
   const handleChange = (e, questionIndex, answerIndex) => {
     const { name, value, checked, type } = e.target;
@@ -105,20 +111,8 @@ const UpdateExam = () => {
       
       if (answerIndex !== undefined) {
         if (name === "isCorrect") {
-          const currentQuestionType = updatedQuestions[questionIndex].questionType;
-          
-          if (currentQuestionType === "One Choice") {
-            // For "One Choice" questions, ensure only one answer can be selected
-            updatedQuestions[questionIndex].answers = updatedQuestions[questionIndex].answers.map(
-              (answer, idx) => ({
-                ...answer,
-                isCorrect: idx === answerIndex ? checked : false,
-              })
-            );
-          } else {
-            // For "Multiple Choice" questions, just toggle the current answer
-            updatedQuestions[questionIndex].answers[answerIndex].isCorrect = checked;
-          }
+          // Luôn cho phép chọn nhiều đáp án đúng (Multiple Choice)
+          updatedQuestions[questionIndex].answers[answerIndex].isCorrect = checked;
         } else {
           updatedQuestions[questionIndex].answers[answerIndex][name] = value;
         }
@@ -145,32 +139,89 @@ const UpdateExam = () => {
     });
   };
 
+  const validateExam = () => {
+    // Check if there are any questions
+    if (!exam.questions || exam.questions.length === 0) {
+      api.warning({
+        message: 'Validation Error',
+        description: 'Please add at least one question to the exam',
+        icon: <WarningOutlined style={{ color: '#faad14' }} />,
+        placement: 'topRight',
+      });
+      return false;
+    }
+    
+    // Chỉ kiểm tra validation trên những câu hỏi đã được điền
+    // (bỏ qua câu hỏi mới thêm vào nhưng chưa điền nội dung)
+    const completedQuestions = exam.questions.filter(q => q.question.trim());
+    
+    // Kiểm tra nếu có ít nhất một câu hỏi đã được điền
+    if (completedQuestions.length === 0) {
+      api.warning({
+        message: 'Validation Error',
+        description: 'Please complete at least one question',
+        icon: <WarningOutlined style={{ color: '#faad14' }} />,
+        placement: 'topRight',
+      });
+      return false;
+    }
+    
+    // Chỉ kiểm tra validation trên những câu hỏi đã được điền
+    for (const question of completedQuestions) {
+      // Kiểm tra điểm số
+      if (!question.marks) {
+        api.warning({
+          message: 'Validation Error',
+          description: 'All completed questions must have marks assigned',
+          icon: <WarningOutlined style={{ color: '#faad14' }} />,
+          placement: 'topRight',
+        });
+        return false;
+      }
+      
+      // Kiểm tra câu trả lời
+      if (!question.answers || question.answers.length === 0) {
+        api.warning({
+          message: 'Validation Error',
+          description: 'All completed questions must have at least one answer',
+          icon: <WarningOutlined style={{ color: '#faad14' }} />,
+          placement: 'topRight',
+        });
+        return false;
+      }
+      
+      // Kiểm tra nội dung câu trả lời
+      const hasEmptyAnswers = question.answers.some(a => !a.answer.trim());
+      if (hasEmptyAnswers) {
+        api.warning({
+          message: 'Validation Error',
+          description: 'All answers must have text',
+          icon: <WarningOutlined style={{ color: '#faad14' }} />,
+          placement: 'topRight',
+        });
+        return false;
+      }
+      
+      // Kiểm tra câu trả lời đúng
+      if (!question.answers.some(a => a.isCorrect)) {
+        api.warning({
+          message: 'Validation Error',
+          description: 'Each completed question must have at least one correct answer',
+          icon: <WarningOutlined style={{ color: '#faad14' }} />,
+          placement: 'topRight',
+        });
+        return false;
+      }
+    }
+    
+    return true;
+  };
+
   const handleSubmit = async () => {
     try {
       await form.validateFields();
       
-      if (!exam.questions.length) {
-        api.warning({
-          message: 'Validation Error',
-          description: 'Please add at least one question to the exam',
-          icon: <WarningOutlined style={{ color: '#faad14' }} />,
-          placement: 'topRight',
-        });
-        return;
-      }
-      
-      // Validate that each question has at least one correct answer
-      const invalidQuestions = exam.questions.filter(
-        q => !q.answers.some(a => a.isCorrect)
-      );
-      
-      if (invalidQuestions.length > 0) {
-        api.warning({
-          message: 'Validation Error',
-          description: 'Each question must have at least one correct answer',
-          icon: <WarningOutlined style={{ color: '#faad14' }} />,
-          placement: 'topRight',
-        });
+      if (!validateExam()) {
         return;
       }
       
@@ -191,13 +242,6 @@ const UpdateExam = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      // api.success({
-      //   message: 'Success',
-      //   description: 'Exam updated successfully!',
-      //   icon: <CheckCircleOutlined style={{ color: '#52c41a' }} />,
-      //   placement: 'topRight',
-      //   duration: 3,
-      // });
       message.success("Exam updated successfully!");
       
       // Redirect after short delay
@@ -205,12 +249,6 @@ const UpdateExam = () => {
         navigate(-1);
       }, 2000);
     } catch (err) {
-      // api.error({
-      //   message: 'Update Failed',
-      //   description: 'Failed to update exam. Please check your input and try again.',
-      //   icon: <CloseCircleOutlined style={{ color: '#ff4d4f' }} />,
-      //   placement: 'topRight',
-      // });
       message.error("Failed to update exam. Please check your input and try again.");
       console.error("Failed to update exam", err);
     }
@@ -221,10 +259,11 @@ const UpdateExam = () => {
       const newQuestion = {
         question: "",
         marks: 1,
-        questionType: "Multiple Choice",
+        questionType: "Multiple Choice", // Luôn đặt là Multiple Choice cho câu hỏi mới
         answers: [{ answer: "", isCorrect: false }],
       };
-      return { ...prevExam, questions: [...prevExam.questions, newQuestion] };
+      const updatedExam = { ...prevExam, questions: [...prevExam.questions, newQuestion] };
+      return updatedExam;
     });
   };
 
@@ -245,8 +284,6 @@ const UpdateExam = () => {
       };
     });
   }, []);
-
-  // Modal close handler removed as we're using toast notifications
 
   if (loading) return (
     <div className="flex justify-center items-center h-screen">
@@ -277,10 +314,6 @@ const UpdateExam = () => {
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
-          initialValues={{
-            title: exam.title,
-            duration: exam.duration,
-          }}
         >
           <Form.Item
             label="Exam Title"
@@ -312,13 +345,16 @@ const UpdateExam = () => {
             <Form.Item
               label="Duration (minutes)"
               name="duration"
-              rules={[{ required: true, message: "Duration must be greater than zero!" }]}
+              rules={[
+                { required: true, message: "Duration is required!" },
+                { type: 'number', min: 1, message: "Duration must be greater than zero!" }
+              ]}
             >
               <InputNumber
                 className="w-full"
                 min={1}
                 value={exam.duration}
-                onChange={(value) => setExam({ ...exam, duration: value })}
+                onChange={(value) => setExam(prev => ({ ...prev, duration: value }))}
                 size="large"
               />
             </Form.Item>
@@ -344,19 +380,14 @@ const UpdateExam = () => {
               title={
                 <Space>
                   <Text strong>Question {qIndex + 1}</Text>
-                  {question.questionType === "One Choice" ? (
-                    <Text type="secondary">(Single Answer)</Text>
-                  ) : (
-                    <Text type="secondary">(Multiple Answers)</Text>
-                  )}
                 </Space>
               }
             >
               <Form.Item
                 label="Question Text"
                 required
-                validateStatus={!question.question.trim() ? "error" : ""}
-                help={!question.question.trim() ? "Question cannot be empty!" : ""}
+                validateStatus={qIndex === 0 && !question.question.trim() ? "error" : ""}
+                help={qIndex === 0 && !question.question.trim() ? "Question cannot be empty!" : ""}
               >
                 <Input
                   placeholder="Enter your question here"
@@ -366,35 +397,23 @@ const UpdateExam = () => {
                 />
               </Form.Item>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <Form.Item label="Question Type">
-                  <Select
-                    value={question.questionType}
-                    onChange={(value) => handleQuestionTypeChange(value, qIndex)}
-                  >
-                    <Option value="One Choice">One Choice</Option>
-                    <Option value="Multiple Choice">Multiple Choice</Option>
-                  </Select>
-                </Form.Item>
-
-                <Form.Item
-                  label="Question Marks"
-                  required
-                  validateStatus={!question.marks ? "error" : ""}
-                  help={!question.marks ? "Marks cannot be empty!" : ""}
-                >
-                  <InputNumber
-                    className="w-full"
-                    min={1}
-                    name="marks"
-                    value={question.marks}
-                    onChange={(value) => {
-                      const event = { target: { name: "marks", value } };
-                      handleChange(event, qIndex);
-                    }}
-                  />
-                </Form.Item>
-              </div>
+              <Form.Item
+                label="Question Marks"
+                required
+                validateStatus={question.question.trim() && !question.marks ? "error" : ""}
+                help={question.question.trim() && !question.marks ? "Marks cannot be empty!" : ""}
+              >
+                <InputNumber
+                  className="w-full"
+                  min={1}
+                  name="marks"
+                  value={question.marks}
+                  onChange={(value) => {
+                    const event = { target: { name: "marks", value } };
+                    handleChange(event, qIndex);
+                  }}
+                />
+              </Form.Item>
 
               <Divider orientation="left">Answers</Divider>
               
@@ -410,8 +429,8 @@ const UpdateExam = () => {
                     <div key={answer._id || aIndex} className="flex items-center space-x-2">
                       <Form.Item
                         className="mb-2 flex-grow"
-                        validateStatus={!answer.answer.trim() ? "error" : ""}
-                        help={!answer.answer.trim() ? "Answer cannot be empty!" : ""}
+                        validateStatus={question.question.trim() && !answer.answer.trim() ? "error" : ""}
+                        help={question.question.trim() && !answer.answer.trim() ? "Answer cannot be empty!" : ""}
                       >
                         <Input
                           placeholder="Enter answer option"
@@ -447,7 +466,7 @@ const UpdateExam = () => {
                 </div>
               )}
               
-              {!question.answers.some(a => a.isCorrect) && (
+              {question.question.trim() && !question.answers.some(a => a.isCorrect) && (
                 <Alert
                   type="error"
                   message="Each question must have at least one correct answer"
@@ -490,7 +509,6 @@ const UpdateExam = () => {
         </Form>
       </Card>
 
-      {/* Success message will appear as a toast notification */}
       <ToastContainer />
     </div>
   );

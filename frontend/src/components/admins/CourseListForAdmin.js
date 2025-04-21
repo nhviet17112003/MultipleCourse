@@ -611,8 +611,10 @@ const DropDownMenu = ({record, setCourses, courses, fetchCourses}) => {
             type="primary" 
             danger
             onClick={() => toggleCourseStatus(record.key, "Rejected", rejectReason)}
+            disabled={!rejectReason.trim()}
           >
-            Confirm Ban
+            
+            Ban Course
           </Button>,
         ]}
       >

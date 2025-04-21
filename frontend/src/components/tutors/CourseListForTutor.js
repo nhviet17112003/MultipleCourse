@@ -214,9 +214,9 @@ useEffect(() => {
 
           if (response.status === 201) {
             message.success("Request delete course successfully.");
-            setCourses((prevCourses) =>
-              prevCourses.filter((course) => course._id !== courseId)
-            );
+            // setCourses((prevCourses) =>
+            //   prevCourses.filter((course) => course._id !== courseId)
+            // );
           }
         } catch (error) {
           console.error("Error deleting course:", error);

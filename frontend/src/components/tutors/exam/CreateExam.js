@@ -1,307 +1,519 @@
-import React, { useState } from "react";
-import axios from "axios";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import {
-  Button,
-  Input,
-  Card,
-  Select,
-  Form,
-  message,
-  Typography,
-  Alert,
+import axios from "axios";
+import { 
+  Form, 
+  Input, 
+  Button, 
+  InputNumber, 
+  Card, 
+  Checkbox, 
+  message, 
+  Typography, 
+  Divider, 
+  Space, 
+  Spin, 
+  Alert, 
+  Tooltip,
+  notification 
 } from "antd";
-import {
-  PlusOutlined,
-  MinusCircleOutlined,
-  ArrowLeftOutlined,
+import { 
+  DeleteOutlined, 
+  PlusOutlined, 
+  SaveOutlined, 
+  WarningOutlined
 } from "@ant-design/icons";
-import { toast, ToastContainer } from "react-toastify";
-import { Header } from "antd/es/layout/layout";
-import { Tooltip } from "antd";
-const { Option } = Select;
+import { ToastContainer } from "react-toastify";
+
 const { Title, Text } = Typography;
 
 const CreateExam = () => {
-  const navigate = useNavigate();
   const { courseId } = useParams();
-  const [title, setTitle] = useState("");
-  const [duration, setDuration] = useState("");
-  const [totalMark, setTotalMark] = useState("");
-  const [questions, setQuestions] = useState([]);
-  const [errorMessage, setErrorMessage] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isCreated, setIsCreated] = useState(false);
+  const navigate = useNavigate();
+  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [api, contextHolder] = notification.useNotification();
+  const [totalMark, setTotalMark] = useState(0);
+  const [exam, setExam] = useState({
+    title: "",
+    duration: "",
+    totalMark: 0,
+    questions: [{
+      question: "",
+      marks: "",
+      questionType: "",
+      answers: [{ answer: "", isCorrect: false }]
+    }]
+  });
 
-  const handleAddQuestion = () => {
-    setQuestions([...questions, { question: "", marks: 0, answers: [] }]);
-  };
+  const token = localStorage.getItem("authToken");
 
-  const handleRemoveQuestion = (index) => {
-    const updatedQuestions = questions.filter((_, i) => i !== index);
-    setQuestions(updatedQuestions);
-
-    const newTotalMark = updatedQuestions.reduce(
-      (sum, q) => sum + (q.marks || 0),
+  // Calculate total marks whenever questions change
+  useEffect(() => {
+    const calculatedTotalMark = exam.questions.reduce(
+      (acc, question) => acc + Number(question.marks || 0),
       0
     );
-    setTotalMark(newTotalMark);
+    
+    // Only update when totalMark actually changes to avoid infinite loops
+    if (calculatedTotalMark !== totalMark) {
+      setTotalMark(calculatedTotalMark);
+      
+      // Update form field
+      form.setFieldValue('totalMark', calculatedTotalMark);
+      
+      // Update exam object
+      setExam((prevExam) => {
+        if (prevExam.totalMark === calculatedTotalMark) {
+          return prevExam;
+        }
+        return { ...prevExam, totalMark: calculatedTotalMark };
+      });
+    }
+  }, [exam.questions, totalMark, form]);
+
+  const handleChange = (e, questionIndex, answerIndex) => {
+    const { name, value, checked, type } = e.target;
+    
+    setExam((prevExam) => {
+      const updatedQuestions = [...prevExam.questions];
+      
+      if (answerIndex !== undefined) {
+        if (name === "isCorrect") {
+          // Always allow multiple correct answers (Multiple Choice)
+          updatedQuestions[questionIndex].answers[answerIndex].isCorrect = checked;
+        } else {
+          updatedQuestions[questionIndex].answers[answerIndex][name] = value;
+        }
+      } else {
+        updatedQuestions[questionIndex][name] = value;
+      }
+      
+      return { ...prevExam, questions: updatedQuestions };
+    });
   };
 
-  const handleQuestionChange = (index, field, value) => {
-    const updatedQuestions = [...questions];
-    updatedQuestions[index][field] = value;
+  const handleDeleteQuestion = (index) => {
+    setExam((prevExam) => {
+      if (prevExam.questions.length <= 1) {
+        api.warning({
+          message: 'Cannot Remove',
+          description: 'Exam must have at least one question',
+          icon: <WarningOutlined style={{ color: '#faad14' }} />,
+          placement: 'topRight',
+        });
+        return prevExam;
+      }
+      const updatedQuestions = prevExam.questions.filter((_, i) => i !== index);
+      return { ...prevExam, questions: updatedQuestions };
+    });
+  };
 
-    if (field === "marks") {
-      const newTotalMark = updatedQuestions.reduce(
-        (sum, q) => sum + (q.marks || 0),
-        0
-      );
-      setTotalMark(newTotalMark);
-    }
+  const handleDeleteAnswer = (qIndex, aIndex) => {
+    setExam((prevExam) => {
+      const updatedQuestions = [...prevExam.questions];
+      
+      // Check if this is the last answer
+      if (updatedQuestions[qIndex].answers.length <= 1) {
+        api.warning({
+          message: 'Cannot Remove',
+          description: 'Question must have at least one answer',
+          icon: <WarningOutlined style={{ color: '#faad14' }} />,
+          placement: 'topRight',
+        });
+        return prevExam;
+      }
+      
+      updatedQuestions[qIndex].answers.splice(aIndex, 1);
+      return { ...prevExam, questions: updatedQuestions };
+    });
+  };
 
-    setQuestions(updatedQuestions);
+  const handleAddQuestion = () => {
+    setExam((prevExam) => {
+      const newQuestion = {
+        question: "",
+        marks: "",
+        questionType: "",
+        answers: [{ answer: "", isCorrect: false }],
+      };
+      return { ...prevExam, questions: [...prevExam.questions, newQuestion] };
+    });
   };
 
   const handleAddAnswer = (qIndex) => {
-    const updatedQuestions = [...questions];
-    updatedQuestions[qIndex].answers.push({ answer: "", isCorrect: false });
-    setQuestions(updatedQuestions);
+    setExam((prevExam) => {
+      const updatedQuestions = [...prevExam.questions];
+      updatedQuestions[qIndex].answers.push({ answer: "", isCorrect: false });
+      return { ...prevExam, questions: updatedQuestions };
+    });
   };
 
-  const handleRemoveAnswer = (qIndex, aIndex) => {
-    const updatedQuestions = [...questions];
-    updatedQuestions[qIndex].answers.splice(aIndex, 1);
-    setQuestions(updatedQuestions);
-  };
-
-  const handleAnswerChange = (qIndex, aIndex, field, value) => {
-    const updatedQuestions = [...questions];
-    updatedQuestions[qIndex].answers[aIndex][field] =
-      field === "isCorrect" ? value === "true" : value;
-    setQuestions(updatedQuestions);
+  const validateExam = () => {
+    // Check if title is empty
+    if (!exam.title.trim()) {
+      api.warning({
+        message: 'Validation Error',
+        description: 'Exam title cannot be empty',
+        icon: <WarningOutlined style={{ color: '#faad14' }} />,
+        placement: 'topRight',
+      });
+      return false;
+    }
+    
+    // Check if duration is valid
+    if (!exam.duration || exam.duration < 1) {
+      api.warning({
+        message: 'Validation Error',
+        description: 'Duration must be at least 1 minute',
+        icon: <WarningOutlined style={{ color: '#faad14' }} />,
+        placement: 'topRight',
+      });
+      return false;
+    }
+    
+    // Check if there are any questions
+    if (!exam.questions || exam.questions.length === 0) {
+      api.warning({
+        message: 'Validation Error',
+        description: 'Please add at least one question to the exam',
+        icon: <WarningOutlined style={{ color: '#faad14' }} />,
+        placement: 'topRight',
+      });
+      return false;
+    }
+    
+    // Only process questions that have content
+    const filledQuestions = exam.questions.filter(q => q.question.trim());
+    
+    // Check if any questions are filled in
+    if (filledQuestions.length === 0) {
+      api.warning({
+        message: 'Validation Error',
+        description: 'Please complete at least one question',
+        icon: <WarningOutlined style={{ color: '#faad14' }} />,
+        placement: 'topRight',
+      });
+      return false;
+    }
+    
+    // Validate each filled question
+    for (const question of filledQuestions) {
+      // Check if marks are assigned
+      if (!question.marks) {
+        api.warning({
+          message: 'Validation Error',
+          description: 'All questions must have marks assigned',
+          icon: <WarningOutlined style={{ color: '#faad14' }} />,
+          placement: 'topRight',
+        });
+        return false;
+      }
+      
+      // Check for answers
+      if (!question.answers || question.answers.length === 0) {
+        api.warning({
+          message: 'Validation Error',
+          description: 'All questions must have at least one answer',
+          icon: <WarningOutlined style={{ color: '#faad14' }} />,
+          placement: 'topRight',
+        });
+        return false;
+      }
+      
+      // Check for filled in answers
+      const filledAnswers = question.answers.filter(a => a.answer.trim());
+      if (filledAnswers.length === 0) {
+        api.warning({
+          message: 'Validation Error',
+          description: 'Each question must have at least one completed answer',
+          icon: <WarningOutlined style={{ color: '#faad14' }} />,
+          placement: 'topRight',
+        });
+        return false;
+      }
+      
+      // Check for correct answers
+      if (!question.answers.some(a => a.isCorrect)) {
+        api.warning({
+          message: 'Validation Error',
+          description: 'Each question must have at least one correct answer',
+          icon: <WarningOutlined style={{ color: '#faad14' }} />,
+          placement: 'topRight',
+        });
+        return false;
+      }
+    }
+    
+    return true;
   };
 
   const handleSubmit = async () => {
-    if (!title.trim()) {
-      message.error("Title cannot be empty.");
-      return;
-    }
-    if (!duration || isNaN(duration) || duration <= 0) {
-      message.error("Duration must be a positive number.");
-      return;
-    }
-    if (!totalMark || isNaN(totalMark) || totalMark <= 0) {
-      message.error("Total mark must be a positive number.");
-      return;
-    }
-    if (questions.length === 0) {
-      message.error("At least one question is required.");
-      return;
-    }
-
-    const calculatedTotalMark = questions.reduce(
-      (sum, question) => sum + question.marks,
-      0
-    );
-    if (calculatedTotalMark !== parseInt(totalMark)) {
-      message.error(
-        "Total marks of questions do not match the entered total mark."
-      );
-      return;
-    }
-
     try {
-      setIsSubmitting(true);
-      setErrorMessage(null);
+      // Only validate on submission
+      if (!validateExam()) {
+        return;
+      }
+      
+      setLoading(true);
+      setError(null);
+      
+      // Prepare data for submission
+      const examData = {
+        course_id: courseId,
+        title: exam.title,
+        duration: Number(exam.duration),
+        totalMark: Number(totalMark),
+        questions: exam.questions.map((q) => ({
+          question: q.question,
+          marks: Number(q.marks),
+          questionType: q.questionType,
+          answers: q.answers
+        })),
+      };
 
       await axios.post(
         "http://localhost:3000/api/exams/create-exam",
-        {
-          course_id: courseId,
-          title,
-          duration: parseInt(duration),
-          totalMark: parseInt(totalMark),
-          questions,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-          },
+        examData,
+        { 
+          headers: { 
+            Authorization: `Bearer ${token}` 
+          } 
         }
       );
+      
       message.success("Exam created successfully!");
-      setIsCreated(true);
-      // navigate(`/courses-list-tutor/${courseId}`);
-    } catch (error) {
-      const errorMsg = error.response?.data?.message || "Unknown error";
-      setErrorMessage(errorMsg);
+      
+      // Redirect after short delay
+      setTimeout(() => {
+        navigate(-1);
+      }, 2000);
+    } catch (err) {
+      setError("Failed to create exam. Please check your input and try again.");
       message.error("Exam creation failed!");
+      console.error("Create error:", err);
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-lg">
-      <Title level={2} className="mb-4">
-        Create Exam
-      </Title>
-      {errorMessage && (
-        <Alert
-          message="Error"
-          description={"Exam creation failed!"}
-          type="error"
-          showIcon
-          className="mb-4"
-        />
-      )}
-      <Form layout="vertical" onFinish={handleSubmit}>
-        <Form.Item
-          name="title"
-          label="Title"
-          rules={[{ required: true, message: "Please enter the title" }]}
-        >
-          <Input
-            value={title}
-            onChange={(e) => setTitle(e.target.value.trim())}
-            disabled={isCreated}
+    <div className="max-w-4xl mx-auto p-6">
+      {contextHolder}
+      <Card className="shadow-lg rounded-lg">
+        <Title level={2} className="mb-6 text-center">
+          Create Exam
+        </Title>
+        
+        {error && (
+          <Alert
+            message="Error"
+            description={error}
+            type="error"
+            showIcon
+            className="mb-4"
           />
-        </Form.Item>
-        <Form.Item
-          name="duration"
-          label="Duration (minutes)"
-          rules={[{ required: true, message: "Please enter the duration" }]}
+        )}
+        
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+          initialValues={{
+            title: "",
+            duration: "",
+            totalMark: 0
+          }}
         >
-          <Input
-            type="number"
-            value={duration}
-            onChange={(e) => setDuration(e.target.value)}
-            disabled={isCreated}
-          />
-        </Form.Item>
-        <Form.Item label="Total Marks">
-          <Tooltip title="Total mark will be updated according to the mark of each question!">
-            <Input type="number" value={totalMark} disabled />
-          </Tooltip>
-        </Form.Item>
+          <Form.Item
+            label="Exam Title"
+            name="title"
 
-        {questions.map((question, qIndex) => (
-          <Card key={qIndex} className="mb-4">
+          >
+            <Input 
+              placeholder="Enter exam title" 
+              value={exam.title}
+              onChange={(e) => setExam({ ...exam, title: e.target.value })}
+              size="large"
+            />
+          </Form.Item>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Form.Item
-              name={`question${qIndex}`}
-              label={`Question ${qIndex + 1}`}
-              rules={[{ required: true, message: "Please enter the question" }]}
+              label="Total Mark (auto-calculated)"
+              name="totalMark"
             >
-              <Input
-                value={question.question}
-                onChange={(e) =>
-                  handleQuestionChange(qIndex, "question", e.target.value)
-                }
-                disabled={isCreated}
+              <InputNumber
+                className="w-full"
+                min={0}
+                value={totalMark}
+                disabled
+                size="large"
               />
             </Form.Item>
+            
             <Form.Item
-              name={`marks${qIndex}`}
-              label="Marks"
-              rules={[{ required: true, message: "Please enter the marks" }]}
+              label="Duration (minutes)"
+              name="duration"
+
             >
-              <Input
-                type="number"
-                value={question.marks}
-                onChange={(e) =>
-                  handleQuestionChange(
-                    qIndex,
-                    "marks",
-                    parseInt(e.target.value)
-                  )
-                }
-                disabled={isCreated}
+              <InputNumber
+                className="w-full"
+                min={1}
+                value={exam.duration}
+                onChange={(value) => setExam(prev => ({ ...prev, duration: value }))}
+                size="large"
               />
             </Form.Item>
-            {question.answers.map((answer, aIndex) => (
-              <div key={aIndex} className="flex gap-2 items-center mb-2">
+          </div>
+
+          <Divider orientation="left">Questions</Divider>
+          
+          {exam.questions.map((question, qIndex) => (
+            <Card 
+              key={qIndex} 
+              className="mb-6 bg-gray-50"
+              size="small"
+              extra={
+                <Tooltip title="Delete question">
+                  <Button 
+                    danger 
+                    icon={<DeleteOutlined />} 
+                    onClick={() => handleDeleteQuestion(qIndex)}
+                    shape="circle"
+                  />
+                </Tooltip>
+              }
+              title={
+                <Space>
+                  <Text strong>Question {qIndex + 1}</Text>
+                </Space>
+              }
+            >
+              <Form.Item
+                label="Question Text"
+                required
+              >
                 <Input
-                  placeholder="Answer"
-                  value={answer.answer}
-                  onChange={(e) =>
-                    handleAnswerChange(qIndex, aIndex, "answer", e.target.value)
-                  }
-                  disabled={isCreated}
+                  placeholder="Enter your question here"
+                  name="question"
+                  value={question.question}
+                  onChange={(e) => handleChange(e, qIndex)}
                 />
-                <Select
-                  value={answer.isCorrect.toString()}
-                  onChange={(value) =>
-                    handleAnswerChange(qIndex, aIndex, "isCorrect", value)
-                  }
-                  disabled={isCreated}
-                >
-                  <Option value="false" disabled={isCreated}>
-                    False
-                  </Option>
-                  <Option value="true" disabled={isCreated}>
-                    True
-                  </Option>
-                </Select>
-                <Button
-                  type="text"
-                  danger
-                  icon={<MinusCircleOutlined />}
-                  onClick={() => handleRemoveAnswer(qIndex, aIndex)}
-                  disabled={isCreated}
+              </Form.Item>
+
+              <Form.Item
+                label="Question Marks"
+                required
+              >
+                <InputNumber
+                  className="w-full"
+                  min={1}
+                  name="marks"
+                  value={question.marks}
+                  onChange={(value) => {
+                    const event = { target: { name: "marks", value } };
+                    handleChange(event, qIndex);
+                  }}
                 />
-              </div>
-            ))}
+              </Form.Item>
+
+              <Divider orientation="left">Answers</Divider>
+              
+              {question.answers.length === 0 ? (
+                <Alert
+                  type="warning"
+                  message="No answers added yet. Please add at least one answer."
+                  className="mb-4"
+                />
+              ) : (
+                <div className="space-y-2">
+                  {question.answers.map((answer, aIndex) => (
+                    <div key={aIndex} className="flex items-center space-x-2">
+                      <Form.Item
+                        className="mb-2 flex-grow"
+                      >
+                        <Input
+                          placeholder="Enter answer option"
+                          name="answer"
+                          value={answer.answer}
+                          onChange={(e) => handleChange(e, qIndex, aIndex)}
+                        />
+                      </Form.Item>
+                      
+                      <Checkbox
+                        checked={answer.isCorrect}
+                        onChange={(e) => {
+                          const event = {
+                            target: {
+                              name: "isCorrect",
+                              checked: e.target.checked,
+                            },
+                          };
+                          handleChange(event, qIndex, aIndex);
+                        }}
+                      >
+                        Correct
+                      </Checkbox>
+                      
+                      <Button
+                        danger
+                        icon={<DeleteOutlined />}
+                        onClick={() => handleDeleteAnswer(qIndex, aIndex)}
+                        disabled={question.answers.length <= 1}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+
+
+              <Button
+                type="dashed"
+                icon={<PlusOutlined />}
+                onClick={() => handleAddAnswer(qIndex)}
+                className="w-full mt-4"
+              >
+                Add Answer Option
+              </Button>
+            </Card>
+          ))}
+
+          <div className="flex flex-col gap-4 mt-6">
             <Button
               type="dashed"
-              onClick={() => handleAddAnswer(qIndex)}
-              block
               icon={<PlusOutlined />}
-              disabled={isCreated}
-            >
-              Add Answer
-            </Button>
-            <Button
-              type="text"
-              danger
-              onClick={() => handleRemoveQuestion(qIndex)}
+              onClick={handleAddQuestion}
               block
-              className="mt-2"
-              disabled={isCreated}
+              size="large"
             >
-              Remove Question
+              Add New Question
             </Button>
-          </Card>
-        ))}
-        <Button
-          type="dashed"
-          onClick={handleAddQuestion}
-          block
-          icon={<PlusOutlined />}
-          disabled={isCreated}
-        >
-          Add Question
-        </Button>
-        <Button
-          type="primary"
-          htmlType="submit"
-          className="mt-4"
-          block
-          loading={isSubmitting}
-          disabled={isCreated}
-        >
-          Create Exam
-        </Button>
-        <Button
-          block
-          type=""
-          // icon={<ArrowLeftOutlined />}
-          onClick={() => navigate(-1)}
-          className="mt-4"
-        >
-          Back
-        </Button>
-      </Form>
+            
+            <Button
+              type="primary"
+              icon={<SaveOutlined />}
+              htmlType="submit"
+              block
+              size="large"
+              loading={loading}
+            >
+              Create Exam
+            </Button>
+            
+            <Button
+              onClick={() => navigate(-1)}
+              block
+              size="large"
+            >
+              Back
+            </Button>
+          </div>
+        </Form>
+      </Card>
+
       <ToastContainer />
     </div>
   );
