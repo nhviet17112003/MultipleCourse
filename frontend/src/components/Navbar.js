@@ -52,11 +52,10 @@ const Navbar = () => {
   const [errorWallet, setErrorWallet] = useState(null);
   const [walletData, setWalletData] = useState(null);
 
-  // Function to determine the active key based on current pathname
   const getActiveKey = () => {
     const path = location.pathname;
 
-    if (path === "/") return "home";
+    if (path === "/") return "";
     if (path === "/contact") return "contact";
     if (path === "/about") return "about";
 
@@ -433,6 +432,10 @@ const Navbar = () => {
           }}
           style={{
             borderBottom: activeKey === "courses" ? "#1890ff" : "none",
+            background:
+              activeKey === "courses"
+                ? "rgba(24, 144, 255, 0.1)"
+                : "transparent",
           }}
         >
           {role === "Admin" ? "Dashboard" : "Course List"}
@@ -443,6 +446,10 @@ const Navbar = () => {
           onClick={() => debouncedNavigate("/contact")}
           style={{
             borderBottom: activeKey === "contact" ? "#1890ff" : "none",
+            background:
+              activeKey === "contact"
+                ? "rgba(24, 144, 255, 0.1)"
+                : "transparent",
           }}
         >
           Contact
@@ -453,6 +460,8 @@ const Navbar = () => {
           onClick={() => debouncedNavigate("/about")}
           style={{
             borderBottom: activeKey === "about" ? "#1890ff" : "none",
+            background:
+              activeKey === "about" ? "rgba(24, 144, 255, 0.1)" : "transparent",
           }}
         >
           About
