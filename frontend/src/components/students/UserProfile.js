@@ -81,7 +81,7 @@ const UserProfile = () => {
       );
 
       setUserData(response.data);
-      localStorage.setItem("avatar", response.data.avatar);
+      localStorage.setItem("avatarUrl", response.data.avatar);
       setIsLoggedIn(true);
     } catch (err) {
       setError("Your session has expired. Please log in again.");
