@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import axios from "axios";
 import { useTheme } from "./context/ThemeContext";
-import LogoMultiCourse from "../assets/LogoMultiCourse.png";
+import LogoMultiCourse from "../assets/MultiCourse-logo.png";
 import {
   Layout,
   Menu,
