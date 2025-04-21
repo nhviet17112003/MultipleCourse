@@ -317,20 +317,20 @@ const TutorRequests = () => {
       render: (status) => getStatusBadge(status),
       sorter: (a, b) => a.status.localeCompare(b.status)
     },
-    {
-      title: 'Actions',
-      key: 'actions',
-      width: '80px',
-      render: (_, record) => (
-        <Dropdown
-          menu={{ items: getActionMenu(record) }}
-          placement="bottomRight"
-          trigger={['click']}
-        >
-          <Button type="text" icon={<MoreOutlined />} />
-        </Dropdown>
-      )
-    }
+    // {
+    //   title: 'Actions',
+    //   key: 'actions',
+    //   width: '80px',
+    //   render: (_, record) => (
+    //     <Dropdown
+    //       menu={{ items: getActionMenu(record) }}
+    //       placement="bottomRight"
+    //       trigger={['click']}
+    //     >
+    //       <Button type="text" icon={<MoreOutlined />} />
+    //     </Dropdown>
+    //   )
+    // }
   ];
 
   // Custom styles to add to your CSS file

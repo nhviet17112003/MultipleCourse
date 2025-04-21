@@ -58,6 +58,7 @@ exports.getRequestsByUser = async (req, res, next) => {
         rs.push({
           _id: requests[i]._id,
           course_id: requests[i].course,
+          course_title: course.title,
           content: requests[i].content,
           request_type: requests[i].request_type,
           status: requests[i].status,
