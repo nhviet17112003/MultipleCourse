@@ -33,7 +33,8 @@ import {
   HomeOutlined,
   IdcardOutlined,
   FormOutlined,
-  LoadingOutlined
+  LoadingOutlined,
+  CameraOutlined
 } from "@ant-design/icons";
 
 const { Title, Text } = Typography;
@@ -45,6 +46,11 @@ const UserProfile = () => {
   const [avatarLoading, setAvatarLoading] = useState(false);
   const [fullname, setFullname] = useState("User");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [avatarAnimation, setAvatarAnimation] = useState("");
+  const [avatarKey, setAvatarKey] = useState(0); // For forcing re-render of avatar
+
+  // For avatar hover effect
+  const [avatarHover, setAvatarHover] = useState(false);
   
   // Password states
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
@@ -81,6 +87,12 @@ const UserProfile = () => {
       
       setUserData(response.data);
       localStorage.setItem("avatar", response.data.avatar);
+      
+      // Dispatch avatar changed event for Navbar update
+      window.dispatchEvent(new CustomEvent("avatarChanged", {
+        detail: { avatarUrl: response.data.avatar }
+      }));
+      
       setIsLoggedIn(true);
     } catch (err) {
       setError("Your session has expired. Please log in again.");
@@ -114,6 +126,16 @@ const UserProfile = () => {
     }
   }, []);
 
+  // Reset animation after it completes
+  useEffect(() => {
+    if (avatarAnimation) {
+      const timer = setTimeout(() => {
+        setAvatarAnimation("");
+      }, 2000); // Match with animation duration
+      return () => clearTimeout(timer);
+    }
+  }, [avatarAnimation]);
+
   // Handle avatar change
   const handleAvatarChange = async (info) => {
     if (info.file.status === 'uploading') {
@@ -126,10 +148,21 @@ const UserProfile = () => {
       setAvatarLoading(false);
       message.success(`${info.file.name} uploaded successfully`);
       
+      // Start avatar animation
+      setAvatarAnimation("pulse");
+      
       // Update user data with new avatar
       if (info.file.response && info.file.response.avatar) {
         setUserData({ ...userData, avatar: info.file.response.avatar });
         localStorage.setItem("avatar", info.file.response.avatar);
+        
+        // Force re-render the avatar with a new key
+        setAvatarKey(prevKey => prevKey + 1);
+        
+        // Dispatch avatar changed event for Navbar update
+        window.dispatchEvent(new CustomEvent("avatarChanged", {
+          detail: { avatarUrl: info.file.response.avatar }
+        }));
       }
     } else if (info.file.status === 'error') {
       setAvatarLoading(false);
@@ -270,6 +303,27 @@ const UserProfile = () => {
     });
   };
 
+  // Get appropriate avatar animation style
+  const getAvatarStyle = () => {
+    if (avatarAnimation === 'pulse') {
+      return {
+        animation: 'pulseAvatar 1.5s ease-in-out',
+        boxShadow: '0 0 0 4px #fff, 0 0 0 6px #1890ff',
+      };
+    }
+    if (avatarHover) {
+      return {
+        transform: 'scale(1.05)',
+        boxShadow: '0 0 0 4px #fff, 0 0 0 6px #1890ff',
+        transition: 'all 0.3s ease'
+      };
+    }
+    return {
+      boxShadow: '0 0 0 4px #fff, 0 0 0 6px #f0f0f0',
+      transition: 'all 0.3s ease'
+    };
+  };
+
   if (loading && !userData) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -287,6 +341,56 @@ const UserProfile = () => {
       justifyContent: 'center',
       alignItems: 'flex-start'
     }}>
+      {/* Apply keyframe animations */}
+      <style>
+        {`
+          @keyframes pulseAvatar {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(24, 144, 255, 0.7); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(24, 144, 255, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(24, 144, 255, 0); }
+          }
+          @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+          }
+          .avatar-container {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+          }
+          .avatar-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+          }
+          .avatar-container:hover .avatar-overlay {
+            opacity: 1;
+          }
+          .avatar-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+        `}
+      </style>
+      
       <Card 
         style={{ 
           maxWidth: '800px', 
@@ -321,15 +425,32 @@ const UserProfile = () => {
                 }}
                 onChange={handleAvatarChange}
               >
-                <Badge count={<UploadOutlined style={{ color: '#fff', fontSize: '14px' }} />} offset={[-5, 5]}>
+                <div 
+                  className="avatar-container"
+                  onMouseEnter={() => setAvatarHover(true)}
+                  onMouseLeave={() => setAvatarHover(false)}
+                >
                   <Avatar 
-                    size={100} 
+                    key={avatarKey}
+                    size={100}
                     src={userData.avatar || "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"} 
                     icon={!userData.avatar && <UserOutlined />}
-                    style={{ boxShadow: '0 0 0 4px #fff, 0 0 0 6px #f0f0f0' }}
+                    style={getAvatarStyle()}
                   />
-                </Badge>
-                <div style={{ marginTop: '8px' }}>
+                  {avatarLoading ? (
+                    <div className="avatar-loading">
+                      <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
+                    </div>
+                  ) : (
+                    <div className="avatar-overlay">
+                      <CameraOutlined style={{ fontSize: '24px', color: 'white' }} />
+                    </div>
+                  )}
+                </div>
+                <div style={{ 
+                  marginTop: '12px', 
+                  animation: avatarAnimation ? 'fadeIn 0.5s ease' : 'none' 
+                }}>
                   <Text strong style={{ fontSize: '18px' }}>{userData.fullname || "User's Name"}</Text>
                   <div>
                     <Tag color="blue" style={{ margin: '8px 0 0' }}>
@@ -338,6 +459,9 @@ const UserProfile = () => {
                   </div>
                 </div>
               </Upload>
+              <Text type="secondary" style={{ display: 'block', marginTop: '8px' }}>
+                Click on the avatar to change your profile picture
+              </Text>
             </div>
             
             <Descriptions
