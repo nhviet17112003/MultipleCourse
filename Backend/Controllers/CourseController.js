@@ -604,6 +604,7 @@ exports.processDeleteCourse = async (req, res) => {
 
     const newActivity = new ActivityHistory({
       user: req.user._id,
+      role: "Admin",
     });
 
     if (status === "Rejected") {
