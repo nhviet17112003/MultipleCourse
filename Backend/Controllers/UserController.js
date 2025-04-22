@@ -505,7 +505,7 @@ exports.logout = async (req, res) => {
     }
     // Xóa cookie Token
     res.clearCookie("Token", { path: "/" });
-    res.redirect("http://localhost:3002/");
+    res.redirect("http://localhost:3001/");
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Internal Server Error" });
