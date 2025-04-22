@@ -1,26 +1,25 @@
-import React, { useState } from "react";
-import {
-  Layout,
-  Typography,
-  Form,
-  Input,
-  Button,
-  Row,
-  Col,
-  Card,
-  Divider,
+import React, { useState } from 'react';
+import { 
+  Layout, 
+  Typography, 
+  Form, 
+  Input, 
+  Button, 
+  Row, 
+  Col, 
+  Card, 
+  Divider, 
   message,
-  Space,
-} from "antd";
-import {
-  MailOutlined,
-  PhoneOutlined,
-  EnvironmentOutlined,
+  Space
+} from 'antd';
+import { 
+  MailOutlined, 
+  PhoneOutlined, 
+  EnvironmentOutlined, 
   SendOutlined,
-  GlobalOutlined,
-} from "@ant-design/icons";
-import { useTheme } from "./context/ThemeContext";
-import emailjs from "@emailjs/browser";
+  GlobalOutlined
+} from '@ant-design/icons';
+import { useTheme } from './context/ThemeContext';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -31,103 +30,75 @@ const ContactPage = () => {
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
 
-  const onFinish = async (values) => {
+  const onFinish = (values) => {
     setSubmitting(true);
-    try {
-      const templateParams = {
-        user_name: values.name,
-        user_email: values.email,
-        user_subject: values.subject,
-        user_message: values.message,
-        admin_email: "your-email@multicourse.edu.vn",
-        admin_name: "MultiCourse Team",
-      };
-
-      await emailjs.send(
-        "service_f553c8r",
-        "template_eiky6aq",
-        templateParams,
-        "0LLyBVlsDufvMFw7l"
-      );
-
-      message.success(
-        "Thank you for your message! We have sent you a confirmation email."
-      );
+    
+    // Simulate API call
+    setTimeout(() => {
+      console.log('Form values:', values);
+      message.success('Thank you for your message! We will contact you soon.');
       form.resetFields();
-    } catch (error) {
-      console.error("Error sending email:", error);
-      message.error("Failed to send email. Please try again later.");
-    } finally {
       setSubmitting(false);
-    }
+    }, 1500);
   };
 
   return (
     <Content
       style={{
-        padding: "50px 50px",
-        background: theme === "dark" ? "#141414" : "#f0f2f5",
+        padding: '50px 50px',
+        background: theme === 'dark' ? '#141414' : '#f0f2f5',
       }}
     >
       <Row justify="center" align="middle" style={{ marginBottom: 40 }}>
-        <Col xs={24} md={16} lg={12} style={{ textAlign: "center" }}>
+        <Col xs={24} md={16} lg={12} style={{ textAlign: 'center' }}>
           <Space align="center" direction="vertical" size="large">
-            <img
-              src="/MultiCourse-logo.png"
-              alt="MultiCourse Logo"
-              style={{ width: "180px", height: "180px" }}
+            <img 
+              src="/LogoMultiCourse.png" 
+              alt="MultiCourse Logo" 
+              style={{ width: '80px', height: '80px' }} 
             />
-            <Title
+            <Title 
               level={1}
-              style={{
-                margin: 0,
-                color: theme === "dark" ? "#fff" : "#001529",
+              style={{ 
+                margin: 0, 
+                color: theme === 'dark' ? '#fff' : '#001529',
               }}
             >
               Contact Us
             </Title>
             <Paragraph
-              style={{
-                fontSize: "16px",
-                color:
-                  theme === "dark"
-                    ? "rgba(255, 255, 255, 0.85)"
-                    : "rgba(0, 0, 0, 0.65)",
-                maxWidth: "700px",
-                margin: "0 auto",
+              style={{ 
+                fontSize: '16px',
+                color: theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.65)',
+                maxWidth: '700px',
+                margin: '0 auto'
               }}
             >
-              Have questions about our courses? Want to learn more about
-              becoming a tutor? We're here to help! Reach out to us using the
-              form below.
+              Have questions about our courses? Want to learn more about becoming a tutor?
+              We're here to help! Reach out to us using the form below.
             </Paragraph>
           </Space>
         </Col>
       </Row>
-
+      
       <Row gutter={[32, 32]} justify="center">
         {/* Contact Information */}
         <Col xs={24} md={10} lg={8}>
           <Card
-            style={{
-              height: "100%",
-              background: theme === "dark" ? "#1f1f1f" : "#fff",
-              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
+            style={{ 
+              height: '100%',
+              background: theme === 'dark' ? '#1f1f1f' : '#fff',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
             }}
           >
-            <Title
-              level={3}
-              style={{ color: theme === "dark" ? "#fff" : "#001529" }}
-            >
+            <Title level={3} style={{ color: theme === 'dark' ? '#fff' : '#001529' }}>
               Get In Touch
             </Title>
-            <Divider style={{ margin: "16px 0" }} />
-
-            <Space direction="vertical" size="large" style={{ width: "100%" }}>
+            <Divider style={{ margin: '16px 0' }} />
+            
+            <Space direction="vertical" size="large" style={{ width: '100%' }}>
               <Space align="start">
-                <EnvironmentOutlined
-                  style={{ fontSize: "20px", color: "#1890ff" }}
-                />
+                <EnvironmentOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
                 <div>
                   <Text strong>Address</Text>
                   <Paragraph style={{ margin: 0 }}>
@@ -135,9 +106,9 @@ const ContactPage = () => {
                   </Paragraph>
                 </div>
               </Space>
-
+              
               <Space align="start">
-                <PhoneOutlined style={{ fontSize: "20px", color: "#1890ff" }} />
+                <PhoneOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
                 <div>
                   <Text strong>Phone</Text>
                   <Paragraph style={{ margin: 0 }}>
@@ -145,9 +116,9 @@ const ContactPage = () => {
                   </Paragraph>
                 </div>
               </Space>
-
+              
               <Space align="start">
-                <MailOutlined style={{ fontSize: "20px", color: "#1890ff" }} />
+                <MailOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
                 <div>
                   <Text strong>Email</Text>
                   <Paragraph style={{ margin: 0 }}>
@@ -155,11 +126,9 @@ const ContactPage = () => {
                   </Paragraph>
                 </div>
               </Space>
-
+              
               <Space align="start">
-                <GlobalOutlined
-                  style={{ fontSize: "20px", color: "#1890ff" }}
-                />
+                <GlobalOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
                 <div>
                   <Text strong>Working Hours</Text>
                   <Paragraph style={{ margin: 0 }}>
@@ -173,25 +142,23 @@ const ContactPage = () => {
             </Space>
           </Card>
         </Col>
-
+        
+        {/* Contact Form */}
         <Col xs={24} md={14} lg={12}>
           <Card
-            style={{
-              background: theme === "dark" ? "#1f1f1f" : "#fff",
-              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
+            style={{ 
+              background: theme === 'dark' ? '#1f1f1f' : '#fff',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
             }}
           >
-            <Title
-              level={3}
-              style={{ color: theme === "dark" ? "#fff" : "#001529" }}
-            >
+            <Title level={3} style={{ color: theme === 'dark' ? '#fff' : '#001529' }}>
               Send Us A Message
             </Title>
-            <Divider style={{ margin: "16px 0" }} />
-
-            <Form
+            <Divider style={{ margin: '16px 0' }} />
+            
+            <Form 
               form={form}
-              layout="vertical"
+              layout="vertical" 
               onFinish={onFinish}
               requiredMark={false}
             >
@@ -200,9 +167,7 @@ const ContactPage = () => {
                   <Form.Item
                     name="name"
                     label="Full Name"
-                    rules={[
-                      { required: true, message: "Please enter your name" },
-                    ]}
+                    rules={[{ required: true, message: 'Please enter your name' }]}
                   >
                     <Input size="large" placeholder="Your Full Name" />
                   </Form.Item>
@@ -212,45 +177,43 @@ const ContactPage = () => {
                     name="email"
                     label="Email"
                     rules={[
-                      { required: true, message: "Please enter your email" },
-                      { type: "email", message: "Please enter a valid email" },
+                      { required: true, message: 'Please enter your email' },
+                      { type: 'email', message: 'Please enter a valid email' }
                     ]}
                   >
                     <Input size="large" placeholder="Your Email Address" />
                   </Form.Item>
                 </Col>
               </Row>
-
+              
               <Form.Item
                 name="subject"
                 label="Subject"
-                rules={[{ required: true, message: "Please enter a subject" }]}
+                rules={[{ required: true, message: 'Please enter a subject' }]}
               >
                 <Input size="large" placeholder="How can we help you?" />
               </Form.Item>
-
+              
               <Form.Item
                 name="message"
                 label="Message"
-                rules={[
-                  { required: true, message: "Please enter your message" },
-                ]}
+                rules={[{ required: true, message: 'Please enter your message' }]}
               >
-                <TextArea
-                  rows={5}
+                <TextArea 
+                  rows={5} 
                   placeholder="Your message in detail..."
-                  style={{ resize: "none" }}
+                  style={{ resize: 'none' }}
                 />
               </Form.Item>
-
+              
               <Form.Item>
-                <Button
-                  type="primary"
+                <Button 
+                  type="primary" 
                   htmlType="submit"
                   size="large"
                   icon={<SendOutlined />}
                   loading={submitting}
-                  style={{ width: "100%" }}
+                  style={{ width: '100%' }}
                 >
                   Send Message
                 </Button>
@@ -259,35 +222,20 @@ const ContactPage = () => {
           </Card>
         </Col>
       </Row>
-
+      
+      {/* Map Section */}
       <Row justify="center" style={{ marginTop: 32 }}>
         <Col span={24}>
           <Card
-            style={{
-              background: theme === "dark" ? "#1f1f1f" : "#fff",
-              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
+            style={{ 
+              background: theme === 'dark' ? '#1f1f1f' : '#fff',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
             }}
           >
-            <Title
-              level={4}
-              style={{
-                color: theme === "dark" ? "#fff" : "#001529",
-                textAlign: "center",
-                marginBottom: 24,
-              }}
-            >
+            <Title level={4} style={{ color: theme === 'dark' ? '#fff' : '#001529', textAlign: 'center', marginBottom: 24 }}>
               Our Location
             </Title>
-            <div
-              style={{
-                width: "100%",
-                height: "400px",
-                background: "#e8e8e8",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
+            <div style={{ width: '100%', height: '400px', background: '#e8e8e8', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
               <Text>Map Would Be Embedded Here</Text>
               {/* To integrate a real map, you would use Google Maps or similar service */}
               {/* <iframe src="https://www.google.com/maps/embed?..." width="100%" height="400" style={{ border: 0 }} allowFullScreen="" loading="lazy"></iframe> */}
