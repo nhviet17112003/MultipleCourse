@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import axios from "axios";
 import { useTheme } from "./context/ThemeContext";
-import LogoMultiCourse from "../assets/LogoMultiCourse.png";
+import LogoMultiCourse from "../assets/MultiCourse-logo.png";
 import {
   Layout,
   Menu,
@@ -271,7 +271,7 @@ const Navbar = () => {
     {
       key: "home",
       icon: <HomeOutlined />,
-      label: "Home Page",
+      label: "Home Pages",
       onClick: () => debouncedNavigate("/"),
     },
     {
@@ -415,6 +415,8 @@ const Navbar = () => {
           onClick={() => debouncedNavigate("/")}
           style={{
             borderBottom: activeKey === "home" ? "#1890ff" : "none",
+            background:
+              activeKey === "home" ? "rgba(24, 144, 255, 0.1)" : "transparent",
           }}
         >
           Home Page
@@ -433,6 +435,10 @@ const Navbar = () => {
           }}
           style={{
             borderBottom: activeKey === "courses" ? "#1890ff" : "none",
+            background:
+              activeKey === "courses"
+                ? "rgba(24, 144, 255, 0.1)"
+                : "transparent",
           }}
         >
           {role === "Admin" ? "Dashboard" : "Course List"}
@@ -443,6 +449,10 @@ const Navbar = () => {
           onClick={() => debouncedNavigate("/contact")}
           style={{
             borderBottom: activeKey === "contact" ? "#1890ff" : "none",
+            background:
+              activeKey === "contact"
+                ? "rgba(24, 144, 255, 0.1)"
+                : "transparent",
           }}
         >
           Contact
@@ -453,6 +463,8 @@ const Navbar = () => {
           onClick={() => debouncedNavigate("/about")}
           style={{
             borderBottom: activeKey === "about" ? "#1890ff" : "none",
+            background:
+              activeKey === "about" ? "rgba(24, 144, 255, 0.1)" : "transparent",
           }}
         >
           About
