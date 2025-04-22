@@ -510,7 +510,7 @@ const Navbar = () => {
                   strong
                   style={{ color: isHome || theme === "dark" ? "#fff" : "inherit" }}
                 >
-                  {role === "Admin" ? formatNumber(walletData?.total_earning || 0) : formatNumber(balance)} VND
+                  {role === "Admin" ? formatNumber(walletData?.current_balance || 0) : formatNumber(balance)} VND
                 </Text>
               </div>
             </Tooltip>
