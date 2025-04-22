@@ -250,7 +250,7 @@ const Navbar = () => {
       setRole("Student");
 
       // Navigate to login page
-      debouncedNavigate("/login");
+      debouncedNavigate("/");
       message.success("Logged out successfully");
     } catch (error) {
       console.error("Logout failed:", error);
