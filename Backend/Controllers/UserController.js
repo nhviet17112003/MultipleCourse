@@ -498,12 +498,19 @@ exports.banAndUnbanUser = async (req, res) => {
 //log out
 exports.logout = async (req, res) => {
   try {
-    res.status(200).json({ message: "Logged out" });
+    const user = await Users.findOne({ _id: req.user._id });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+    // Xóa cookie Token
+    res.clearCookie("Token", { path: "/" });
+    res.redirect("http://localhost:3001/");
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 exports.updateBankAccount = async (req, res) => {
   try {
     const user = await Users.findOne({ _id: req.user._id });
