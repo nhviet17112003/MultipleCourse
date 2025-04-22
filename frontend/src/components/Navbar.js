@@ -15,6 +15,8 @@ import {
   Badge,
   Switch,
   message,
+  Tooltip,
+  Tag
 } from "antd";
 import {
   UserOutlined,
@@ -29,6 +31,8 @@ import {
   SettingOutlined,
   BellOutlined,
   DollarOutlined,
+  RiseOutlined,
+  BankOutlined
 } from "@ant-design/icons";
 import Cookies from "js-cookie";
 
@@ -44,6 +48,7 @@ const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const [balance, setBalance] = useState(0);
+  const [totalEarning, setTotalEarning] = useState(0);
   const [role, setRole] = useState(localStorage.getItem("role") || null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -181,6 +186,11 @@ const Navbar = () => {
         }
       );
       setBalance(response.data.current_balance);
+      
+      // Nếu có total_earning trong response, cập nhật state
+      if (response.data.total_earning !== undefined) {
+        setTotalEarning(response.data.total_earning);
+      }
     } catch (error) {
       console.error("Error getting balance:", error);
     }
@@ -349,6 +359,11 @@ const Navbar = () => {
   // Get current active key for menu
   const activeKey = getActiveKey();
 
+  // Format number with commas
+  const formatNumber = (num) => {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+
   return (
     <Header
       style={{
@@ -375,13 +390,6 @@ const Navbar = () => {
         onClick={() => debouncedNavigate("/")}
         style={{ cursor: "pointer" }}
       >
-        {/* <Title level={3} style={{ 
-          margin: 0, 
-          color: isHome ? '#fff' : theme === 'dark' ? '#fff' : '#001529',
-          transition: 'color 0.3s'
-        }}>
-          MultiCourse
-        </Title> */}
         <img
           src={LogoMultiCourse}
           alt="MultiCourse Logo"
@@ -477,24 +485,58 @@ const Navbar = () => {
         {(role === "Tutor" || role === "Student" || role === "Admin") && (
           <div
             style={{
-              padding: "4px 12px",
-              background:
-                theme === "dark"
-                  ? "rgba(255, 255, 255, 0.1)"
-                  : "rgba(0, 0, 0, 0.03)",
-              borderRadius: "4px",
               display: "flex",
               alignItems: "center",
-              gap: "8px",
+              gap: "12px",
             }}
           >
-            <WalletOutlined />
-            <Text
-              strong
-              style={{ color: isHome || theme === "dark" ? "#fff" : "inherit" }}
-            >
-              {role === "Admin" ? walletData?.total_earning : balance} VND
-            </Text>
+            {/* Balance/Wallet Card */}
+            <Tooltip title="Current Balance">
+              <div
+                style={{
+                  padding: "4px 12px",
+                  background:
+                    theme === "dark"
+                      ? "rgba(255, 255, 255, 0.1)"
+                      : "rgba(0, 0, 0, 0.03)",
+                  borderRadius: "4px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <WalletOutlined />
+                <Text
+                  strong
+                  style={{ color: isHome || theme === "dark" ? "#fff" : "inherit" }}
+                >
+                  {role === "Admin" ? formatNumber(walletData?.current_balance || 0) : formatNumber(balance)} VND
+                </Text>
+              </div>
+            </Tooltip>
+            
+            {/* Total Earning for Admin*/}
+            {(role === "Admin") && (
+              <Tooltip title="Total Earning">
+                <div
+                  style={{
+                    padding: "4px 12px",
+                    background: "rgba(82, 196, 26, 0.1)",
+                    borderRadius: "4px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <RiseOutlined style={{ color: "#52c41a" }} />
+                  <Text strong style={{ color: "#52c41a" }}>
+                    {role === "Admin" 
+                      ? formatNumber(walletData?.total_earning || 0) 
+                      : formatNumber(totalEarning)} VND
+                  </Text>
+                </div>
+              </Tooltip>
+            )}
 
             {role === "Student" && (
               <Button
@@ -502,7 +544,6 @@ const Navbar = () => {
                 icon={<DollarOutlined />}
                 size="small"
                 onClick={() => debouncedNavigate("/deposit")}
-                style={{ marginLeft: "8px" }}
               >
                 Deposit
               </Button>
@@ -530,7 +571,7 @@ const Navbar = () => {
                   cursor: "pointer",
                 }}
                 onError={(e) => {
-                  if (!e || !e.target) return; // Thêm kiểm tra này
+                  if (!e || !e.target) return;
 
                   console.log("Image failed to load, trying alternative URL");
                   e.target.onerror = null;
