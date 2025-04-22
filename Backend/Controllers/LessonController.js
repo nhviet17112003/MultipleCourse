@@ -112,9 +112,12 @@ exports.createLesson = async (req, res) => {
       // Tạo progress cho bài học mới đối với những progress chưa hoàn thành tất cả
       // Nếu bài học đã hoàn thành thì không cần tạo progress mới
       for (const progressItem of progresses) {
-        if (progresses.final_exam.status === "Completed") {
+        if (progresses.final_exam?.status === "Completed") {
           continue;
         } else {
+          const lessonIndex = progressItem.lesson.findIndex(
+            (item) => item.lesson_id.toString() === lesson._id.toString()
+          );
           if (lessonIndex === -1) {
             progressItem.lesson.push({
               lesson_id: lesson._id,
@@ -372,7 +375,7 @@ exports.deleteLesson = async (req, res) => {
       });
     await lesson.deleteOne();
 
-    const progresses = await progress.find({ course_id: lesson.course_id });
+    const progresses = await Progress.find({ course_id: lesson.course_id });
     //nếu những progress nào hoàn thành hết thì không cập nhật thêm
     //chỉ cập nhật những progress nào chưa hoàn thành
     for (const progressItem of progresses) {
