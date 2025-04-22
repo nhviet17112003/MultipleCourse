@@ -395,9 +395,9 @@ const WalletManage = () => {
       return (
         <Badge status="processing" text="Pending" className="text-blue-500" />
       );
-    } else if (status === "Completed") {
+    } else if (status === "Approved") {
       return (
-        <Badge status="success" text="Completed" className="text-green-500" />
+        <Badge status="success" text="Approved" className="text-green-500" />
       );
     } else if (status === "Rejected") {
       return <Badge status="error" text="Rejected" className="text-red-500" />;
@@ -608,7 +608,7 @@ const WalletManage = () => {
                           }
                         >
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {new Date(item.created_at).toLocaleDateString()}
+                            {new Date(item.date).toLocaleDateString()}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             {parseInt(item.amount).toLocaleString()} VND
