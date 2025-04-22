@@ -309,16 +309,16 @@ const WithdrawalHistory = () => {
       filteredValue: filterStatus ? [filterStatus] : null,
       onFilter: (value, record) => record.status === value,
     },
-    {
-      title: "Transaction ID",
-      dataIndex: "_id",
-      key: "_id",
-      render: (text) => (
-        <Tooltip title={text}>
-          <Text className="text-gray-600 text-sm font-mono">{text.substring(0, 16)}...</Text>
-        </Tooltip>
-      ),
-    },
+    // {
+    //   title: "Transaction ID",
+    //   dataIndex: "_id",
+    //   key: "_id",
+    //   render: (text) => (
+    //     <Tooltip title={text}>
+    //       <Text className="text-gray-600 text-sm font-mono">{text.substring(0, 16)}...</Text>
+    //     </Tooltip>
+    //   ),
+    // },
   ];
 
   // Prepare data for the table
