@@ -495,6 +495,7 @@ exports.banAndUnbanUser = async (req, res) => {
   }
 };
 
+
 //log out
 exports.logout = async (req, res) => {
   try {

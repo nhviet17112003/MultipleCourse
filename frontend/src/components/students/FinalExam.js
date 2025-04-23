@@ -24,7 +24,7 @@ import {
   List,
   Tag,
   Row,
-  Col
+  Col,
 } from "antd";
 import {
   ClockCircleOutlined,
@@ -34,7 +34,7 @@ import {
   FileTextOutlined,
   SendOutlined,
   WarningOutlined,
-  LeftOutlined
+  LeftOutlined,
 } from "@ant-design/icons";
 
 const { Title, Paragraph, Text } = Typography;
@@ -112,7 +112,7 @@ const FinalExam = () => {
         setExam(response.data.exam);
         const durationInMinutes = response.data.exam.duration;
         const durationInMilliseconds = durationInMinutes * 60 * 1000;
-        
+
         // Calculate deadline for countdown
         const deadline = Date.now() + durationInMilliseconds;
         setCountdownDeadline(deadline);
@@ -135,7 +135,8 @@ const FinalExam = () => {
     if (!examSubmitted) {
       notification.warning({
         message: "Time's Up!",
-        description: "The exam time has ended. Your answers are being submitted automatically.",
+        description:
+          "The exam time has ended. Your answers are being submitted automatically.",
       });
       handleSubmit();
     }
@@ -158,56 +159,62 @@ const FinalExam = () => {
   // Submit exam
   const handleSubmit = async () => {
     if (examSubmitted) return;
-    
+
     setSubmitting(true);
     setExamSubmitted(true);
 
     // Stop the countdown by setting deadline to null
     setCountdownDeadline(null);
-  
+
     try {
       console.log("Answers State:", answers);
-      
-      const formattedAnswers = Object.keys(answers).map((question_id) => {
-        const questionData = exam.questions.find((q) => q.question_id === question_id);
-        if (!questionData) return null;
-  
-        const correctAnswers = questionData.answers
-          .filter((ans) => ans.isCorrect)
-          .map((ans) => ans.answer);
-  
-        const selectedAnswers = answers[question_id] || [];
-  
-        const isCorrect =
-          selectedAnswers.length === correctAnswers.length &&
-          correctAnswers.every((ans) => selectedAnswers.includes(ans));
-  
-        return {
-          question_id,
-          questionType: questionData.questionType,
-          answers: selectedAnswers.map((answer) => {
-            const matchingAnswer = questionData.answers.find((qAnswer) => qAnswer.answer === answer);
-            return {
-              answer_id: matchingAnswer ? matchingAnswer._id : "Unknown",
-              isCorrect: isCorrect,
-            };
-          }),
-        };
-      }).filter(Boolean);
-  
+
+      const formattedAnswers = Object.keys(answers)
+        .map((question_id) => {
+          const questionData = exam.questions.find(
+            (q) => q.question_id === question_id
+          );
+          if (!questionData) return null;
+
+          const correctAnswers = questionData.answers
+            .filter((ans) => ans.isCorrect)
+            .map((ans) => ans.answer);
+
+          const selectedAnswers = answers[question_id] || [];
+
+          const isCorrect =
+            selectedAnswers.length === correctAnswers.length &&
+            correctAnswers.every((ans) => selectedAnswers.includes(ans));
+
+          return {
+            question_id,
+            questionType: questionData.questionType,
+            answers: selectedAnswers.map((answer) => {
+              const matchingAnswer = questionData.answers.find(
+                (qAnswer) => qAnswer.answer === answer
+              );
+              return {
+                answer_id: matchingAnswer ? matchingAnswer._id : "Unknown",
+                isCorrect: isCorrect,
+              };
+            }),
+          };
+        })
+        .filter(Boolean);
+
       const response = await axios.post(
         `http://localhost:3000/api/exams/submit-exam/${exam.exam_id}`,
         { course_id: courseId, questions: formattedAnswers },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-  
+
       setScore(response.data.studentExamRS.score);
       setTotalMark(response.data.studentExamRS.totalMark);
       setIsResultModalVisible(true);
-  
+
       const passThreshold = 0.8 * response.data.studentExamRS.totalMark;
       const isPassed = response.data.studentExamRS.score >= passThreshold;
-  
+
       if (isPassed) {
         try {
           const certResponse = await axios.post(
@@ -220,33 +227,33 @@ const FinalExam = () => {
           notification.success({
             message: "Congratulations!",
             description: "You've passed the exam and earned a certificate!",
-            icon: <TrophyOutlined style={{ color: "#FFD700" }} />
+            icon: <TrophyOutlined style={{ color: "#FFD700" }} />,
           });
         } catch (certError) {
           console.error("Error generating certificate:", certError);
           notification.error({
             message: "Certificate Error",
-            description: "There was an error generating your certificate."
+            description: "There was an error generating your certificate.",
           });
         }
       } else {
         notification.info({
           message: "Exam Result",
           description: "You did not pass the exam. Try again next time!",
-          icon: <WarningOutlined style={{ color: "#faad14" }} />
+          icon: <WarningOutlined style={{ color: "#faad14" }} />,
         });
       }
     } catch (error) {
       console.error("Error submitting exam:", error);
       notification.error({
         message: "Error",
-        description: "Failed to submit exam. Please try again."
+        description: "Failed to submit exam. Please try again.",
       });
     } finally {
       setSubmitting(false);
     }
   };
-  
+
   const fetchCertificate = async () => {
     try {
       const response = await axios.get(
@@ -263,12 +270,19 @@ const FinalExam = () => {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
         <Spin size="large" tip="Loading exam..." />
       </div>
     );
   }
-  
+
   if (!exam) {
     return (
       <Result
@@ -287,18 +301,21 @@ const FinalExam = () => {
   // Calculate progress percent based on answered questions
   const answeredQuestions = Object.keys(answers).length;
   const totalQuestions = exam.questions.length;
-  const progressPercent = Math.round((answeredQuestions / totalQuestions) * 100);
+  const progressPercent = Math.round(
+    (answeredQuestions / totalQuestions) * 100
+  );
 
   // Calculate pass status
-  const passThreshold = totalMark ? (0.8 * totalMark) : null;
-  const passStatus = score !== null ? (score >= passThreshold ? "success" : "error") : null;
+  const passThreshold = totalMark ? 0.8 * totalMark : null;
+  const passStatus =
+    score !== null ? (score >= passThreshold ? "success" : "error") : null;
 
   return (
     <Layout style={{ background: "#f5f5f5", minHeight: "100vh" }}>
-      <Content style={{ padding: '24px', maxWidth: 800, margin: '0 auto' }}>
+      <Content style={{ padding: "24px", maxWidth: 800, margin: "0 auto" }}>
         {/* Back button */}
-        <Button 
-          icon={<LeftOutlined />} 
+        <Button
+          icon={<LeftOutlined />}
           onClick={handleBack}
           style={{ marginBottom: 16 }}
         >
@@ -307,8 +324,10 @@ const FinalExam = () => {
 
         <Card
           title={
-            <div style={{ textAlign: 'center' }}>
-              <Title level={2} style={{ margin: 0 }}>{exam.title}</Title>
+            <div style={{ textAlign: "center" }}>
+              <Title level={2} style={{ margin: 0 }}>
+                {exam.title}
+              </Title>
               <Paragraph type="secondary">
                 Duration: <Text strong>{exam.duration} minutes</Text>
               </Paragraph>
@@ -321,19 +340,19 @@ const FinalExam = () => {
               </Tag>
             ) : (
               countdownDeadline && (
-                <Countdown 
-                  title="Time Remaining" 
-                  value={countdownDeadline} 
+                <Countdown
+                  title="Time Remaining"
+                  value={countdownDeadline}
                   onFinish={onCountdownFinish}
                   format="HH:mm:ss"
-                  valueStyle={{ fontSize: '1.2rem', color: '#ff4d4f' }}
+                  valueStyle={{ fontSize: "1.2rem", color: "#ff4d4f" }}
                 />
               )
             )
           }
           style={{ marginBottom: 24 }}
         >
-          <Space direction="vertical" style={{ width: '100%' }}>
+          <Space direction="vertical" style={{ width: "100%" }}>
             <Alert
               message="Exam Instructions"
               description="Read each question carefully. For multiple choice questions, select all that apply. For single choice questions, select one answer only."
@@ -341,13 +360,17 @@ const FinalExam = () => {
               showIcon
               style={{ marginBottom: 16 }}
             />
-            
+
             <div style={{ marginBottom: 16 }}>
               <Text>Progress:</Text>
-              <Progress 
-                percent={progressPercent} 
-                status={examSubmitted ? (passStatus || 'normal') : 'active'} 
-                strokeColor={examSubmitted && passStatus === 'success' ? '#52c41a' : undefined}
+              <Progress
+                percent={progressPercent}
+                status={examSubmitted ? passStatus || "normal" : "active"}
+                strokeColor={
+                  examSubmitted && passStatus === "success"
+                    ? "#52c41a"
+                    : undefined
+                }
               />
             </div>
           </Space>
@@ -358,14 +381,29 @@ const FinalExam = () => {
             itemLayout="vertical"
             dataSource={exam.questions}
             renderItem={(question, index) => (
-              <Card 
-                key={question.question_id} 
+              <Card
+                key={question.question_id}
                 style={{ marginBottom: 16 }}
                 title={
-                  <Space>
-                    <Badge count={index + 1} style={{ backgroundColor: '#1890ff' }} />
-                    <Text strong>{question.question}</Text>
-                    <Tag color={question.questionType === "Multiple Choice" ? "geekblue" : "purple"}>
+                  <Space wrap>
+                    <Badge
+                      count={index + 1}
+                      style={{ backgroundColor: "#1890ff" }}
+                    />
+                    <Text strong style={{ wordBreak: "break-word" }}>
+                      {question.question}
+                    </Text>
+                    <Tag
+                      color={
+                        question.questionType === "Multiple Choice"
+                          ? "geekblue"
+                          : "purple"
+                      }
+                      style={{
+                        whiteSpace: "normal", // Cho phép xuống dòng
+                        wordBreak: "break-word", // Ngắt từ nếu quá dài
+                      }}
+                    >
                       {question.questionType}
                     </Tag>
                   </Space>
@@ -373,19 +411,25 @@ const FinalExam = () => {
               >
                 <Form.Item name={["answers", question.question_id]}>
                   {question.questionType === "Multiple Choice" ? (
-                    <Checkbox.Group style={{ width: '100%' }}>
-                      <Space direction="vertical" style={{ width: '100%' }}>
+                    <Checkbox.Group style={{ width: "100%" }}>
+                      <Space direction="vertical" style={{ width: "100%" }}>
                         {question.answers.map((answer) => (
-                          <Checkbox 
-                            key={answer.answer} 
+                          <Checkbox
+                            key={answer.answer}
                             value={answer.answer}
-                            checked={answers[question.question_id]?.includes(answer.answer) || false}
-                            onChange={(e) => handleAnswerChange(
-                              question.question_id, 
-                              answer.answer, 
-                              question.questionType, 
-                              e.target.checked
-                            )}
+                            checked={
+                              answers[question.question_id]?.includes(
+                                answer.answer
+                              ) || false
+                            }
+                            onChange={(e) =>
+                              handleAnswerChange(
+                                question.question_id,
+                                answer.answer,
+                                question.questionType,
+                                e.target.checked
+                              )
+                            }
                             disabled={examSubmitted}
                           >
                             {answer.answer}
@@ -394,19 +438,25 @@ const FinalExam = () => {
                       </Space>
                     </Checkbox.Group>
                   ) : (
-                    <Radio.Group style={{ width: '100%' }}>
-                      <Space direction="vertical" style={{ width: '100%' }}>
+                    <Radio.Group style={{ width: "100%" }}>
+                      <Space direction="vertical" style={{ width: "100%" }}>
                         {question.answers.map((answer) => (
-                          <Radio 
-                            key={answer.answer} 
+                          <Radio
+                            key={answer.answer}
                             value={answer.answer}
-                            checked={answers[question.question_id]?.includes(answer.answer) || false}
-                            onChange={(e) => handleAnswerChange(
-                              question.question_id, 
-                              answer.answer, 
-                              question.questionType, 
-                              e.target.checked
-                            )}
+                            checked={
+                              answers[question.question_id]?.includes(
+                                answer.answer
+                              ) || false
+                            }
+                            onChange={(e) =>
+                              handleAnswerChange(
+                                question.question_id,
+                                answer.answer,
+                                question.questionType,
+                                e.target.checked
+                              )
+                            }
                             disabled={examSubmitted}
                           >
                             {answer.answer}
@@ -419,8 +469,16 @@ const FinalExam = () => {
 
                 {allCorrectResults[question.question_id] !== undefined && (
                   <Alert
-                    type={allCorrectResults[question.question_id] ? "success" : "error"}
-                    message={allCorrectResults[question.question_id] ? "Correct!" : "Incorrect"}
+                    type={
+                      allCorrectResults[question.question_id]
+                        ? "success"
+                        : "error"
+                    }
+                    message={
+                      allCorrectResults[question.question_id]
+                        ? "Correct!"
+                        : "Incorrect"
+                    }
                     showIcon
                   />
                 )}
@@ -430,7 +488,7 @@ const FinalExam = () => {
 
           <Row gutter={16}>
             <Col span={12}>
-              <Button 
+              <Button
                 onClick={handleBack}
                 size="large"
                 block
@@ -441,9 +499,9 @@ const FinalExam = () => {
               </Button>
             </Col>
             <Col span={12}>
-              <Button 
-                type="primary" 
-                htmlType="submit" 
+              <Button
+                type="primary"
+                htmlType="submit"
                 size="large"
                 block
                 loading={submitting}
@@ -462,11 +520,14 @@ const FinalExam = () => {
             <Result
               status={passStatus}
               title="Exam Result"
-              subTitle={`You scored ${score} out of ${totalMark} (${((score / totalMark) * 100).toFixed(2)}%)`}
+              subTitle={`You scored ${score} out of ${totalMark} (${(
+                (score / totalMark) *
+                100
+              ).toFixed(2)}%)`}
               extra={[
                 certificateUrl && (
-                  <Button 
-                    type="primary" 
+                  <Button
+                    type="primary"
                     icon={<FileTextOutlined />}
                     href={certificateUrl}
                     target="_blank"
@@ -475,19 +536,15 @@ const FinalExam = () => {
                     View Certificate
                   </Button>
                 ),
-                <Button 
+                <Button
                   key="feedback"
                   onClick={() => setIsResultModalVisible(true)}
                 >
                   Leave Feedback
                 </Button>,
-                <Button 
-                  key="back"
-                  onClick={handleBack}
-                  icon={<LeftOutlined />}
-                >
+                <Button key="back" onClick={handleBack} icon={<LeftOutlined />}>
                   Back to Course
-                </Button>
+                </Button>,
               ]}
             />
           </Card>
@@ -502,13 +559,9 @@ const FinalExam = () => {
             <Button key="stay" onClick={() => setShowExitConfirm(false)}>
               Stay on Exam
             </Button>,
-            <Button 
-              key="leave" 
-              danger
-              onClick={() => navigate(-1)}
-            >
+            <Button key="leave" danger onClick={() => navigate(-1)}>
               Leave Exam (Answers will be lost)
-            </Button>
+            </Button>,
           ]}
         >
           <Alert
@@ -529,40 +582,44 @@ const FinalExam = () => {
             <Button key="close" onClick={() => setIsResultModalVisible(false)}>
               Close
             </Button>,
-            <Button 
-              key="submit" 
-              type="primary" 
+            <Button
+              key="submit"
+              type="primary"
               loading={submitting}
               onClick={handleCommentCourseSubmit}
             >
               Submit Feedback
-            </Button>
+            </Button>,
           ]}
         >
           <div style={{ marginBottom: 16 }}>
-            <Statistic 
-              title="Your Score" 
-              value={score} 
-              suffix={`/ ${totalMark} (${score && totalMark ? ((score / totalMark) * 100).toFixed(2) : 0}%)`} 
-              valueStyle={{ color: passStatus === 'success' ? '#3f8600' : '#cf1322' }}
+            <Statistic
+              title="Your Score"
+              value={score}
+              suffix={`/ ${totalMark} (${
+                score && totalMark ? ((score / totalMark) * 100).toFixed(2) : 0
+              }%)`}
+              valueStyle={{
+                color: passStatus === "success" ? "#3f8600" : "#cf1322",
+              }}
             />
             <Divider />
           </div>
 
           <Form layout="vertical">
             <Form.Item label="How would you rate this course?">
-              <Rate 
-                allowHalf 
-                value={rating} 
-                onChange={setRating} 
+              <Rate
+                allowHalf
+                value={rating}
+                onChange={setRating}
                 style={{ fontSize: 36 }}
               />
             </Form.Item>
             <Form.Item label="Share your feedback about the course:">
-              <TextArea 
-                rows={4} 
-                value={comment} 
-                onChange={(e) => setComment(e.target.value)} 
+              <TextArea
+                rows={4}
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
                 placeholder="What did you like? What could be improved?"
               />
             </Form.Item>

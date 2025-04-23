@@ -155,7 +155,8 @@ exports.getAllLessons = async (req, res) => {
       return res.status(404).json({ message: "Course not found" });
     }
 
-    const lessons = await Lesson.find({ course_id });
+    const lessons = await Lesson.find({ course_id }).sort({ number: 1 });
+
     res.json(lessons);
   } catch (err) {
     console.log(err);
