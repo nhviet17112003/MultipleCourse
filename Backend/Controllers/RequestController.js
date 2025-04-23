@@ -44,7 +44,7 @@ exports.getRequestsByUser = async (req, res, next) => {
     const rs = [];
     for (let i = 0; i < requests.length; i++) {
       const course = await Courses.findById(requests[i].course);
-      if (!course && requests[i].request_type.includes("Deleted course")) {
+      if (!course || requests[i].request_type.includes("Deleted course")) {
         rs.push({
           _id: requests[i]._id,
           course_id: requests[i].course,
