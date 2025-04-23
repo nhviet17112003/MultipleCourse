@@ -43,7 +43,7 @@ const CreateExam = () => {
       question: "",
       marks: "",
       questionType: "",
-      answers: [{ answer: "", isCorrect: false }]
+      answers: [{ answer: "", isCorrect: false },{ answer: "", isCorrect: false }]
     }]
   });
 
@@ -115,10 +115,10 @@ const CreateExam = () => {
       const updatedQuestions = [...prevExam.questions];
       
       // Check if this is the last answer
-      if (updatedQuestions[qIndex].answers.length <= 1) {
+      if (updatedQuestions[qIndex].answers.length <= 2) {
         api.warning({
           message: 'Cannot Remove',
-          description: 'Question must have at least one answer',
+          description: 'Question must have at least two answers',
           icon: <WarningOutlined style={{ color: '#faad14' }} />,
           placement: 'topRight',
         });
