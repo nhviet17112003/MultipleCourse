@@ -608,7 +608,12 @@ const AboutPage = () => {
                 >
                   Explore Courses
                 </Button>
-                <Button size="large" onClick={() => navigate("/signup")}>
+                <Button
+                  size="large"
+                  onClick={() =>
+                    navigate("/signup", { state: { role: "Tutor" } })
+                  }
+                >
                   Become a Tutor
                 </Button>
               </Space>

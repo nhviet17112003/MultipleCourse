@@ -1,7 +1,34 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Table, Card, Spin, Alert, Typography, Tag, Space, Divider, Input, Select, DatePicker, Button, Row, Col, Statistic, message } from "antd";
-import { ShoppingCartOutlined, HistoryOutlined, FilterOutlined, SearchOutlined, ReloadOutlined, UserOutlined, DollarOutlined, BookOutlined, CalendarOutlined } from "@ant-design/icons";
+import {
+  Table,
+  Card,
+  Spin,
+  Alert,
+  Typography,
+  Tag,
+  Space,
+  Divider,
+  Input,
+  Select,
+  DatePicker,
+  Button,
+  Row,
+  Col,
+  Statistic,
+  message,
+} from "antd";
+import {
+  ShoppingCartOutlined,
+  HistoryOutlined,
+  FilterOutlined,
+  SearchOutlined,
+  ReloadOutlined,
+  UserOutlined,
+  DollarOutlined,
+  BookOutlined,
+  CalendarOutlined,
+} from "@ant-design/icons";
 
 const { Title, Text } = Typography;
 const { Search } = Input;
@@ -14,15 +41,15 @@ export default function BuyerHistory() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const token = localStorage.getItem("authToken");
-  
+
   // Summary statistics
   const [statistics, setStatistics] = useState({
     totalOrders: 0,
     totalBuyers: 0,
     totalRevenue: 0,
-    uniqueCourses: 0
+    uniqueCourses: 0,
   });
-  
+
   // Filter states
   const [searchEmail, setSearchEmail] = useState("");
   const [searchCourseName, setSearchCourseName] = useState("");
@@ -62,37 +89,37 @@ export default function BuyerHistory() {
   const calculateStatistics = (data) => {
     // Calculate total orders
     const totalOrders = data.length;
-    
+
     // Calculate unique buyers
     const uniqueBuyerEmails = new Set();
-    data.forEach(order => {
-      order.buyers.forEach(buyer => {
+    data.forEach((order) => {
+      order.buyers.forEach((buyer) => {
         uniqueBuyerEmails.add(buyer.email);
       });
     });
     const totalBuyers = uniqueBuyerEmails.size;
-    
+
     // Calculate total revenue
     let totalRevenue = 0;
-    data.forEach(order => {
+    data.forEach((order) => {
       const price = parseFloat(order.course.price);
       if (!isNaN(price)) {
         totalRevenue += price * order.buyers.length;
       }
     });
-    
+
     // Calculate unique courses
     const uniqueCourseIds = new Set();
-    data.forEach(order => {
+    data.forEach((order) => {
       uniqueCourseIds.add(order.course._id);
     });
     const uniqueCourses = uniqueCourseIds.size;
-    
+
     setStatistics({
       totalOrders,
       totalBuyers,
       totalRevenue,
-      uniqueCourses
+      uniqueCourses,
     });
   };
 
@@ -101,8 +128,8 @@ export default function BuyerHistory() {
 
     // Filter by email
     if (searchEmail) {
-      filtered = filtered.filter(order => 
-        order.buyers.some(buyer => 
+      filtered = filtered.filter((order) =>
+        order.buyers.some((buyer) =>
           buyer.email.toLowerCase().includes(searchEmail.toLowerCase())
         )
       );
@@ -110,15 +137,17 @@ export default function BuyerHistory() {
 
     // Filter by course name
     if (searchCourseName) {
-      filtered = filtered.filter(order => 
-        order.course.title.toLowerCase().includes(searchCourseName.toLowerCase())
+      filtered = filtered.filter((order) =>
+        order.course.title
+          .toLowerCase()
+          .includes(searchCourseName.toLowerCase())
       );
     }
 
     // Filter by price range
     if (priceRange !== "all") {
       const [min, max] = priceRange.split("-").map(Number);
-      filtered = filtered.filter(order => {
+      filtered = filtered.filter((order) => {
         const price = parseFloat(order.course.price);
         if (max) {
           return price >= min && price <= max;
@@ -131,7 +160,7 @@ export default function BuyerHistory() {
     // Filter by date range
     if (dateRange) {
       const [startDate, endDate] = dateRange;
-      filtered = filtered.filter(order => {
+      filtered = filtered.filter((order) => {
         const orderDate = new Date(order.course.date);
         return orderDate >= startDate && orderDate <= endDate;
       });
@@ -153,10 +182,10 @@ export default function BuyerHistory() {
   if (loading)
     return (
       <div className="flex items-center justify-center h-64">
-        <Spin size="large" tip="Đang tải dữ liệu..." />
+        <Spin size="large" tip="Loading data..." />
       </div>
     );
-    
+
   if (error)
     return (
       <div className="p-4">
@@ -231,66 +260,83 @@ export default function BuyerHistory() {
 
   // Format currency
   const formatCurrency = (value) => {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(value);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-      <Card 
-        className="shadow-xl rounded-lg overflow-hidden"
-        bordered={false}
-      >
+      <Card className="shadow-xl rounded-lg overflow-hidden" bordered={false}>
         <div className="flex items-center justify-center mb-6">
           <HistoryOutlined className="text-blue-500 text-3xl mr-4" />
           <Title level={2} className="m-0 text-blue-800">
             Buyer History
           </Title>
         </div>
-        
+
         {/* Statistics Counters */}
         <div className="mb-6">
           <Row gutter={[16, 16]}>
             <Col xs={24} sm={12} md={6}>
               <Card className="bg-blue-50 border-blue-200 shadow-md h-full">
                 <Statistic
-                  title={<div className="text-blue-800 font-medium flex items-center"><ShoppingCartOutlined className="mr-2" /> Tổng Đơn Hàng</div>}
+                  title={
+                    <div className="text-blue-800 font-medium flex items-center">
+                      <ShoppingCartOutlined className="mr-2" />
+                      Total order
+                    </div>
+                  }
                   value={statistics.totalOrders}
-                  valueStyle={{ color: '#1890ff', fontWeight: 'bold' }}
+                  valueStyle={{ color: "#1890ff", fontWeight: "bold" }}
                 />
               </Card>
             </Col>
             <Col xs={24} sm={12} md={6}>
               <Card className="bg-green-50 border-green-200 shadow-md h-full">
                 <Statistic
-                  title={<div className="text-green-800 font-medium flex items-center"><UserOutlined className="mr-2" /> Tổng Người Mua</div>}
+                  title={
+                    <div className="text-green-800 font-medium flex items-center">
+                      <UserOutlined className="mr-2" /> Total buyers
+                    </div>
+                  }
                   value={statistics.totalBuyers}
-                  valueStyle={{ color: '#52c41a', fontWeight: 'bold' }}
+                  valueStyle={{ color: "#52c41a", fontWeight: "bold" }}
                 />
               </Card>
             </Col>
             <Col xs={24} sm={12} md={6}>
               <Card className="bg-red-50 border-red-200 shadow-md h-full">
                 <Statistic
-                  title={<div className="text-red-800 font-medium flex items-center"><DollarOutlined className="mr-2" /> Tổng Doanh Thu</div>}
+                  title={
+                    <div className="text-red-800 font-medium flex items-center">
+                      <DollarOutlined className="mr-2" /> Total revenue
+                    </div>
+                  }
                   value={formatCurrency(statistics.totalRevenue)}
-                  valueStyle={{ color: '#f5222d', fontWeight: 'bold' }}
+                  valueStyle={{ color: "#f5222d", fontWeight: "bold" }}
                 />
               </Card>
             </Col>
             <Col xs={24} sm={12} md={6}>
               <Card className="bg-purple-50 border-purple-200 shadow-md h-full">
                 <Statistic
-                  title={<div className="text-purple-800 font-medium flex items-center"><BookOutlined className="mr-2" /> Số Khóa Học</div>}
+                  title={
+                    <div className="text-purple-800 font-medium flex items-center">
+                      <BookOutlined className="mr-2" /> Number of courses
+                    </div>
+                  }
                   value={statistics.uniqueCourses}
-                  valueStyle={{ color: '#722ed1', fontWeight: 'bold' }}
+                  valueStyle={{ color: "#722ed1", fontWeight: "bold" }}
                 />
               </Card>
             </Col>
           </Row>
         </div>
-        
+
         <Divider className="mb-6" />
-        
+
         {/* Filter section */}
         <Card className="mb-6 bg-gray-50">
           <Row gutter={[16, 16]}>
@@ -299,7 +345,7 @@ export default function BuyerHistory() {
                 placeholder="Search buyer email"
                 prefix={<SearchOutlined />}
                 value={searchEmail}
-                onChange={e => setSearchEmail(e.target.value)}
+                onChange={(e) => setSearchEmail(e.target.value)}
                 allowClear
               />
             </Col>
@@ -308,56 +354,59 @@ export default function BuyerHistory() {
                 placeholder="Search course name"
                 prefix={<SearchOutlined />}
                 value={searchCourseName}
-                onChange={e => setSearchCourseName(e.target.value)}
+                onChange={(e) => setSearchCourseName(e.target.value)}
                 allowClear
               />
             </Col>
             <Col xs={24} md={8}>
               <Select
-                style={{ width: '100%' }}
+                style={{ width: "100%" }}
                 placeholder="Filter by price"
                 value={priceRange}
-                onChange={value => setPriceRange(value)}
+                onChange={(value) => setPriceRange(value)}
               >
                 <Option value="all">All prices</Option>
                 <Option value="0-500000">0 - 500,000 VND</Option>
                 <Option value="500000-1000000">500,000 - 1,000,000 VND</Option>
-                <Option value="1000000-2000000">1,000,000 - 2,000,000 VND</Option>
+                <Option value="1000000-2000000">
+                  1,000,000 - 2,000,000 VND
+                </Option>
                 <Option value="2000000">Over 2,000,000 VND</Option>
               </Select>
             </Col>
             <Col xs={24} md={10}>
               <RangePicker
-                style={{ width: '100%' }}
+                style={{ width: "100%" }}
                 onChange={(dates) => setDateRange(dates)}
                 value={dateRange}
                 format="DD/MM/YYYY"
               />
             </Col>
             <Col xs={24} md={6}>
-              <Button 
-                type="primary" 
-                icon={<ReloadOutlined />} 
+              <Button
+                type="primary"
+                icon={<ReloadOutlined />}
                 onClick={resetFilters}
-                style={{ width: '100%' }}
+                style={{ width: "100%" }}
               >
                 Refresh
               </Button>
             </Col>
           </Row>
         </Card>
-        
+
         <div className="overflow-x-auto">
-          <Table 
-            columns={columns} 
-            dataSource={data} 
-            pagination={{ 
+          <Table
+            columns={columns}
+            dataSource={data}
+            pagination={{
               pageSize: 10,
               showSizeChanger: true,
-              showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} buyers`
+              showTotal: (total, range) =>
+                `${range[0]}-${range[1]} of ${total} buyers`,
             }}
             className="shadow-md"
-            scroll={{ x: 'max-content' }}
+            scroll={{ x: "max-content" }}
             summary={() => (
               <Table.Summary fixed>
                 <Table.Summary.Row>
@@ -365,9 +414,9 @@ export default function BuyerHistory() {
                     <div className="flex items-center">
                       <CalendarOutlined className="mr-2" />
                       <Text type="secondary">
-                        {statistics.totalOrders > 0 
-                          ? `Đang hiển thị ${filteredData.length} đơn hàng (từ tổng số ${buyerHistory.length})` 
-                          : 'Không có đơn hàng nào'}
+                        {statistics.totalOrders > 0
+                          ? `Showing ${filteredData.length} orders (from total ${buyerHistory.length})`
+                          : "No orders"}
                       </Text>
                     </div>
                   </Table.Summary.Cell>

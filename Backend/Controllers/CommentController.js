@@ -352,7 +352,8 @@ exports.updateLessonCommentStatusById = async (req, res) => {
 
     if (comment.status === false) {
       const newActivity = new ActivityHistory({
-        admin: req.user._id,
+        user: req.user._id,
+        role: "Admin",
         description: `Change comment status of user ${comment.author} to inactive\n
       Comment: ${comment.comment}`,
       });
@@ -360,7 +361,8 @@ exports.updateLessonCommentStatusById = async (req, res) => {
       res.status(200).json({ message: "Comment is now inactive" });
     } else {
       const newActivity = new ActivityHistory({
-        admin: req.user._id,
+        user: req.user._id,
+        role: "Admin",
         description: `Change comment status of user ${comment.author} to active\n
       Comment: ${comment.comment}`,
       });

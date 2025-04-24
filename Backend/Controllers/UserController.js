@@ -511,6 +511,7 @@ exports.logout = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 exports.updateBankAccount = async (req, res) => {
   try {
     const user = await Users.findOne({ _id: req.user._id });

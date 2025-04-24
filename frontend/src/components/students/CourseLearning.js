@@ -24,7 +24,7 @@ import {
   Progress,
   Statistic,
   Empty,
-  Menu
+  Menu,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -41,7 +41,7 @@ import {
   FileTextOutlined,
   InfoCircleOutlined,
   RightOutlined,
-  UserOutlined
+  UserOutlined,
 } from "@ant-design/icons";
 
 const { Title, Text, Paragraph } = Typography;
@@ -52,20 +52,29 @@ const { TabPane } = Tabs;
 // Custom Comment component since Comment was removed from antd v5
 const Comment = ({ author, avatar, content, actions, datetime }) => {
   return (
-    <div style={{ display: 'flex', marginBottom: 16, padding: 16, background: '#fff', borderRadius: 8 }}>
-      <div style={{ marginRight: 16 }}>
-        {avatar}
-      </div>
+    <div
+      style={{
+        display: "flex",
+        marginBottom: 16,
+        padding: 16,
+        background: "#fff",
+        borderRadius: 8,
+      }}
+    >
+      <div style={{ marginRight: 16 }}>{avatar}</div>
       <div style={{ flex: 1 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
           <Text strong>{author}</Text>
           <Text type="secondary">{datetime}</Text>
         </div>
-        <div style={{ margin: '8px 0' }}>{content}</div>
+        <div style={{ margin: "8px 0" }}>{content}</div>
         {actions && (
-          <ul style={{ marginTop: 8, padding: 0, listStyle: 'none' }}>
+          <ul style={{ marginTop: 8, padding: 0, listStyle: "none" }}>
             {actions.map((action, index) => (
-              <li key={index} style={{ display: 'inline-block', marginRight: 12 }}>
+              <li
+                key={index}
+                style={{ display: "inline-block", marginRight: 12 }}
+              >
                 {action}
               </li>
             ))}
@@ -127,7 +136,7 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
         console.error("Error fetching user profile:", err);
         notification.error({
           message: "Error",
-          description: "Failed to load user profile"
+          description: "Failed to load user profile",
         });
       }
     };
@@ -161,14 +170,14 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
           setError("Failed to fetch progress data.");
           notification.error({
             message: "Error",
-            description: "Failed to load progress data"
+            description: "Failed to load progress data",
           });
         }
       } catch (error) {
         setError("Failed to fetch progress data.");
         notification.error({
           message: "Error",
-          description: "Failed to load progress data"
+          description: "Failed to load progress data",
         });
       }
     };
@@ -245,14 +254,14 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
         setError("Failed to fetch exam score.");
         notification.error({
           message: "Error",
-          description: "Failed to load exam score"
+          description: "Failed to load exam score",
         });
       }
     } catch (error) {
       setError("Failed to fetch exam score.");
       notification.error({
         message: "Error",
-        description: "Failed to load exam score"
+        description: "Failed to load exam score",
       });
     }
   };
@@ -287,38 +296,42 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
           }),
         }
       );
-      
+
       if (response.ok) {
         setCurrentLesson((prevLesson) => ({
           ...prevLesson,
           comments: prevLesson.comments.map((comment) =>
             comment._id === currentEditComment._id
-              ? { ...comment, comment: editCommentText, rating: editCommentRating }
+              ? {
+                  ...comment,
+                  comment: editCommentText,
+                  rating: editCommentRating,
+                }
               : comment
           ),
         }));
-        
+
         notification.success({
           message: "Success",
-          description: "Comment updated successfully"
+          description: "Comment updated successfully",
         });
-        
+
         setEditModalVisible(false);
       } else {
         notification.error({
           message: "Error",
-          description: "Failed to update comment"
+          description: "Failed to update comment",
         });
       }
     } catch (error) {
       console.error("Failed to update comment", error);
       notification.error({
         message: "Error",
-        description: "Failed to update comment"
+        description: "Failed to update comment",
       });
     }
   };
-  
+
   const handleDeleteComment = async (commentId) => {
     Modal.confirm({
       title: "Delete Comment",
@@ -328,7 +341,7 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
       cancelText: "No",
       onOk: async () => {
         try {
-          const lessonId = currentLesson._id; 
+          const lessonId = currentLesson._id;
           const response = await fetch(
             "http://localhost:3000/api/comments/delete-lesson-comment",
             {
@@ -344,7 +357,7 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
               }),
             }
           );
-  
+
           if (response.ok) {
             setCurrentLesson((prevLesson) => ({
               ...prevLesson,
@@ -354,28 +367,28 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
             }));
             notification.success({
               message: "Success",
-              description: "Comment deleted successfully"
+              description: "Comment deleted successfully",
             });
           } else {
             notification.error({
               message: "Error",
-              description: "Failed to delete comment"
+              description: "Failed to delete comment",
             });
           }
         } catch (error) {
           console.error("Failed to delete comment", error);
           notification.error({
             message: "Error",
-            description: "Failed to delete comment"
+            description: "Failed to delete comment",
           });
         }
-      }
+      },
     });
   };
 
   const handleCommentSubmit = async () => {
     if (!note) return;
-  
+
     try {
       const response = await fetch(
         "http://localhost:3000/api/comments/create-lesson-comment",
@@ -392,40 +405,40 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
           }),
         }
       );
-      
+
       if (response.ok) {
         const responseData = await response.json();
         const newComment = responseData.comment;
-        
+
         if (!newComment._id) {
           newComment._id = Date.now().toString();
         }
-        
+
         setNote("");
         setRating(5);
-        
+
         setCurrentLesson((prevLesson) => ({
           ...prevLesson,
-          comments: Array.isArray(prevLesson.comments) 
-            ? [...prevLesson.comments, newComment] 
-            : [newComment]
+          comments: Array.isArray(prevLesson.comments)
+            ? [...prevLesson.comments, newComment]
+            : [newComment],
         }));
-        
+
         notification.success({
           message: "Success",
-          description: "Comment posted successfully"
+          description: "Comment posted successfully",
         });
       } else {
         notification.error({
           message: "Error",
-          description: "Failed to post comment"
+          description: "Failed to post comment",
         });
       }
     } catch (error) {
       console.error("Failed to post comment", error);
       notification.error({
         message: "Error",
-        description: "Failed to post comment"
+        description: "Failed to post comment",
       });
     }
   };
@@ -472,7 +485,7 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
         setError("Failed to fetch lessons or progress.");
         notification.error({
           message: "Error",
-          description: "Failed to load lessons or progress"
+          description: "Failed to load lessons or progress",
         });
       } finally {
         setLoading(false);
@@ -550,17 +563,17 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
             return lesson;
           })
         );
-        
+
         notification.success({
           message: "Success",
-          description: "Lesson marked as completed"
+          description: "Lesson marked as completed",
         });
       }
     } catch (error) {
       console.error("Failed to update lesson progress", error);
       notification.error({
         message: "Error",
-        description: "Failed to update lesson progress"
+        description: "Failed to update lesson progress",
       });
     }
   };
@@ -617,19 +630,19 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
         setNote("");
         notification.success({
           message: "Success",
-          description: "Note saved successfully"
+          description: "Note saved successfully",
         });
       } else {
         notification.error({
           message: "Error",
-          description: "Failed to save note"
+          description: "Failed to save note",
         });
       }
     } catch (error) {
       console.error("Failed to save note", error);
       notification.error({
         message: "Error",
-        description: "Failed to save note"
+        description: "Failed to save note",
       });
     }
   };
@@ -665,7 +678,14 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
         <Spin size="large" tip="Loading lessons..." />
       </div>
     );
@@ -678,31 +698,33 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
         description={error}
         type="error"
         showIcon
-        style={{ maxWidth: 800, margin: '20px auto' }}
+        style={{ maxWidth: 800, margin: "20px auto" }}
       />
     );
   }
 
   return (
-    <Layout style={{ minHeight: '100vh', background: '#f0f2f5' }}>
-      <Content style={{ padding: '24px', width: 1200, margin: '0 auto' }}>
+    <Layout style={{ minHeight: "100vh", background: "#f0f2f5" }}>
+      <Content style={{ padding: "24px", width: 1200, margin: "0 auto" }}>
         <Row gutter={[24, 24]}>
           <Col span={isVideoExpanded ? 24 : 18}>
-            <Card 
+            <Card
               style={{ marginBottom: 16 }}
               extra={
                 <Button
-                  icon={isVideoExpanded ? <ShrinkOutlined /> : <ExpandOutlined />}
+                  icon={
+                    isVideoExpanded ? <ShrinkOutlined /> : <ExpandOutlined />
+                  }
                   onClick={() => setIsVideoExpanded(!isVideoExpanded)}
                 >
-                  {isVideoExpanded ? 'Collapse Video' : 'Expand Video'}
+                  {isVideoExpanded ? "Collapse Video" : "Expand Video"}
                 </Button>
               }
               title={
                 <Space>
-                  <Button 
-                    type="link" 
-                    icon={<ArrowLeftOutlined />} 
+                  <Button
+                    type="link"
+                    icon={<ArrowLeftOutlined />}
                     onClick={() => navigate(-1)}
                   >
                     Back to Courses
@@ -712,34 +734,78 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
             >
               {currentLesson ? (
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: 16,
+                    }}
+                  >
                     <Space>
                       <Title level={3} style={{ margin: 0 }}>
                         {currentLesson.title}
                       </Title>
                       {currentLesson.status === "Completed" && (
-                        <Badge count={<CheckCircleOutlined style={{ color: '#52c41a' }} />} />
+                        <Badge
+                          count={
+                            <CheckCircleOutlined style={{ color: "#52c41a" }} />
+                          }
+                        />
                       )}
                     </Space>
                   </div>
 
-                  {currentLesson?.type === "exam" && currentLesson.title === "Final Exam" ? (
-                    <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  {currentLesson?.type === "exam" &&
+                  currentLesson.title === "Final Exam" ? (
+                    <div
+                      style={{
+                        marginTop: 24,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                      }}
+                    >
                       {examScore > 0 && (
-                        <Card style={{ width: 800, marginBottom: 16, background: 'linear-gradient(135deg, #e6f7ff 0%, #f9f0ff 100%)' }}>
+                        <Card
+                          style={{
+                            width: 800,
+                            marginBottom: 16,
+                            background:
+                              "linear-gradient(135deg, #e6f7ff 0%, #f9f0ff 100%)",
+                          }}
+                        >
                           <Statistic
-                          className="text-center"
+                            className="text-center"
                             title="Your Score"
                             value={examScore}
-                            valueStyle={{ color: '#1890ff', fontSize: 36, fontWeight: 'bold', textAlign: 'center' }}
+                            valueStyle={{
+                              color: "#1890ff",
+                              fontSize: 36,
+                              fontWeight: "bold",
+                              textAlign: "center",
+                            }}
                           />
                         </Card>
                       )}
-                      
+
                       {isCompleted ? (
-                        <Card style={{ width: '100%', textAlign: 'center', background: 'linear-gradient(135deg, #f6ffed 0%, #e6f7ff 100%)' }}>
-                          <TrophyOutlined style={{ fontSize: 64, color: '#52c41a', marginBottom: 16 }} />
-                          <Title level={3} style={{ color: '#52c41a' }}>
+                        <Card
+                          style={{
+                            width: "100%",
+                            textAlign: "center",
+                            background:
+                              "linear-gradient(135deg, #f6ffed 0%, #e6f7ff 100%)",
+                          }}
+                        >
+                          <TrophyOutlined
+                            style={{
+                              fontSize: 64,
+                              color: "#52c41a",
+                              marginBottom: 16,
+                            }}
+                          />
+                          <Title level={3} style={{ color: "#52c41a" }}>
                             🎉 Congratulations! 🎉
                           </Title>
                           <Paragraph>
@@ -780,12 +846,19 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
                     </div>
                   ) : (
                     <>
-                      <div style={{ marginBottom: 16, borderRadius: 8, overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
+                      <div
+                        style={{
+                          marginBottom: 16,
+                          borderRadius: 8,
+                          overflow: "hidden",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                        }}
+                      >
                         <video
                           ref={videoRef}
                           src={currentLesson.video_url}
                           controls
-                          style={{ width: '100%' }}
+                          style={{ width: "100%" }}
                           onEnded={handleVideoEnd}
                         />
                       </div>
@@ -811,7 +884,7 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
                             <Paragraph>{currentLesson.description}</Paragraph>
                           </Card>
                         </TabPane>
-                        
+
                         <TabPane tab="Note" key="Note">
                           {currentNote && (
                             <Alert
@@ -832,22 +905,39 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
                             Save Note
                           </Button>
                         </TabPane>
-                        
-                        <TabPane tab="Comment" key="Comment" style={{ padding: '16px 0' }}>
+
+                        <TabPane
+                          tab="Comment"
+                          key="Comment"
+                          style={{ padding: "16px 0" }}
+                        >
                           <Title level={4}>Comments</Title>
-                          <Space direction="vertical" style={{ width: '100%', marginBottom: 16 }}>
+                          <Space
+                            direction="vertical"
+                            style={{ width: "100%", marginBottom: 16 }}
+                          >
                             <TextArea
                               placeholder="Write your comment..."
                               value={note}
                               onChange={(e) => setNote(e.target.value)}
                               rows={3}
                             />
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 8,
+                                marginBottom: 8,
+                              }}
+                            >
                               <Text>Rating:</Text>
-                              <Rate value={rating} onChange={value => setRating(value)} />
+                              <Rate
+                                value={rating}
+                                onChange={(value) => setRating(value)}
+                              />
                             </div>
-                            <Button 
-                              type="primary" 
+                            <Button
+                              type="primary"
                               onClick={() => {
                                 if (note.trim()) {
                                   handleCommentSubmit();
@@ -857,41 +947,57 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
                               Post Comment
                             </Button>
                           </Space>
-                          
-                          {currentLesson.comments && currentLesson.comments.length > 0 ? (
+
+                          {currentLesson.comments &&
+                          currentLesson.comments.length > 0 ? (
                             <List
                               itemLayout="horizontal"
                               dataSource={currentLesson.comments}
-                              renderItem={comment => (
+                              renderItem={(comment) => (
                                 <List.Item>
                                   <Comment
                                     author={comment.author}
                                     avatar={<Avatar icon={<UserOutlined />} />}
                                     content={
                                       <div>
-                                        <Rate disabled value={comment.rating || 5} style={{ fontSize: 12, marginBottom: 8 }} />
+                                        <Rate
+                                          disabled
+                                          value={comment.rating || 5}
+                                          style={{
+                                            fontSize: 12,
+                                            marginBottom: 8,
+                                          }}
+                                        />
                                         <Paragraph>{comment.comment}</Paragraph>
                                       </div>
                                     }
-                                    datetime={new Date(comment.date).toLocaleString()}
+                                    datetime={new Date(
+                                      comment.date
+                                    ).toLocaleString()}
                                     actions={
-                                      comment.author === userProfile?.fullname ? [
-                                        <Button 
-                                          type="link" 
-                                          icon={<EditOutlined />} 
-                                          onClick={() => showEditModal(comment)}
-                                        >
-                                          Edit
-                                        </Button>,
-                                        <Button 
-                                          type="link" 
-                                          danger 
-                                          icon={<DeleteOutlined />} 
-                                          onClick={() => handleDeleteComment(comment._id)}
-                                        >
-                                          Delete
-                                        </Button>
-                                      ] : null
+                                      comment.author === userProfile?.fullname
+                                        ? [
+                                            <Button
+                                              type="link"
+                                              icon={<EditOutlined />}
+                                              onClick={() =>
+                                                showEditModal(comment)
+                                              }
+                                            >
+                                              Edit
+                                            </Button>,
+                                            <Button
+                                              type="link"
+                                              danger
+                                              icon={<DeleteOutlined />}
+                                              onClick={() =>
+                                                handleDeleteComment(comment._id)
+                                              }
+                                            >
+                                              Delete
+                                            </Button>,
+                                          ]
+                                        : null
                                     }
                                   />
                                 </List.Item>
@@ -913,67 +1019,92 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
 
           {!isVideoExpanded && (
             <Col span={6}>
-              <Card title={
-                <Space>
-                  <BookOutlined />
-                  <span>Course Content</span>
-                  <Tag color="blue">{lessons.length}</Tag>
-                </Space>
-              }>
+              <Card
+                title={
+                  <Space>
+                    <BookOutlined />
+                    <span>Course Content</span>
+                    <Tag color="blue">{lessons.length}</Tag>
+                  </Space>
+                }
+              >
                 <Menu
                   mode="vertical"
                   selectedKeys={[currentLesson?._id]}
-                  style={{ background: 'transparent', border: 'none' }}
+                  style={{ background: "transparent", border: "none" }}
                 >
                   {lessons.map((lesson, index) => {
                     const isFinalExam = lesson._id === "exam_final";
-                    const isFinalExamCompleted = isFinalExam && isLessonCompleted("exam_final");
-                    const completedLessons = lessons.filter((l) => isLessonCompleted(l._id));
-                    const onlyFinalExamLeft = completedLessons.length === lessons.length - 1 && !isFinalExamCompleted;
-                    
+                    const isFinalExamCompleted =
+                      isFinalExam && isLessonCompleted("exam_final");
+                    const completedLessons = lessons.filter((l) =>
+                      isLessonCompleted(l._id)
+                    );
+                    const onlyFinalExamLeft =
+                      completedLessons.length === lessons.length - 1 &&
+                      !isFinalExamCompleted;
+
                     return (
                       <Menu.Item
-                      key={lesson._id}
-                      disabled={!canAccessLesson(index)}
-                      onClick={() => canAccessLesson(index) && setCurrentLesson(lesson)}
-                      style={{ 
-                        marginBottom: 8, 
-                        backgroundColor: currentLesson?._id === lesson._id ? '#e6f7ff' : 'white',
-                        borderRadius: 8,
-                        padding: '12px 16px',
-                        height: 'auto'
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Text ellipsis style={{ maxWidth: '80%' }}>{lesson.title}</Text>
-                        
-                        {lesson._id === "exam_final" && isCompleted && (
-                          <CheckCircleOutlined style={{ color: '#52c41a' }} />
-                        )}
-                    
-                        {lesson._id !== 'exam_final' && isLessonCompleted(lesson._id) && (
-                          <CheckCircleOutlined style={{ color: '#52c41a' }} />
-                        )}
-                    
-                        {!canAccessLesson(index) && (
-                          <LockOutlined style={{ color: '#bfbfbf' }} />
-                        )}
-                      </div>
-                    
-                      {lesson._id === 'final_exam' && !isCompleted && onlyFinalExamLeft && !isCompleted && (
-                        <Alert
-                          message="Please start final exam to complete course"
-                          type="info"
-                          showIcon
-                          style={{ 
-                            marginTop: 8, 
-                            fontSize: 12, 
-                            padding: '4px 8px' 
+                        key={lesson._id}
+                        disabled={!canAccessLesson(index)}
+                        onClick={() =>
+                          canAccessLesson(index) && setCurrentLesson(lesson)
+                        }
+                        style={{
+                          marginBottom: 8,
+                          backgroundColor:
+                            currentLesson?._id === lesson._id
+                              ? "#e6f7ff"
+                              : "white",
+                          borderRadius: 8,
+                          padding: "12px 16px",
+                          height: "auto",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
                           }}
-                        />
-                      )}
-                    </Menu.Item>
-                    
+                        >
+                          <Text ellipsis style={{ maxWidth: "80%" }}>
+                            {lesson.title}
+                          </Text>
+
+                          {lesson._id === "exam_final" && isCompleted && (
+                            <CheckCircleOutlined style={{ color: "#52c41a" }} />
+                          )}
+
+                          {lesson._id !== "exam_final" &&
+                            isLessonCompleted(lesson._id) && (
+                              <CheckCircleOutlined
+                                style={{ color: "#52c41a" }}
+                              />
+                            )}
+
+                          {!canAccessLesson(index) && (
+                            <LockOutlined style={{ color: "#bfbfbf" }} />
+                          )}
+                        </div>
+
+                        {lesson._id === "final_exam" &&
+                          !isCompleted &&
+                          onlyFinalExamLeft &&
+                          !isCompleted && (
+                            <Alert
+                              message="Please start final exam to complete course"
+                              type="info"
+                              showIcon
+                              style={{
+                                marginTop: 8,
+                                fontSize: 12,
+                                padding: "4px 8px",
+                              }}
+                            />
+                          )}
+                      </Menu.Item>
                     );
                   })}
                 </Menu>
@@ -982,7 +1113,7 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
           )}
         </Row>
       </Content>
-      
+
       {/* Edit Comment Modal */}
       <Modal
         title="Edit Comment"
@@ -992,22 +1123,18 @@ const CourseLearningPage = ({ isCourseCompleted }) => {
           <Button key="cancel" onClick={() => setEditModalVisible(false)}>
             Cancel
           </Button>,
-          <Button 
-            key="submit" 
-            type="primary" 
-            onClick={handleEditComment}
-          >
+          <Button key="submit" type="primary" onClick={handleEditComment}>
             Update Comment
-          </Button>
+          </Button>,
         ]}
       >
-        <Space direction="vertical" style={{ width: '100%' }}>
+        <Space direction="vertical" style={{ width: "100%" }}>
           <div style={{ marginBottom: 16 }}>
             <Text>Rating:</Text>
-            <Rate 
-              value={editCommentRating} 
-              onChange={(value) => setEditCommentRating(value)} 
-              style={{ display: 'block', marginTop: 8 }}
+            <Rate
+              value={editCommentRating}
+              onChange={(value) => setEditCommentRating(value)}
+              style={{ display: "block", marginTop: 8 }}
             />
           </div>
           <div>

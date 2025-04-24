@@ -4,13 +4,13 @@ import { useNavigate } from "react-router-dom";
 import UpdateCourseModal from "./UpdateCourseModal";
 import { useTheme } from "../context/ThemeContext";
 import FullScreenLoader from "../../FullScreenLoader";
-import { 
-  Button, 
-  Spin, 
-  Breadcrumb, 
-  Modal, 
-  message, 
-  Dropdown, 
+import {
+  Button,
+  Spin,
+  Breadcrumb,
+  Modal,
+  message,
+  Dropdown,
   Space,
   Card,
   Tag,
@@ -25,9 +25,15 @@ import {
   Divider,
   Collapse,
   Form,
-  Radio
+  Radio,
 } from "antd";
-import { HomeOutlined, MoreOutlined, FilterOutlined, SearchOutlined, SortAscendingOutlined } from "@ant-design/icons";
+import {
+  HomeOutlined,
+  MoreOutlined,
+  FilterOutlined,
+  SearchOutlined,
+  SortAscendingOutlined,
+} from "@ant-design/icons";
 import { ToastContainer, toast } from "react-toastify";
 import { Edit, Trash2, Eye, Filter, SlidersHorizontal, X } from "lucide-react";
 
@@ -52,8 +58,8 @@ const CourseListForTutor = () => {
 
   // Loading spinner
   const [navigating, setNavigating] = useState(false); // Kiểm soát hiển thị loading khi chuyển trang
-const [navigationTarget, setNavigationTarget] = useState(null); // Lưu địa chỉ trang đích
-  
+  const [navigationTarget, setNavigationTarget] = useState(null); // Lưu địa chỉ trang đích
+
   // Filter states
   const [filterVisible, setFilterVisible] = useState(false);
   const [categories, setCategories] = useState([]);
@@ -62,7 +68,7 @@ const [navigationTarget, setNavigationTarget] = useState(null); // Lưu địa c
     category: "all",
     status: "all",
     priceRange: [0, 10000000],
-    sortBy: "newest"
+    sortBy: "newest",
   });
 
   // useEffect(() => {
@@ -83,11 +89,11 @@ const [navigationTarget, setNavigationTarget] = useState(null); // Lưu địa c
 
   const [initialLoading, setInitialLoading] = useState(true);
 
-useEffect(() => {
-  setTimeout(() => {
-    setInitialLoading(false);
-  }, 2000);
-}, []);
+  useEffect(() => {
+    setTimeout(() => {
+      setInitialLoading(false);
+    }, 2000);
+  }, []);
 
   useEffect(() => {
     const fetchTutorCourses = async () => {
@@ -114,19 +120,21 @@ useEffect(() => {
           setCourses(response.data);
           console.log("Courses:", response.data);
           setDisplayedCourses(response.data);
-          
+
           // Extract unique categories
-          const uniqueCategories = [...new Set(response.data.map(course => course.category))];
+          const uniqueCategories = [
+            ...new Set(response.data.map((course) => course.category)),
+          ];
           setCategories(uniqueCategories);
-          
+
           // Set initial price range
           if (response.data.length > 0) {
-            const prices = response.data.map(course => course.price);
+            const prices = response.data.map((course) => course.price);
             const minPrice = Math.min(...prices);
             const maxPrice = Math.max(...prices);
-            setFilters(prev => ({
+            setFilters((prev) => ({
               ...prev,
-              priceRange: [minPrice, maxPrice]
+              priceRange: [minPrice, maxPrice],
             }));
           }
         }
@@ -146,38 +154,45 @@ useEffect(() => {
   // Apply filters when filters or search changes
   useEffect(() => {
     if (courses.length === 0) return;
-    
+
     let filtered = [...courses];
-    
+
     // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(course => 
-        course.title.toLowerCase().includes(query) || 
-        course.description.toLowerCase().includes(query)
+      filtered = filtered.filter(
+        (course) =>
+          course.title.toLowerCase().includes(query) ||
+          course.description.toLowerCase().includes(query)
       );
     }
-    
+
     // Apply category filter
     if (filters.category !== "all") {
-      filtered = filtered.filter(course => course.category === filters.category);
+      filtered = filtered.filter(
+        (course) => course.category === filters.category
+      );
     }
-    
+
     // Apply status filter
     if (filters.status !== "all") {
       const statusValue = filters.status === "available";
-      filtered = filtered.filter(course => course.status === statusValue);
+      filtered = filtered.filter((course) => course.status === statusValue);
     }
-    
+
     // Apply price range filter
-    filtered = filtered.filter(course => 
-      course.price >= filters.priceRange[0] && course.price <= filters.priceRange[1]
+    filtered = filtered.filter(
+      (course) =>
+        course.price >= filters.priceRange[0] &&
+        course.price <= filters.priceRange[1]
     );
-    
+
     // Apply sorting
     if (filters.sortBy === "newest") {
       // Assuming courses have a 'createdAt' field
-      filtered.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+      filtered.sort(
+        (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+      );
     } else if (filters.sortBy === "price-low") {
       filtered.sort((a, b) => a.price - b.price);
     } else if (filters.sortBy === "price-high") {
@@ -187,7 +202,7 @@ useEffect(() => {
     } else if (filters.sortBy === "z-a") {
       filtered.sort((a, b) => b.title.localeCompare(a.title));
     }
-    
+
     setDisplayedCourses(filtered);
   }, [courses, filters, searchQuery]);
 
@@ -332,29 +347,29 @@ useEffect(() => {
             <Eye size={16} /> <span>View Details</span>
           </div>
         ),
-        onClick: () => handleNavigateWithLoading(`/courses-list-tutor/${course._id}`),
-        
+        onClick: () =>
+          handleNavigateWithLoading(`/courses-list-tutor/${course._id}`),
       },
     ];
   };
 
   const handleFilterChange = (key, value) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      [key]: value
+      [key]: value,
     }));
   };
 
   const resetFilters = () => {
-    const prices = courses.map(course => course.price);
+    const prices = courses.map((course) => course.price);
     const minPrice = Math.min(...prices);
     const maxPrice = Math.max(...prices);
-    
+
     setFilters({
       category: "all",
       status: "all",
       priceRange: [minPrice, maxPrice],
-      sortBy: "newest"
+      sortBy: "newest",
     });
     setSearchQuery("");
   };
@@ -377,20 +392,26 @@ useEffect(() => {
     setNavigating(false);
     setNavigationTarget(null);
   };
-  
+
   if (initialLoading) {
     return (
-      <FullScreenLoader 
-        message="Preparing Your Courses" 
+      <FullScreenLoader
+        message="Preparing Your Courses"
         description="Loading your educational content"
         duration={2000}
-        onNavigate={() => {performNavigation()}}
+        onNavigate={() => {
+          performNavigation();
+        }}
       />
     );
   }
 
   return (
-    <div className={`p-6 min-h-screen ${theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"}`}>
+    <div
+      className={`p-6 min-h-screen ${
+        theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
+      }`}
+    >
       {/* <Spin spinning={spinning} fullscreen /> */}
       {/* {loading && (
         <FullScreenLoader 
@@ -402,103 +423,124 @@ useEffect(() => {
         />
       )} */}
       <div className="mb-6">
-        <Breadcrumb items={[
-          { title: <HomeOutlined />, href: "/" },
-          { title: "Dashboard", href: "/dashboard" },
-          { title: "My Courses" },
-        ]} />
+        <Breadcrumb
+          items={[
+            { title: <HomeOutlined />, href: "/" },
+            { title: "Dashboard", href: "/dashboard" },
+            { title: "My Courses" },
+          ]}
+        />
       </div>
-      
+
       <div className="flex justify-between items-center mb-6">
-        <Title level={2} className={`${theme === "dark" ? "text-white" : "text-gray-800"} mb-0`}>
+        <Title
+          level={2}
+          className={`${
+            theme === "dark" ? "text-white" : "text-gray-800"
+          } mb-0`}
+        >
           My Courses
         </Title>
         <div className="flex space-x-3">
-          <Button 
+          <Button
             icon={<FilterOutlined />}
             onClick={() => setFilterVisible(!filterVisible)}
-            className={`${filterVisible ? 'bg-blue-50 text-blue-500 border-blue-200' : ''}`}
+            className={`${
+              filterVisible ? "bg-blue-50 text-blue-500 border-blue-200" : ""
+            }`}
           >
             Filter
           </Button>
-          <Button 
-            type="primary" 
+          {/* <Button
+            type="primary"
             className="bg-blue-500 hover:bg-blue-600 border-none"
-            onClick={() => navigate('/createcourse')}
+            onClick={() => navigate("/createcourse")}
           >
             Create New Course
-          </Button>
+          </Button> */}
         </div>
       </div>
 
       {/* Filter and Search Section */}
-      <div className={`mb-6 transition-all duration-300 ${filterVisible ? 'block' : 'hidden'}`}>
-        <Card className={`${theme === "dark" ? "bg-gray-800 border-gray-700" : "bg-white"}`}>
+      <div
+        className={`mb-6 transition-all duration-300 ${
+          filterVisible ? "block" : "hidden"
+        }`}
+      >
+        <Card
+          className={`${
+            theme === "dark" ? "bg-gray-800 border-gray-700" : "bg-white"
+          }`}
+        >
           <div className="flex justify-between items-center mb-4">
-            <Title level={5} className="m-0">Filters</Title>
-            <Button 
-              type="text" 
-              icon={<X size={16} />} 
+            <Title level={5} className="m-0">
+              Filters
+            </Title>
+            <Button
+              type="text"
+              icon={<X size={16} />}
               onClick={resetFilters}
               className="flex items-center"
             >
               Reset
             </Button>
           </div>
-          
+
           <Row gutter={[16, 16]}>
             <Col xs={24} md={12} lg={6}>
               <div className="mb-1">
                 <Text strong>Search</Text>
               </div>
-              <Input 
-                placeholder="Search by title or description" 
+              <Input
+                placeholder="Search by title or description"
                 allowClear
                 prefix={<SearchOutlined />}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </Col>
-            
+
             <Col xs={24} md={12} lg={6}>
               <div className="mb-1">
                 <Text strong>Category</Text>
               </div>
               <Select
-                style={{ width: '100%' }}
+                style={{ width: "100%" }}
                 value={filters.category}
-                onChange={(value) => handleFilterChange('category', value)}
+                onChange={(value) => handleFilterChange("category", value)}
               >
                 <Option value="all">All Categories</Option>
                 {categories.map((category) => (
-                  <Option key={category} value={category}>{category}</Option>
+                  <Option key={category} value={category}>
+                    {category}
+                  </Option>
                 ))}
               </Select>
             </Col>
-            
+
             <Col xs={24} md={12} lg={6}>
               <div className="mb-1">
                 <Text strong>Status</Text>
               </div>
               <Select
-                style={{ width: '100%' }}
+                style={{ width: "100%" }}
                 value={filters.status}
-                onChange={(value) => handleFilterChange('status', value)}
+                onChange={(value) => handleFilterChange("status", value)}
               >
                 <Option value="all">All Status</Option>
                 <Option value="available">Available</Option>
                 <Option value="unavailable">Not Available</Option>
               </Select>
             </Col>
-            
+
             <Col xs={24} md={12} lg={6}>
               <div className="mb-1">
                 <Text strong>Sort By</Text>
               </div>
               <Select
-                style={{ width: '100%' }}
+                style={{ width: "100%" }}
                 value={filters.sortBy}
-                onChange={(value) => handleFilterChange('sortBy', value)}
+                onChange={(value) => handleFilterChange("sortBy", value)}
               >
                 <Option value="newest">Newest</Option>
                 <Option value="price-low">Price: Low to High</Option>
@@ -507,7 +549,7 @@ useEffect(() => {
                 <Option value="z-a">Title: Z to A</Option>
               </Select>
             </Col>
-            
+
             <Col span={24}>
               <div className="mb-1">
                 <Text strong>Price Range</Text>
@@ -520,15 +562,28 @@ useEffect(() => {
                     max={10000000}
                     step={100000}
                     value={filters.priceRange}
-                    onChange={(value) => handleFilterChange('priceRange', value)}
+                    onChange={(value) =>
+                      handleFilterChange("priceRange", value)
+                    }
                     tooltip={{
-                      formatter: (value) => `${new Intl.NumberFormat('vi-VN').format(value)} VND`
+                      formatter: (value) =>
+                        `${new Intl.NumberFormat("vi-VN").format(value)} VND`,
                     }}
                   />
                 </Col>
                 <Col span={24} className="flex justify-between">
-                  <Text>{new Intl.NumberFormat('vi-VN').format(filters.priceRange[0])} VND</Text>
-                  <Text>{new Intl.NumberFormat('vi-VN').format(filters.priceRange[1])} VND</Text>
+                  <Text>
+                    {new Intl.NumberFormat("vi-VN").format(
+                      filters.priceRange[0]
+                    )}{" "}
+                    VND
+                  </Text>
+                  <Text>
+                    {new Intl.NumberFormat("vi-VN").format(
+                      filters.priceRange[1]
+                    )}{" "}
+                    VND
+                  </Text>
                 </Col>
               </Row>
             </Col>
@@ -539,7 +594,11 @@ useEffect(() => {
       {/* Results counter */}
       {!loading && (
         <div className="mb-4 flex justify-between items-center">
-          <Text className={`${theme === "dark" ? "text-gray-300" : "text-gray-600"}`}>
+          <Text
+            className={`${
+              theme === "dark" ? "text-gray-300" : "text-gray-600"
+            }`}
+          >
             Showing {displayedCourses.length} of {courses.length} courses
           </Text>
           {displayedCourses.length !== courses.length && (
@@ -550,13 +609,15 @@ useEffect(() => {
         </div>
       )}
 
-      {errorMessage && <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded">
-        <p>{errorMessage}</p>
-      </div>}
+      {errorMessage && (
+        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded">
+          <p>{errorMessage}</p>
+        </div>
+      )}
 
       {loading ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map(i => (
+          {[1, 2, 3].map((i) => (
             <Card key={i} className="w-full">
               <Skeleton loading active avatar paragraph={{ rows: 4 }} />
             </Card>
@@ -571,13 +632,25 @@ useEffect(() => {
                 theme === "dark" ? "bg-gray-800 border-gray-700" : "bg-white"
               }`}
               actions={[
-                <Button type="text" className="flex items-center justify-center" onClick={() => handleOpenModal(course)}>
+                <Button
+                  type="text"
+                  className="flex items-center justify-center"
+                  onClick={() => handleOpenModal(course)}
+                >
                   <Edit size={16} className="mr-1" /> Update
                 </Button>,
-                <Button type="text" className="flex items-center justify-center text-red-500" onClick={() => handleDeleteCourse(course._id)}>
+                <Button
+                  type="text"
+                  className="flex items-center justify-center text-red-500"
+                  onClick={() => handleDeleteCourse(course._id)}
+                >
                   <Trash2 size={16} className="mr-1" /> Delete
                 </Button>,
-                <Button type="text" className="flex items-center justify-center text-green-500" onClick={() => navigate(`/courses-list-tutor/${course._id}`)}>
+                <Button
+                  type="text"
+                  className="flex items-center justify-center text-green-500"
+                  onClick={() => navigate(`/courses-list-tutor/${course._id}`)}
+                >
                   <Eye size={16} className="mr-1" /> View
                 </Button>,
               ]}
@@ -588,11 +661,17 @@ useEffect(() => {
                     accept="image/*"
                     id={`upload-image-${course._id}`}
                     className="hidden"
-                    onChange={(e) => handleUpdateImage(course._id, e.target.files[0])}
+                    onChange={(e) =>
+                      handleUpdateImage(course._id, e.target.files[0])
+                    }
                   />
                   <div
                     className="h-full cursor-pointer group relative"
-                    onClick={() => document.getElementById(`upload-image-${course._id}`).click()}
+                    onClick={() =>
+                      document
+                        .getElementById(`upload-image-${course._id}`)
+                        .click()
+                    }
                   >
                     {loadingImage[course._id] ? (
                       <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
@@ -606,7 +685,9 @@ useEffect(() => {
                           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
                         <div className="absolute inset-0 bg-black bg-opacity-30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                          <span className="text-white font-medium">Change Image</span>
+                          <span className="text-white font-medium">
+                            Change Image
+                          </span>
                         </div>
                       </>
                     )}
@@ -616,30 +697,37 @@ useEffect(() => {
             >
               <div className="px-2">
                 <div className="flex justify-between items-start mb-2">
-                  <Title level={4} className="!mb-0 text-blue-600 truncate" style={{ maxWidth: '70%' }}>
+                  <Title
+                    level={4}
+                    className="!mb-0 text-blue-600 truncate"
+                    style={{ maxWidth: "70%" }}
+                  >
                     {course.title}
                   </Title>
                   <Tag color={course.status ? "success" : "error"}>
                     {course.status ? "Available" : "Not Available"}
                   </Tag>
                 </div>
-                
+
                 <Text type="secondary" className="block mb-2">
                   {course.category}
                 </Text>
-                
-                <Paragraph className="mb-3 text-gray-700 line-clamp-2" ellipsis={{ rows: 2 }}>
+
+                <Paragraph
+                  className="mb-3 text-gray-700 line-clamp-2"
+                  ellipsis={{ rows: 2 }}
+                >
                   {course.description}
                 </Paragraph>
-                
+
                 <div className="flex justify-between items-center">
                   <Text strong className="text-lg text-blue-700">
-                    {new Intl.NumberFormat('vi-VN').format(course.price)} VND
+                    {new Intl.NumberFormat("vi-VN").format(course.price)} VND
                   </Text>
                   <Dropdown
                     menu={{ items: getDropdownItems(course) }}
                     placement="bottomRight"
-                    trigger={['click']}
+                    trigger={["click"]}
                     className="md:hidden"
                   >
                     <Button type="text" icon={<MoreOutlined />} />
@@ -654,8 +742,8 @@ useEffect(() => {
           image={Empty.PRESENTED_IMAGE_SIMPLE}
           description={
             <span className="text-lg font-medium text-gray-600">
-              {courses.length > 0 
-                ? "No courses match your current filters." 
+              {courses.length > 0
+                ? "No courses match your current filters."
                 : "You have no courses at the moment."}
             </span>
           }
@@ -663,10 +751,10 @@ useEffect(() => {
           {courses.length > 0 ? (
             <Button onClick={resetFilters}>Clear Filters</Button>
           ) : (
-            <Button 
-              type="primary" 
+            <Button
+              type="primary"
               className="bg-blue-500 hover:bg-blue-600 border-none"
-              onClick={() => navigate('/create-course')}
+              onClick={() => navigate("/createcourse")}
             >
               Create Your First Course
             </Button>

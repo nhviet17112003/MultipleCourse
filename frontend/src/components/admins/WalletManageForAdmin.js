@@ -142,7 +142,7 @@ const WalletManageForAdmin = () => {
       message.success("Withdrawal request approved successfully");
       setIsModalVisible(false);
     } catch (err) {
-      message.error("Có lỗi xảy ra khi duyệt yêu cầu");
+      message.error("Error approving withdrawal request");
     }
   };
 
@@ -168,7 +168,7 @@ const WalletManageForAdmin = () => {
       message.success("Withdrawal request rejected");
       setIsModalVisible(false);
     } catch (err) {
-      message.error("Có lỗi xảy ra khi từ chối yêu cầu");
+      message.error("Error rejecting withdrawal request");
     }
   };
 

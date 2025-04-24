@@ -19,46 +19,46 @@ export default function HomeScreen() {
   const [tutors, setTutors] = useState([]);
   const [bestSeller, setBestSeller] = useState([]);
 
-  function showFlyingDragon() {
-    const dragon = document.createElement("img");
-    dragon.src = "/dragon.gif"; // Đường dẫn tới hình ảnh con rồng
-    dragon.alt = "Flying Dragon";
-    dragon.style.position = "fixed";
-    dragon.style.top = "50%";
-    dragon.style.left = "-300px";
-    dragon.style.width = "600px"; // Kích thước con rồng
-    dragon.style.height = "auto";
-    dragon.style.animation = "flyDragon 5s linear forwards";
-    dragon.style.zIndex = "1000"; // Đảm bảo con rồng nằm trên các thành phần khác
-    document.body.appendChild(dragon);
+  //   function showFlyingDragon() {
+  //     const dragon = document.createElement("img");
+  //     dragon.src = "/dragon.gif"; // Đường dẫn tới hình ảnh con rồng
+  //     dragon.alt = "Flying Dragon";
+  //     dragon.style.position = "fixed";
+  //     dragon.style.top = "50%";
+  //     dragon.style.left = "-300px";
+  //     dragon.style.width = "600px"; // Kích thước con rồng
+  //     dragon.style.height = "auto";
+  //     dragon.style.animation = "flyDragon 5s linear forwards";
+  //     dragon.style.zIndex = "1000"; // Đảm bảo con rồng nằm trên các thành phần khác
+  //     document.body.appendChild(dragon);
 
-    // Xóa con rồng sau khi hoàn thành animation
-    setTimeout(() => {
-      dragon.remove();
-    }, 5000);
-  }
+  //     // Xóa con rồng sau khi hoàn thành animation
+  //     setTimeout(() => {
+  //       dragon.remove();
+  //     }, 5000);
+  //   }
 
-  // Thêm keyframes cho animation
-  const style = document.createElement("style");
-  style.innerHTML = `
-    @keyframes flyDragon {
-        0% {
-            transform: translateX(0) scale(1);
-        }
-        50% {
-            transform: translateX(50vw) translateY(-20px) scale(1.2);
-        }
-        100% {
-            transform: translateX(110vw) scale(1);
-        }
-    }
-`;
-  document.head.appendChild(style);
+  //   // Thêm keyframes cho animation
+  //   const style = document.createElement("style");
+  //   style.innerHTML = `
+  //     @keyframes flyDragon {
+  //         0% {
+  //             transform: translateX(0) scale(1);
+  //         }
+  //         50% {
+  //             transform: translateX(50vw) translateY(-20px) scale(1.2);
+  //         }
+  //         100% {
+  //             transform: translateX(110vw) scale(1);
+  //         }
+  //     }
+  // `;
+  //   document.head.appendChild(style);
 
-  // Gọi hàm trong useEffect
-  useEffect(() => {
-    showFlyingDragon();
-  }, []);
+  //   // Gọi hàm trong useEffect
+  //   useEffect(() => {
+  //     showFlyingDragon();
+  //   }, []);
 
   useEffect(() => {
     const fetchTopTutors = async () => {
